@@ -16,7 +16,7 @@ struct RootView: View {
                     case .storyChoice:
                         StoryChoicePlaceholderView()
                     case .tutorial:
-                        TutorialPlaceholderView()
+                        TutorialView()
                     }
                 }
         }

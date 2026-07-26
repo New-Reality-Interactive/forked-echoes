@@ -58,7 +58,7 @@ struct HomeView: View {
                 case .storyChoice:
                     StoryChoicePlaceholderView()
                 case .tutorial:
-                    TutorialPlaceholderView()
+                    TutorialView()
                 }
             }
     }

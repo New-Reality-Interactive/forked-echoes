@@ -60,6 +60,78 @@
           }
         }
       }
+    },
+    "tutorial.action.backHome" : {
+      "comment" : "Tutorial screen: secondary action label, returns to Home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back Home"
+          }
+        }
+      }
+    },
+    "tutorial.action.startStory" : {
+      "comment" : "Tutorial screen: primary action label, starts the story",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Story"
+          }
+        }
+      }
+    },
+    "tutorial.eyebrow" : {
+      "comment" : "Tutorial screen: small eyebrow label above the mechanic explanations",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How To Play"
+          }
+        }
+      }
+    },
+    "tutorial.mechanic.choice" : {
+      "comment" : "Tutorial screen: explains choice-making (hold to commit, or quick tap with a brief undo window)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When a choice comes up, hold it. It takes a moment to commit — you can let go and change your mind before it locks in. A quick tap decides right away — tap it again in the second or two after if you change your mind."
+          }
+        }
+      }
+    },
+    "tutorial.mechanic.echo" : {
+      "comment" : "Tutorial screen: explains that choices are remembered and called back to later",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Once you've chosen, it's part of your story. **The story remembers** what you pick — it'll come back to it later."
+          }
+        }
+      }
+    },
+    "tutorial.mechanic.pageTurn" : {
+      "comment" : "Tutorial screen: explains page-turning via swipe or tap-zone",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swipe left to keep reading, or tap the right edge. Swipe right to look back, or tap the left edge."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

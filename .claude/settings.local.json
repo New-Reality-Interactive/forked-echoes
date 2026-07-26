@@ -31,7 +31,9 @@
       "Bash(git check-ignore *)",
       "Bash(echo \"exit: $?\")",
       "Read(//dev/**)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(echo \"grep exit: $?\")",
+      "Bash(xcodebuild -version)"
     ]
   }
 }

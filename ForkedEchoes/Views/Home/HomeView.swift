@@ -10,27 +10,25 @@ struct HomeView: View {
                 VStack(spacing: 24) {
                     VStack(spacing: 8) {
                         Text("home.appTitle")
-                            .font(.subheadline)
-                            .textCase(.uppercase)
-                            .foregroundStyle(.secondary)
+                            .eyebrowStyle()
 
                         Text("home.storyTitle")
-                            .font(.largeTitle.bold())
+                            .headlineStyle()
                             .multilineTextAlignment(.center)
                     }
 
-                    VStack(spacing: 14) {
+                    VStack(spacing: 16) {
                         NavigationLink(value: HomeDestination.storyChoice) {
                             Text(primaryActionLabel)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.primaryAction)
 
                         NavigationLink(value: HomeDestination.tutorial) {
                             Text("home.action.startTutorial")
                                 .frame(maxWidth: .infinity, minHeight: 44)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.secondaryAction)
                     }
                     // AD-8: geometry-only landscape constraint, no verticalSizeClass branch needed.
                     // Caps action-button width so they don't stretch edge-to-edge in a wide landscape
@@ -46,6 +44,7 @@ struct HomeView: View {
                 // height push it past the available frame (AC #2).
                 .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
+            .background(Color.surfaceBase.ignoresSafeArea())
         }
     }
 }

@@ -33,7 +33,9 @@
       "Read(//dev/**)",
       "Bash(git *)",
       "Bash(echo \"grep exit: $?\")",
-      "Bash(xcodebuild -version)"
+      "Bash(xcodebuild -version)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(xargs -I{} cat {})"
     ]
   }
 }

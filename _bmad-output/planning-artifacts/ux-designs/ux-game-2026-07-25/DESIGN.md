@@ -2,7 +2,7 @@
 name: Forked Echoes — Warm Ink, Circuit Frame
 description: Native iOS CYOA reader. Warm ink on paper, oversized editorial-sans confidence, and a brass circuit-trace frame that powers up when the story echoes a past choice.
 status: final
-updated: 2026-07-25
+updated: 2026-07-26
 sources:
   - _bmad-output/planning-artifacts/prds/prd-game-2026-07-25/prd.md
   - _bmad-output/brainstorming/brainstorm-ios-app-concept-2026-07-25/brainstorm-intent.md
@@ -105,7 +105,11 @@ components:
     corner-pad-diameter: 5px
     corner-pad-fill-active: '{colors.accent-ember}'
     background: '{colors.surface-raised}'
-    note: 'Active state is never color-alone: the via grows 7px → 9px and the hollow pads fill solid, so the powered-up state reads by shape/size as well as hue (CVD-safe redundancy — brass/ember are luminance-close and would otherwise be a pure hue shift).'
+    note: 'Active state is never color-alone: the via grows 7px → 9px and the hollow pads fill solid, so the powered-up state reads by shape/size as well as hue (CVD-safe redundancy — brass/ember are luminance-close and would otherwise be a pure hue shift). In landscape, the frame reflows its corner geometry to the wider/shorter aspect ratio — corner mark sizes (via/pad diameters) stay fixed, only their position along the frame edges adapts; the frame concept and echo behavior are otherwise unchanged from portrait.'
+  reading-surface:
+    column-max-width-landscape: 680px
+    min-tap-target: 44pt
+    note: 'Portrait: single column, full-bleed card width — no cap needed, screen width is already a comfortable measure. Landscape: the column grows with screen width but stops at this max-width once lines would exceed a comfortable reading measure (~60-75 characters at {typography.body}); the remaining width becomes side margin, never longer lines. Applies to Story/Choice, Tutorial, Ending, and Memory. min-tap-target covers Home/Tutorial action buttons; see Layout & Spacing for the headroom-parity rule these tokens both depend on.'
   choice-card:
     background: '{colors.surface-raised}'
     border-width: 3px
@@ -117,7 +121,9 @@ components:
     tap-undo-window: 1500ms
     selected-background: '{colors.selected-fill}'
     selected-border-color: '{colors.ink-primary}'
-    note: 'A quick tap (or VoiceOver double-tap) commits instantly but enters the same tap-undo-window before finalizing, so the tap path is never less forgiving than the hold path (which allows cancel-by-release throughout its full charge-duration).'
+    layout-landscape: 'horizontal row instead of a vertical stack when 2 (or 3) choices are present — same {spacing.3} gap token, equal-width columns filling the reading surface up to {components.reading-surface.column-max-width-landscape}. Card styling, hold/tap-commit interaction, and equal ordinary/hard-fail treatment are all unchanged from portrait. A 3-card row wraps to a 2+1 layout (two cards on one line, the third below) once any label would exceed 2 lines at the current column width, or at Dynamic Type accessibility sizes and above — this is a hard constraint, not an implementation-time judgment call.'
+    min-tap-target: 44pt
+    note: 'A quick tap (or VoiceOver double-tap) commits instantly but enters the same tap-undo-window before finalizing, so the tap path is never less forgiving than the hold path (which allows cancel-by-release throughout its full charge-duration). min-tap-target holds regardless of orientation or layout (stack or row) — see Layout & Spacing.'
   page-tap-zones:
     left-zone-width: 33%
     right-zone-width: 33%
@@ -226,6 +232,8 @@ An 8pt-based scale (`{spacing.2}` through `{spacing.7}`), standard for iOS. The 
 
 Single column, full-bleed reading card per screen — no split views, no multi-pane. The branch-arrival interstitial is the one full-bleed exception (art fills the frame entirely; the circuit frame does not appear on that screen, reserved for reading/choice screens only).
 
+**Landscape.** Both orientations are first-class on iPhone (v1 originally shipped portrait-only; reversed via Sprint Change Proposal, 2026-07-26). The reading column (`{components.reading-surface}`) grows with the screen but stops at `{components.reading-surface.column-max-width-landscape}`, so lines never exceed a comfortable reading measure — extra width becomes side margin. Choice cards (`{components.choice-card.layout-landscape}`) switch from a vertical stack to a horizontal row. The circuit frame, Home/Tutorial's simple centered layout, and the branch-arrival interstitial's full-bleed composition all carry over conceptually unchanged, reflowing to the new aspect ratio rather than changing shape or behavior. Page-turn tap zones keep the same proportional left/right-third split in both orientations. Two rules hold identically in both orientations, stated once here rather than per-component: the 44pt minimum tap target (`min-tap-target` on `reading-surface` and `choice-card`) applies regardless of layout, and the frame-well's Dynamic Type headroom clearance must not shrink just because landscape's frame is shorter.
+
 **Dynamic Type headroom.** The frame-well's padding and the circuit corner assembly's clearance are specified with generous fixed headroom (not scaled 1:1 with type), sized to the *largest* accessibility Dynamic Type category, not the default — the corner geometry itself doesn't grow, only the text inside the well does, so headroom must already assume maximum text size rather than being retrofitted later. On the branch-arrival interstitial, the headline is permitted to wrap to 2 lines at accessibility sizes; the CSS-composed art beneath it is treated as background, not layout — it never claims space the wrapped headline needs, and any overlap is resolved in the headline's favor (art crops/dims under it rather than the reverse).
 
 Structurally, the frame (rule + corner geometry) and the reading content are two independent layers: the frame is pinned to the card's edges and never scrolls; the prose/choices layer scrolls *inside* it whenever content exceeds the visible height — at 3 choice cards, at accessibility text sizes, or both at once. This is what makes the headroom rule verifiable rather than aspirational: content growth is absorbed by scrolling under a fixed frame, never by the frame growing, shrinking, or being crowded. Validated at 3 choices (2 ordinary + 1 hard-fail) against an accessibility-scale text stress-test in `mockups/story-choice-three-way.html`.
@@ -253,8 +261,11 @@ Sharp everywhere. `{rounded.DEFAULT}` (0px) applies to the reading card, choice 
 - **Memory row** (`{components.memory-row}`) — a read-only choice-and-consequence row, visually related to the choice-card (same label typography) but flat, undecorated, no border or press state — this screen looks back, it doesn't ask for input.
 - **Memory score** (`{components.memory-score}`) — the alignment-score number and tier label at the top of Memory, in `{typography.stat}` and `{colors.accent-ember}` (safe at this size — see Colors) with the tier label in `{typography.meta}`/`{colors.ink-secondary}`.
 - **Home / Tutorial chrome** — Home and Tutorial are title-card and instructional surfaces, not reading pages. Home does **not** carry the circuit frame — the frame is reserved for reading surfaces (Story/Choice, Tutorial, Ending); Home is the one screen allowed a simpler, more spacious layout so the frame's appearance always means "you're inside the story."
+- **Reading surface** (`{components.reading-surface}`) — the content column within the frame-well on Story/Choice, Tutorial, Ending, and Memory. Full-bleed in portrait (no cap needed); in landscape, capped at `{components.reading-surface.column-max-width-landscape}` and centered, so extra width becomes side margin rather than longer lines. Carries the same 44pt tap-target floor as every other interactive element, in both orientations.
 
 Reference mockups: [`mockups/story-choice-warm-ink-circuit.html`](./mockups/story-choice-warm-ink-circuit.html) (story/choice screen, echo state, branch-arrival interstitial), [`mockups/story-choice-three-way.html`](./mockups/story-choice-three-way.html) (3-choice decision point — 2 ordinary + 1 hard-fail — at default and accessibility-Dynamic-Type sizes), [`mockups/home.html`](./mockups/home.html) (fresh-install and run-in-progress/"Resume Story" states), [`mockups/tutorial.html`](./mockups/tutorial.html) (dormant frame, run-options icon), [`mockups/ending.html`](./mockups/ending.html) (permanently-active frame; home vs. hard-fail variants side by side), [`mockups/memory.html`](./mockups/memory.html) (score/tier header, choice-and-consequence rows, no frame).
+
+**Landscape mockups** (Epic 5, Story 5.1): [`mockups/home-landscape.html`](./mockups/home-landscape.html) (fresh-install and run-in-progress states, reflowed), [`mockups/tutorial-landscape.html`](./mockups/tutorial-landscape.html) (dormant frame, reading column capped/centered), [`mockups/story-choice-landscape.html`](./mockups/story-choice-landscape.html) (2-choice and 3-choice states at default text size; the accessibility-Dynamic-Type 2+1 wrap case is deferred to Story 5.3). Branch-arrival interstitial, Ending, and Memory landscape mockups are intentionally deferred to their own future epics, informed by these.
 
 ## App Icon
 
@@ -279,3 +290,5 @@ The one visual signature a player recognizes before ever opening the app — tra
 | Let Ending rest in the ember-active frame state permanently | Animate/pulse the Ending frame — it's resolved, not reacting |
 | Pair every ember state-change with a shape/size cue (via diameter, pad fill) | Signal "active/echoed" with color alone — brass/ember are luminance-close |
 | Use `accent-ember`/`-dark` only at 24px+/bold (frame, headline, Memory score) | Use `accent-ember`/`-dark` on small or caption-weight text — use the `-text` variant |
+| Cap the reading column's width in landscape (`{components.reading-surface.column-max-width-landscape}`) | Let body text stretch edge-to-edge, unbounded, on wide landscape screens |
+| Arrange choice cards in a horizontal row once landscape width allows it | Leave choice cards stacked vertically in landscape when there's clearly room for a row |

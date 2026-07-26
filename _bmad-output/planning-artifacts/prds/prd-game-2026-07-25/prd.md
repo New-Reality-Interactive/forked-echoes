@@ -154,6 +154,7 @@ Every gesture-based interaction (navigation and choice selection alike) has a st
 
 - **Platform:** Native iOS, on-device only — no network calls, no backend, no external integrations.
 - **Compatibility:** Support current major iOS release and the previous one (N-1).
+- **Orientation:** Supports both portrait and landscape on iPhone (see Epic 5: Landscape Support).
 
 ### 4.7 Content & Art
 **Description:** Visual assets bundled at build time. Realizes UJ-1.

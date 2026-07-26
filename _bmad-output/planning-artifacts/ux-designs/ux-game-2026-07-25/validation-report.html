@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>UX Design Validation: Many-Worlds CYOA</title>
+<title>UX Design Validation: Forked Echoes — Landscape Update</title>
 <style>
   :root {
     --bg: #fafaf9;
@@ -186,47 +186,36 @@
 
     <header class="report-header">
       <div class="title">
-        <h1>Many-Worlds CYOA — UX Design Validation Report</h1>
-        <div class="subtitle">_bmad-output/planning-artifacts/ux-designs/ux-game-2026-07-25/</div>
+        <h1>Forked Echoes — Landscape Update — UX Design Validation Report</h1>
+        <div class="subtitle">_bmad-output/planning-artifacts/ux-designs/ux-game-2026-07-25/{DESIGN,EXPERIENCE}.md</div>
       </div>
     </header>
 
     <div class="synthesis">
-      <p>The spine pair is close to source-extractable: token definitions are complete and resolve cleanly, section order matches the canonical shape, and both Key Flows mirror the PRD's UJ-1/UJ-2 verbatim with named protagonist, numbered steps, and a clear climax. One critical defect breaks the "source-extract cleanly" bar outright — EXPERIENCE.md's Information Architecture section falsely claims four of the five IA surfaces have no visual mockup when all five exist and DESIGN.md already links them — plus two high-severity gaps (no stated contrast targets despite a hard FR-11 requirement, and no DESIGN.md spec at all for the Memory screen's score/tier display).</p>
-      <p>The accessibility lens raises the stakes further: page-turn navigation is documented as swipe-only with no tap/VoiceOver equivalent anywhere — a direct contradiction of FR-11's hard "no gesture-only interaction" constraint, and a real iOS mechanics problem since VoiceOver consumes one-finger swipes for its own navigation. The echo-callback tag — the label for the app's signature "story remembers" moment, firing 2-3 times every run — also fails WCAG AA contrast in both light and dark themes. Combined, this is one more targeted edit pass, not a redesign, before the pair is safe to build from.</p>
+      <p>This synthesis covers the landscape-orientation addition (Epic 5, Story 5.1), reviewed after the original portrait-only pass (see the historical <code>review-rubric.md</code>/<code>review-accessibility.md</code> — those findings remain resolved and aren't re-litigated here). The rubric walker found the addition mechanically sound: every new token resolves, the new mockups are properly linked, and folding landscape into a "Responsive &amp; Platform" section as behavioral deltas — rather than a new Key Flow — was the right structural call.</p>
+      <p>The accessibility lens caught a real, concrete defect: all 3 new landscape reference mockups shrank padding and font-size to fit the shorter landscape frame and dropped below the pre-existing 44pt tap-target floor on real interactive elements — not a theoretical risk, an already-failing measurement in the artifacts as first authored. It also found the Dynamic Type headroom clearance had silently shrunk versus portrait, the "3-card row might be tight" note was a vague assumption rather than a testable rule, and a cross-reference syntax break in the new EXPERIENCE.md section. All findings below have been resolved via direct spec and mockup edits in this same session.</p>
     </div>
 
     <div class="dimension-summary">
-      <div class="dim-card"><div class="dim-name">1. Flow coverage</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong</div></div>
-      <div class="dim-card"><div class="dim-name">2. Token completeness</div><div class="dim-verdict" style="color: var(--verdict-adequate)">Adequate</div></div>
-      <div class="dim-card"><div class="dim-name">3. Component coverage</div><div class="dim-verdict" style="color: var(--verdict-adequate)">Adequate</div></div>
-      <div class="dim-card"><div class="dim-name">4. State coverage</div><div class="dim-verdict" style="color: var(--verdict-adequate)">Adequate</div></div>
-      <div class="dim-card"><div class="dim-name">5. Visual reference coverage</div><div class="dim-verdict" style="color: var(--verdict-broken)">Broken</div></div>
-      <div class="dim-card"><div class="dim-name">6. Bloat &amp; overspecification</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong</div></div>
-      <div class="dim-card"><div class="dim-name">7. Inheritance discipline</div><div class="dim-verdict" style="color: var(--verdict-adequate)">Adequate</div></div>
-      <div class="dim-card"><div class="dim-name">8. Shape fit</div><div class="dim-verdict" style="color: var(--verdict-adequate)">Adequate</div></div>
+      <div class="dim-card"><div class="dim-name">Flow coverage</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong (resolved)</div></div>
+      <div class="dim-card"><div class="dim-name">Token completeness</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong</div></div>
+      <div class="dim-card"><div class="dim-name">Component coverage</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong (resolved)</div></div>
+      <div class="dim-card"><div class="dim-name">State coverage</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong (resolved)</div></div>
+      <div class="dim-card"><div class="dim-name">Visual reference coverage</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong (resolved)</div></div>
+      <div class="dim-card"><div class="dim-name">Bloat &amp; overspecification</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong</div></div>
+      <div class="dim-card"><div class="dim-name">Inheritance discipline</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong (resolved)</div></div>
+      <div class="dim-card"><div class="dim-name">Shape fit</div><div class="dim-verdict" style="color: var(--verdict-strong)">Strong</div></div>
     </div>
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>1. Flow coverage</h2>
-          <span class="verdict-pill verdict-strong">Strong</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Checked: PRD UJ-1/UJ-2 against EXPERIENCE.md Key Flows for protagonist naming, numbered steps, climax/resolution beats, and failure path; all 12 FRs traced to a Key Flow, Component Pattern, State Pattern, or IA row citation.</p>
-          </div>
-        </div>
+        <summary><h2>1. Flow coverage</h2><span class="verdict-pill verdict-strong">Strong (resolved)</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>Folding landscape into Responsive &amp; Platform (not a new Key Flow) was correct — UJ-1/UJ-2 describe a beat sequence, not a layout, and nothing about the sequence changes in landscape. Story 5.1's AC items all traced cleanly into the spine text.</p></div></div>
         <div class="findings-list">
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">FR-7's "invisible during play" half has no behavioral rule in EXPERIENCE.md</h3>
-              <span class="finding-location">EXPERIENCE.md — absence</span>
-            </header>
-            <div class="finding-note">The score/tier's reveal at Memory is well covered, but the "never rendered during a run" testable consequence of FR-7 has no corresponding line in State Patterns or Component Patterns.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add a State Patterns line, e.g. "Alignment running total: never rendered or exposed during a run (FR-7); first surfaces on Memory."</div>
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">Hold-to-choose tap-target compliance wasn't confirmed for the landscape row layout</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">Page-turn zones got an explicit geometry statement; choice cards only got "same interaction," with no tap-target confirmation for the new horizontal-row layout.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added an explicit 44pt tap-target statement to the choice-cards bullet, plus a `min-tap-target` token in DESIGN.md. Resolved.</div>
           </article>
         </div>
       </details>
@@ -234,24 +223,26 @@
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>2. Token completeness</h2>
-          <span class="verdict-pill verdict-adequate">Adequate</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Checked every color/typography/rounded/spacing/component token in DESIGN.md's frontmatter, every <code>{path.to.token}</code> reference in the prose body, and whether contrast guidance exists for load-bearing text/background pairs given FR-11's hard HIG requirement.</p>
-          </div>
-        </div>
+        <summary><h2>2. Token completeness</h2><span class="verdict-pill verdict-strong">Strong</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>Every landscape token (`components.reading-surface`, `components.reading-surface.column-max-width-landscape`, `components.choice-card.layout-landscape`) resolves cleanly against DESIGN.md's frontmatter. No orphan or undefined tokens found.</p></div></div>
+        <div class="findings-list"></div>
+      </details>
+    </section>
+
+    <section class="dimension">
+      <details>
+        <summary><h2>3. Component coverage</h2><span class="verdict-pill verdict-strong">Strong (resolved)</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>Frame, choice-card, and Home/Tutorial chrome all had matching DESIGN.md visual specs and EXPERIENCE.md behavioral deltas. Two gaps found and fixed.</p></div></div>
         <div class="findings-list">
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-high">High</span>
-              <h3 class="finding-title">No contrast ratio or WCAG target stated anywhere in DESIGN.md</h3>
-              <span class="finding-location">DESIGN.md, Colors</span>
-            </header>
-            <div class="finding-note">EXPERIENCE.md's Accessibility Floor explicitly delegates "visual contrast" to DESIGN.md, and FR-11 makes sufficient contrast a hard, testable requirement. Highest-risk pairs: ink-secondary on surface-raised/surface-base, both themes.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add explicit verified ratios (e.g. "ink-secondary on surface-raised: ≥4.5:1, verified") for each load-bearing pair, light and dark.</div>
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">`reading-surface` had no narrative bullet in DESIGN.md's Components list</h3><span class="finding-location">DESIGN.md, Components</span></header>
+            <div class="finding-note">All 12 sibling components have a narrative bullet; reading-surface, defined in frontmatter, was missing one.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added a "Reading surface" bullet. Resolved.</div>
+          </article>
+          <article class="finding">
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">Deferred-mockup lists disagreed between the two spine files</h3><span class="finding-location">DESIGN.md vs. EXPERIENCE.md landscape-mockup notes</span></header>
+            <div class="finding-note">DESIGN.md omitted the branch-arrival interstitial from its deferred list; EXPERIENCE.md included it.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Aligned both to read "Branch-arrival interstitial, Ending, and Memory landscape mockups are deferred." Resolved.</div>
           </article>
         </div>
       </details>
@@ -259,42 +250,18 @@
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>3. Component coverage</h2>
-          <span class="verdict-pill verdict-adequate">Adequate</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Checked every component name in DESIGN.md and EXPERIENCE.md against a visual row in DESIGN.md.Components and a behavioral row in EXPERIENCE.md.Component Patterns.</p>
-          </div>
-        </div>
+        <summary><h2>4. State coverage</h2><span class="verdict-pill verdict-strong">Strong (resolved)</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>Two rotation-during-interaction states were unaddressed relative to the existing rotate-mid-charge assumption.</p></div></div>
         <div class="findings-list">
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-high">High</span>
-              <h3 class="finding-title">Memory/Recap score/tier display has no DESIGN.md spec at all</h3>
-              <span class="finding-location">DESIGN.md components.memory-row; mockups/memory.html</span>
-            </header>
-            <div class="finding-note">A load-bearing FR-7/FR-10 element, rendered in ember accent in the mockup, is only discoverable by reverse-engineering the HTML — inverting "spines win on conflict."</div>
-            <div class="finding-fix"><strong>Fix:</strong> add a score sub-spec (to memory-row or its own component) naming the ember color and typography role used for the number and tier label.</div>
+            <header><span class="badge badge-sev-high">high</span><h3 class="finding-title">No note addressed rotating during the branch-arrival interstitial</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">The interstitial is full-bleed CSS-composed art keyed to a specific aspect ratio — plausibly more disruptive to rotate through than a choice-card charge fill, yet had no rule.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added a rule: the Continue-gate and blocking behavior survive rotation untouched; the art recomposes to the new aspect ratio without a jarring cut. Resolved.</div>
           </article>
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">Eyebrow tag has a visual row but no behavioral row</h3>
-              <span class="finding-location">EXPERIENCE.md, Component Patterns — absence</span>
-            </header>
-            <div class="finding-note">Mentioned only in passing inside the Accessibility Floor's focus-traversal order.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add an Eyebrow tag row stating its (minimal) behavioral rule — always present, static, non-interactive.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-low">Low</span>
-              <h3 class="finding-title">"choice-button" vs. "Choice card" naming drift</h3>
-              <span class="finding-location">DESIGN.md ~line 90; EXPERIENCE.md throughout</span>
-            </header>
-            <div class="finding-note">Same component, different name across the two files — see also the Inheritance discipline finding below.</div>
-            <div class="finding-fix"><strong>Fix:</strong> pick one name and apply it in both files.</div>
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">Rotating during an Echo-active page wasn't addressed</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">Lower risk than the interstitial case (static visual state, not an in-progress gesture), but silent.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added a line clarifying the powered-up state persists/re-renders on rotation without restarting its transition. Resolved.</div>
           </article>
         </div>
       </details>
@@ -302,67 +269,13 @@
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>4. State coverage</h2>
-          <span class="verdict-pill verdict-adequate">Adequate</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Checked every IA surface against plausible states (idle, cold-load/resume, in-progress/charging, committed/locked); error/offline states correctly and deliberately absent (zero-network app).</p>
-          </div>
-        </div>
+        <summary><h2>5. Visual reference coverage</h2><span class="verdict-pill verdict-strong">Strong (resolved)</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>All 3 new landscape mockups exist on disk, are linked from both spine files, and follow the existing end-of-section reference convention. Annotation depth was inconsistent versus portrait's references.</p></div></div>
         <div class="findings-list">
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">Ending → Memory transition mechanism unspecified, artifacts disagree</h3>
-              <span class="finding-location">EXPERIENCE.md Key Flow UJ-1 step 7 vs. mockups/ending.html</span>
-            </header>
-            <div class="finding-note">The Key Flow says Memory follows the Ending "immediately" (auto-advance), but the ending mockup renders an explicit "Tap to see your run →" hint, implying a required action. No Component/State Patterns row resolves which is correct.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add an explicit interaction rule to the Ending row in Component Patterns.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-low">Low</span>
-              <h3 class="finding-title">Interstitial has no symmetric State Patterns row</h3>
-              <span class="finding-location">EXPERIENCE.md State Patterns — absence</span>
-            </header>
-            <div class="finding-note">Unlike the structurally similar transient/blocking "Echo active" beat, which does get a row.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add a symmetric "Interstitial active" row, or note explicitly that Component Patterns fully covers it.</div>
-          </article>
-        </div>
-      </details>
-    </section>
-
-    <section class="dimension">
-      <details open>
-        <summary>
-          <h2>5. Visual reference coverage</h2>
-          <span class="verdict-pill verdict-broken">Broken</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Listed all 5 files in mockups/. Checked that both spines link each inline with what it illustrates, and that "spines win on conflict" is stated once — it is, in EXPERIENCE.md's IA section, satisfying that part of the requirement.</p>
-          </div>
-        </div>
-        <div class="findings-list">
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-critical">Critical</span>
-              <h3 class="finding-title">EXPERIENCE.md falsely claims 4 of 5 mockups don't exist yet</h3>
-              <span class="finding-location">EXPERIENCE.md, Information Architecture</span>
-            </header>
-            <div class="finding-note">DESIGN.md's own "Reference mockups" line already links all five files, and .memlog.md confirms all four were mocked in a later working session — EXPERIENCE.md's IA section was never updated afterward. A downstream consumer trusting only EXPERIENCE.md would wrongly conclude four of six surfaces have no visual reference.</div>
-            <div class="finding-fix"><strong>Fix:</strong> update EXPERIENCE.md's composition-reference line to list and briefly describe all 5 mockups, matching DESIGN.md.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">DESIGN.md's mockup list under-describes 4 of 5 files</h3>
-              <span class="finding-location">DESIGN.md, Components — mockup list</span>
-            </header>
-            <div class="finding-note">home.html, tutorial.html, ending.html, and memory.html are listed with no parenthetical saying which states/variants they show.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add short parentheticals matching the detail already given to the first mockup.</div>
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">Landscape mockup references were less thoroughly annotated than portrait's</h3><span class="finding-location">DESIGN.md / EXPERIENCE.md mockup reference lines</span></header>
+            <div class="finding-note">Portrait references name their states explicitly; home-landscape and tutorial-landscape got no parenthetical description.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added matching parentheticals to both. Resolved.</div>
           </article>
         </div>
       </details>
@@ -370,47 +283,21 @@
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>6. Bloat &amp; overspecification</h2>
-          <span class="verdict-pill verdict-strong">Strong</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Checked for pixel specs duplicating tokens, verbatim source restatement, prose-where-a-table-would-work, decorative narrative untied to a decision, and marketing-voice creep into EXPERIENCE.md. No significant issues found. DESIGN.md's editorial voice (Brand &amp; Style) is permitted and every narrative line ties to a real decision. EXPERIENCE.md reads as a spec throughout — tables with terse behavioral rules, FR/UJ numbers cited rather than reproduced.</p>
-          </div>
-        </div>
+        <summary><h2>6. Bloat &amp; overspecification</h2><span class="verdict-pill verdict-strong">Strong</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>The landscape additions reuse existing tokens (`{spacing.3}`, `{typography.body}`) rather than inventing parallel ones, state "unchanged from portrait" plainly wherever true, and the assumptions are appropriately scoped rather than resolved prematurely.</p></div></div>
+        <div class="findings-list"></div>
       </details>
     </section>
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>7. Inheritance discipline</h2>
-          <span class="verdict-pill verdict-adequate">Adequate</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>All three sources paths resolve in both files' frontmatter. UJ-1/UJ-2 names and protagonist match the PRD verbatim. Glossary terms are used identically across PRD/DESIGN/EXPERIENCE, with one exception below.</p>
-          </div>
-        </div>
+        <summary><h2>7. Inheritance discipline</h2><span class="verdict-pill verdict-strong">Strong (resolved)</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>DESIGN.md's own token usage was internally consistent throughout. EXPERIENCE.md's new section broke its own established cross-reference convention.</p></div></div>
         <div class="findings-list">
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">"Choice button" vs. "Choice card" — real naming drift</h3>
-              <span class="finding-location">DESIGN.md components.choice-button; EXPERIENCE.md throughout</span>
-            </header>
-            <div class="finding-note">A downstream dev has to decide whether the shipped type is ChoiceButton or ChoiceCard.</div>
-            <div class="finding-fix"><strong>Fix:</strong> pick one name and apply it in both files.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-low">Low</span>
-              <h3 class="finding-title">"run-options-button" vs. "Run options button" — trivial formatting difference</h3>
-              <span class="finding-location">DESIGN.md kebab-case token; EXPERIENCE.md title-case prose</span>
-            </header>
-            <div class="finding-note">Same name, pure formatting difference — not a real problem.</div>
-            <div class="finding-fix"><strong>Fix:</strong> none needed.</div>
+            <header><span class="badge badge-sev-high">high</span><h3 class="finding-title">New EXPERIENCE.md section used raw `{...}` tokens instead of the file's `DESIGN.md.components.X` convention</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">Every other DESIGN.md cross-reference in the file is a backtick-wrapped `DESIGN.md.X` dotted path; the new section was the only place using DESIGN.md's own internal curly-brace syntax directly.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Rewrote both references to the established `DESIGN.md.components.X` form. Resolved.</div>
           </article>
         </div>
       </details>
@@ -418,130 +305,46 @@
 
     <section class="dimension">
       <details>
-        <summary>
-          <h2>8. Shape fit</h2>
-          <span class="verdict-pill verdict-adequate">Adequate</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>DESIGN.md section order and EXPERIENCE.md's required defaults both confirmed in canonical order with nothing out of place. "Responsive &amp; Platform" is correctly and defensibly omitted — a genuine single-surface, portrait-only native iOS app with no breakpoints to define.</p>
-          </div>
-        </div>
-        <div class="findings-list">
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">"Inspiration &amp; Anti-patterns" omitted — only partly defensible</h3>
-              <span class="finding-location">DESIGN.md — absent section; .memlog.md</span>
-            </header>
-            <div class="finding-note">There are no named reference products to cite, but the direction is explicitly built on editorial/magazine typography and PCB/circuit-trace geometry, and the memlog records an explicit rejected alternative (a plain bracket/hairline corner) that never landed in the shipped spine.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add a short Inspiration &amp; Anti-patterns section, or fold a condensed lifted-from/rejected note into Brand &amp; Style.</div>
-          </article>
-        </div>
+        <summary><h2>8. Shape fit</h2><span class="verdict-pill verdict-strong">Strong</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>"Responsive &amp; Platform" is placed correctly: after every section it depends on (frame, choice-card, tap-zone components) and before Key Flows, matching the spec's own "when triggered" placement rule.</p></div></div>
+        <div class="findings-list"></div>
       </details>
     </section>
 
     <section class="reviewer-section">
       <details open>
-        <summary>
-          <h2>Accessibility review</h2>
-          <span class="reviewer-source">review-accessibility.md</span>
-        </summary>
-        <div class="dim-body">
-          <div class="dim-judgment">
-            <p>Not build-ready as-is. The spine gets the headline gesture story mostly right (hold-to-confirm with an explicit, repeated tap equivalent, and a correct VoiceOver double-tap mapping), but it has one direct, provable contradiction of FR-11's hard constraint, one clear WCAG AA contrast failure on a core recurring component in both color schemes, and an asymmetric-safety-net bug in the tap-commit path that specifically disadvantages the motor-impaired/VoiceOver users it claims to serve. Fixable with spec edits, not a redesign — but needs another pass before an engineer should start building against this pair.</p>
-          </div>
-        </div>
+        <summary><h2>Accessibility review</h2><span class="reviewer-source">review-accessibility-landscape.md</span></summary>
+        <div class="dim-body"><div class="dim-judgment"><p>The landscape spine text is conceptually sound, but the reference mockups meant to compose/validate it contained a concrete, measurable tap-target violation, plus a Dynamic Type headroom regression and an under-specified tight-fit assumption. All findings below are now resolved via direct mockup/spec edits.</p></div></div>
         <div class="findings-list">
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-critical">Critical</span>
-              <h3 class="finding-title">Swipe-driven page turn has no tap/VoiceOver equivalent</h3>
-              <span class="finding-location">EXPERIENCE.md, Interaction Primitives + Component Patterns "Story page"</span>
-            </header>
-            <div class="finding-note">FR-11 is explicit: no interaction reachable only via a custom gesture. Page-turning is the single most frequent interaction in the app and, as documented, is swipe-only — and a real iOS mechanics problem, since VoiceOver consumes one-finger swipes for its own navigation unless an alternate path is built. Every other gesture in the system got an explicit equivalent; page turn did not.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add a tap-accessible page-turn affordance (edge tap zones, or a VoiceOver custom rotor action "Next/Previous page") and document it in both Component Patterns and the Accessibility Floor.</div>
+            <header><span class="badge badge-sev-critical">critical</span><h3 class="finding-title">All 3 new landscape mockups computed real interactive elements below the 44pt tap-target floor at default text size</h3><span class="finding-location">mockups/home-landscape.html, tutorial-landscape.html, story-choice-landscape.html</span></header>
+            <div class="finding-note">Padding + font-size were both shrunk to fit the shorter landscape frame: home buttons ~42px, tutorial buttons ~36.8px, short choice cards ~39.6px — all below the pre-existing, orientation-agnostic 44pt floor. Not a Dynamic-Type-growth risk — already failing at default size.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added explicit `min-height: 44px` to every interactive element in all 3 mockups, plus a `min-tap-target: 44pt` token in DESIGN.md's choice-card and reading-surface components. Resolved.</div>
           </article>
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-high">High</span>
-              <h3 class="finding-title">Tap-to-commit is instant/irrevocable while hold allows cancel-by-release</h3>
-              <span class="finding-location">EXPERIENCE.md, Component Patterns "Choice card"; State Patterns</span>
-            </header>
-            <div class="finding-note">A user relying on tap — tremor, limited dexterity, or a VoiceOver double-tap used to explore rather than commit — gets zero opportunity to reconsider before a choice locks permanently (FR-5), while the "primary" hold gesture has a built-in grace period. The path meant to be more accessible is less forgiving than the gestural one.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add a brief confirm/undo step after a quick tap, or explicitly document why instant-lock-on-tap is intentional and reconsider how VoiceOver's double-tap should route.</div>
+            <header><span class="badge badge-sev-high">high</span><h3 class="finding-title">Dynamic Type headroom claim didn't visibly survive landscape's shorter frame-well</h3><span class="finding-location">DESIGN.md Layout &amp; Spacing; mockup frame-well padding</span></header>
+            <div class="finding-note">Landscape mockups reduced frame-well vertical padding versus portrait's proven-safe values — exactly the clearance the headroom rule depends on — with no landscape equivalent of portrait's accessibility-scale stress-test mockup to validate it.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Restored frame-well vertical padding to match portrait's (26px/16px) in both landscape mockups, and added explicit headroom-parity language to DESIGN.md/EXPERIENCE.md. A full accessibility-scale landscape stress mockup remains explicitly deferred to Story 5.3, not falsely claimed as validated.</div>
           </article>
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-high">High</span>
-              <h3 class="finding-title">echo-callback tag fails WCAG AA contrast in both themes</h3>
-              <span class="finding-location">DESIGN.md components.echo-callback; mockup CSS .echo-tag</span>
-            </header>
-            <div class="finding-note">Computed: light mode #C2540F on #241C14 ≈ 3.65:1; dark mode #E0763A on #F3ECDD ≈ 2.62:1 — both below the 4.5:1 required for small bold/uppercase text. This is the label for the app's signature callback moment, appearing 2-3 times every run.</div>
-            <div class="finding-fix"><strong>Fix:</strong> introduce a separate text-safe ember token for this role, or move the tag text to ink-on-inverse and reserve ember for a small icon/underline accent.</div>
+            <header><span class="badge badge-sev-high">high</span><h3 class="finding-title">The "3-card row may feel tight" note was a vague assumption, not a testable rule, and its mockup used the wrong device size</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">Framed as cosmetic despite gating forward progress in the app's narrowest-vertical-headroom orientation; the mockup used Pro-class (852×393pt) dimensions, not the SE-class (~667×375pt) size the risk named.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Replaced the assumption with a hard constraint (2+1 wrap once a label exceeds 2 lines or at accessibility Dynamic Type sizes), stated identically in both spine files. Corrected the mockup's caption/title to describe what it actually shows rather than mislabeling it a validated "tight-fit" case. Resolved.</div>
           </article>
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">trace-brass and ember are near-identical in luminance</h3>
-              <span class="finding-location">DESIGN.md colors.trace-brass / colors.accent-ember</span>
-            </header>
-            <div class="finding-note">Computed relative luminance: #8B6F47 ≈ 0.173 vs. #C2540F ≈ 0.178 — indistinguishable by lightness alone; orange/brown is a classic CVD confusion pair. Functional meaning isn't lost (text co-fires with the frame), but the app's own stated signature device is silently non-functional as a standalone signal for colorblind users.</div>
-            <div class="finding-fix"><strong>Fix:</strong> state this explicitly as an accepted, redundantly-backed limitation, or add a non-hue cue (dash pattern, filled-vs-hollow via, larger brightness jump).</div>
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">Mockups' reading-column width didn't match the `column-max-width-landscape` token</h3><span class="finding-location">mockups/tutorial-landscape.html, story-choice-landscape.html</span></header>
+            <div class="finding-note">Token sets 680px; mockups used 520px/480px — the token value itself was reasonable, but the "authoritative" mockups silently disagreed with it.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Both mockups now use `max-width:680px`, matching the token exactly. Resolved.</div>
           </article>
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">Fixed-pixel circuit-corner geometry risks collisions at accessibility Dynamic Type sizes</h3>
-              <span class="finding-location">mockup CSS; DESIGN.md Shapes/Components</span>
-            </header>
-            <div class="finding-note">Fixed 30×30px corner assemblies and fixed frame-well padding don't scale with enlarged text; the interstitial's unclamped headline is layered over position-fixed decorative art with no reflow relationship.</div>
-            <div class="finding-fix"><strong>Fix:</strong> specify that frame-well padding/corner clearance scale with the largest supported Dynamic Type category, and state how the interstitial's art responds when its headline wraps.</div>
+            <header><span class="badge badge-sev-medium">medium</span><h3 class="finding-title">VoiceOver traversal order among horizontally-arranged choice cards was never stated as an invariant</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">A future implementation that visually reorders cards (CSS order, RTL handling) could silently detach visual order from AX/DOM order with nothing in the spec to catch it.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added an explicit sentence: traversal follows narrative/document order regardless of visual arrangement. Resolved.</div>
           </article>
           <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">No mapping from typography roles to iOS Dynamic Type text styles</h3>
-              <span class="finding-location">DESIGN.md, Typography</span>
-            </header>
-            <div class="finding-note">Literal pixel values are given per role with "must scale" instructions, but no UIFontTextStyle binding — two implementations could scale roles at inconsistent relative rates, breaking the weight/scale hierarchy Brand &amp; Style calls load-bearing.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add an explicit token-to-text-style mapping table (headline → .title1-scaled, body/echo-callback → .body, choice-label → .headline, eyebrow/meta → .caption2).</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-medium">Medium</span>
-              <h3 class="finding-title">Reduce Motion guidance covers only 2 of the plausible animated moments</h3>
-              <span class="finding-location">EXPERIENCE.md, Accessibility Floor</span>
-            </header>
-            <div class="finding-note">Page-turn transition and the interstitial's entrance/exit are unaddressed, in tension with DESIGN.md's blanket claim that the echo glow is "the only thing in this system allowed to animate."</div>
-            <div class="finding-fix"><strong>Fix:</strong> state explicitly whether page turns and the interstitial transition animate under normal conditions, and what they collapse to under Reduce Motion.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-low">Low</span>
-              <h3 class="finding-title">Run-options button has no specified accessibilityLabel</h3>
-              <span class="finding-location">EXPERIENCE.md, Accessibility Floor — absence</span>
-            </header>
-            <div class="finding-note">A default SF Symbol VoiceOver name may not clearly convey "opens exit/restart options" to a blind user.</div>
-            <div class="finding-fix"><strong>Fix:</strong> add "Run options" as the explicit accessibilityLabel.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-low">Low</span>
-              <h3 class="finding-title">ink-secondary on surface-base passes AA only marginally</h3>
-              <span class="finding-location">DESIGN.md colors</span>
-            </header>
-            <div class="finding-note">~4.85:1 against the 4.5:1 minimum, used for pager/meta/caption roles — close enough that implementation drift could tip it under the line.</div>
-            <div class="finding-fix"><strong>Fix:</strong> darken slightly for margin, or confirm this pairing is only used at caption-level (17px), not the smaller 12px meta/pager role.</div>
-          </article>
-          <article class="finding">
-            <header>
-              <span class="badge badge-sev-low">Low</span>
-              <h3 class="finding-title">No stated position on iOS "Bold Text"/"Increase Contrast" interaction</h3>
-              <span class="finding-location">DESIGN.md, Typography — absence</span>
-            </header>
-            <div class="finding-note">The hierarchy comes specifically from weight contrast (900 vs 500 vs 800); Bold Text could flatten that relationship system-wide.</div>
-            <div class="finding-fix"><strong>Fix:</strong> note whether the type system is expected to remain legible under Bold Text, or accept as an unhandled edge case.</div>
+            <header><span class="badge badge-sev-low">low</span><h3 class="finding-title">Rotate-mid-charge assumption didn't note it only affects the hold path</h3><span class="finding-location">EXPERIENCE.md, Responsive &amp; Platform</span></header>
+            <div class="finding-note">Could be read as leaving users without a rotation-safe path, though the tap-plus-undo-window path was always unaffected.</div>
+            <div class="finding-fix"><strong>Fix:</strong> Added explicit language that the tap-plus-undo-window path and VoiceOver double-tap are both unaffected by rotation. Resolved.</div>
           </article>
         </div>
       </details>
@@ -550,17 +353,15 @@
     <div class="mechanical">
       <h3>Mechanical notes</h3>
       <ul>
-        <li>Both DESIGN.md and EXPERIENCE.md list identical <code>sources</code> (prd.md, brainstorm-intent.md, pitch-one-pager.md); all three resolve on disk. EXPERIENCE.md's <code>design_ref: ./DESIGN.md</code> resolves correctly. Both files are <code>status: draft</code>, consistent at this review stage.</li>
-        <li>DESIGN.md's body uses the <code>{path.to.token}</code> curly-brace convention throughout and every instance resolves — no broken refs. EXPERIENCE.md instead cites DESIGN.md via backtick dotted-paths (e.g. <code>DESIGN.md.components.frame</code>); every one resolves to a real DESIGN.md section or component — a different but internally consistent convention, not a defect.</li>
-        <li>Naming inconsistencies: choice-button/Choice card (real drift, see Inheritance discipline); run-options-button/Run options button (trivial, format-only).</li>
-        <li>Single most important mechanical defect: the stale "no visual mockup yet" line in EXPERIENCE.md's IA section — it directly contradicts both DESIGN.md and the actual contents of mockups/.</li>
+        <li>Stale `updated:` frontmatter date (2026-07-25) bumped to 2026-07-26 in both files, matching the Sprint Change Proposal date both files cite inline.</li>
+        <li>No token naming drift found between DESIGN.md and EXPERIENCE.md's citations of the new landscape tokens.</li>
       </ul>
     </div>
 
     <footer class="report-footer">
       <div class="meta">
-        <span>Rubric: review-rubric.md</span>
-        <span>Generated: 2026-07-25</span>
+        <span>Rubric: review-rubric-landscape.md</span>
+        <span>Generated: 2026-07-26T00:00:00Z</span>
       </div>
     </footer>
   </div>

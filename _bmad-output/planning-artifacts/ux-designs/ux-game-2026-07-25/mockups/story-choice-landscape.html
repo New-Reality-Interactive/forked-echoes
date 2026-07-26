@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forked Echoes — Story/Choice (Landscape)</title>
+<style>
+:root{
+  --bg:#FAF6EE; --ink:#241C14; --ink-soft:#6A5A45;
+  --frame-idle:#241C14; --frame-active:#C2540F; --trace-idle:#8B6F47; --accent-yellow:#F0DDAF; --device-bezel:#1B1B1B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#EDE6D6;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color:var(--ink);
+  padding:32px 24px 64px;
+}
+.caption{ max-width:900px; margin:0 auto 28px; font-size:14px; color:var(--ink-soft); line-height:1.5;}
+.caption strong{ color:var(--ink);}
+
+.frames{ display:flex; gap:36px; overflow-x:auto; padding:8px 8px 24px; max-width:1900px; margin:0 auto; flex-wrap:wrap;}
+.frame-col{ flex:0 0 auto; width:852px;}
+.frame-title{ font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink); margin-bottom:10px; text-align:center; font-weight:800;}
+
+.phone{
+  width:852px; height:393px; border-radius:44px; border:10px solid var(--device-bezel);
+  background:var(--bg); position:relative; overflow:hidden;
+  box-shadow:0 24px 50px rgba(0,0,0,0.4);
+}
+.island{ position:absolute; left:16px; top:50%; transform:translateY(-50%) rotate(90deg); width:96px; height:26px; background:#000; border-radius:20px; z-index:6;}
+.statustime{ position:absolute; top:14px; left:44px; font-size:14px; font-weight:800; color:var(--ink); z-index:6;}
+
+.content{ position:absolute; top:0; left:0; right:0; bottom:0; padding:20px 24px;}
+/* Vertical padding matches portrait's (26px/16px) -- Dynamic Type headroom clearance around the fixed corner geometry must not shrink just because the frame is shorter in landscape */
+.frame-well{ position:relative; height:100%; background:#fff; padding:26px 26px 16px; display:flex; flex-direction:column;}
+
+.frame-well::before{ content:""; position:absolute; inset:9px; border:1px solid var(--trace-idle); pointer-events:none; z-index:1;}
+
+.circuit-corner{ position:absolute; width:30px; height:30px; z-index:2;}
+.circuit-corner .trace-h{ position:absolute; top:9px; left:0; width:22px; height:2px; background:var(--trace-idle);}
+.circuit-corner .trace-v{ position:absolute; top:0; left:9px; width:2px; height:22px; background:var(--trace-idle);}
+.circuit-corner .via{ position:absolute; top:6px; left:6px; width:7px; height:7px; border-radius:50%; background:var(--trace-idle);}
+.circuit-corner .pad{ position:absolute; width:5px; height:5px; border:1.5px solid var(--trace-idle); background:transparent; box-sizing:border-box;}
+.circuit-corner .pad.end-h{ top:8px; left:19px;}
+.circuit-corner .pad.end-v{ top:19px; left:8px;}
+.circuit-corner.tl{ top:0; left:0;}
+.circuit-corner.tr{ top:0; right:0; transform:scaleX(-1);}
+.circuit-corner.bl{ bottom:0; left:0; transform:scaleY(-1);}
+.circuit-corner.br{ bottom:0; right:0; transform:scale(-1,-1);}
+/* Corner mark sizes unchanged from portrait -- only position along the reflowed frame edges differs */
+
+.run-options{ position:absolute; top:6px; right:34px; width:30px; height:30px; z-index:3; display:flex; align-items:center; justify-content:center;}
+.run-options .dots{ display:flex; gap:3px;}
+.run-options .dots span{ width:4px; height:4px; border-radius:50%; background:var(--trace-idle);}
+
+/* Reading content capped and centered -- extra landscape width becomes side margin, per components.reading-surface.column-max-width-landscape (680px) */
+.reading-column{ max-width:680px; margin:0 auto; width:100%; display:flex; flex-direction:column; height:100%;}
+
+.eyebrow{ font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#fff; background:var(--ink); display:inline-block; padding:3px 8px; margin-bottom:10px; font-weight:800; align-self:flex-start;}
+.scene{ font-size:14px; line-height:1.4; color:var(--ink); margin:0 0 8px; font-weight:500;}
+.scene:last-of-type{ margin-bottom:0;}
+.scene b{ font-weight:900;}
+
+/* Choice cards: horizontal row in landscape (was a vertical stack in portrait) -- same gap token, same card styling/interaction.
+   min-height enforces the 44pt tap-target floor (DESIGN.md components.choice-card.min-tap-target) regardless of orientation/layout. */
+.choices{ margin-top:auto; display:flex; flex-direction:row; gap:10px; padding-top:8px;}
+.choice{
+  flex:1 1 0; min-height:44px; font-size:13px; text-align:left; color:var(--ink); font-weight:800;
+  background:#fff; border:3px solid var(--ink);
+  padding:8px 12px; display:flex; justify-content:space-between; align-items:center; gap:6px;
+}
+.choice .arrow{ color:var(--ink); font-size:15px; font-weight:900;}
+
+.pager{ font-size:10px; color:var(--ink-soft); text-align:center; margin-top:8px; letter-spacing:0.08em; font-weight:700; text-transform:uppercase;}
+
+.margin-note{ position:absolute; top:50%; transform:translateY(-50%); font-size:9px; letter-spacing:0.08em; text-transform:uppercase; color:var(--trace-idle); writing-mode:vertical-rl;}
+.margin-note.left{ left:44px;}
+.margin-note.right{ right:44px;}
+
+.tight-flag{ position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:9px; letter-spacing:0.06em; text-transform:uppercase; color:var(--frame-active); font-weight:800;}
+</style>
+</head>
+<body>
+
+<p class="caption"><strong>Story/Choice — landscape.</strong> Same circuit frame reflowed to the wider/shorter aspect ratio. Reading content caps at a comfortable measure (680px) and centers (extra width becomes side margin). Choice cards switch from portrait's vertical stack to a horizontal row — same card styling, same hold-to-commit/tap-commit interaction, same equal treatment for ordinary vs. hard-fail options, same 44pt tap-target floor. Two states shown at default text size: an ordinary 2-choice point, and a 3-choice point (2 ordinary + 1 hard-fail) that fits cleanly here — per EXPERIENCE.md's Responsive & Platform, a 3-card row only wraps to 2+1 once a label exceeds 2 lines or at accessibility Dynamic Type sizes, neither of which this default-size example triggers. That wrapped/accessibility-scale case isn't depicted here — deferred to Story 5.3 implementation and testing against real devices.</p>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Point (2 choices)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="circuit-corner tl"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner tr"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner bl"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner br"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div>
+          <div class="run-options"><div class="dots"><span></span><span></span><span></span></div></div>
+          <span class="margin-note left">margin</span>
+          <div class="reading-column">
+            <div class="eyebrow">Ch. 4 — The Lake House</div>
+            <p class="scene">The photo on the mantel is still you and Sam at the lake — except Sam's hair is longer, and you <b>don't remember the boat</b>.</p>
+            <p class="scene">"You said you wanted to steer," Sam says, not looking up from the dishes.</p>
+            <div class="choices">
+              <div class="choice"><span>Ask Sam about the boat.</span><span class="arrow">→</span></div>
+              <div class="choice"><span>Let it go. Change the subject.</span><span class="arrow">→</span></div>
+            </div>
+            <div class="pager">Page 12 / 34</div>
+          </div>
+          <span class="margin-note right">margin</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Point (3 choices, default size)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="circuit-corner tl"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner tr"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner bl"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner br"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div>
+          <div class="run-options"><div class="dots"><span></span><span></span><span></span></div></div>
+          <span class="margin-note left">margin</span>
+          <div class="reading-column">
+            <div class="eyebrow">Ch. 17 — The Crossing</div>
+            <p class="scene">Three ways off the bridge, and Sam's already halfway across one of them.</p>
+            <div class="choices">
+              <div class="choice"><span>Follow Sam.</span><span class="arrow">→</span></div>
+              <div class="choice"><span>Call out first.</span><span class="arrow">→</span></div>
+              <div class="choice"><span>Jump. (Obviously bad idea.)</span><span class="arrow">→</span></div>
+            </div>
+            <div class="pager">Page 21 / 34</div>
+          </div>
+          <span class="margin-note right">margin</span>
+          <div class="tight-flag">Fits at default size — 2+1 wrap triggers at accessibility Dynamic Type sizes (not shown)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

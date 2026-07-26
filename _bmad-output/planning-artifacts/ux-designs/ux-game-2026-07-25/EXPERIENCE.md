@@ -1,7 +1,7 @@
 ---
 name: Forked Echoes — Experience Spine
 status: final
-updated: 2026-07-25
+updated: 2026-07-26
 sources:
   - _bmad-output/planning-artifacts/prds/prd-game-2026-07-25/prd.md
   - _bmad-output/brainstorming/brainstorm-ios-app-concept-2026-07-25/brainstorm-intent.md
@@ -13,7 +13,7 @@ design_ref: ./DESIGN.md
 
 ## Foundation
 
-Single-surface native iOS, portrait only. No UI system named — built directly against UIKit/SwiftUI platform conventions (Dynamic Type, VoiceOver, standard gestures); `DESIGN.md` is the visual identity reference, this spine is the experience. Fully on-device: no network states, no offline/sync patterns to design for (FR-11 platform constraint).
+Single-surface native iOS, portrait and landscape on iPhone (see Responsive & Platform — v1 originally shipped portrait-only, reversed via Sprint Change Proposal 2026-07-26). No UI system named — built directly against UIKit/SwiftUI platform conventions (Dynamic Type, VoiceOver, standard gestures); `DESIGN.md` is the visual identity reference, this spine is the experience. Fully on-device: no network states, no offline/sync patterns to design for (FR-11 platform constraint).
 
 No tab bar, no drawer — this is a linear story-runner with one home base, not a multi-section app. A run is a single forward-moving stack (Home → optional Tutorial → Story/Choice pages → Ending → Memory) that always resolves back to Home.
 
@@ -33,6 +33,8 @@ Single stack, no branching navigation chrome — the *story* branches, the *app'
 A run-options button (subtle ellipsis-circle icon, top-right of the reading card — see `DESIGN.md.components.run-options-button`) persists on every Story/Choice and Tutorial page, opening the platform-native action sheet: **Exit to Home**, **Restart This Run**, **Cancel**. Tap-only, no gesture — this is chrome, not part of the choice-echo interaction language.
 
 → Composition reference — all 6 IA surfaces now have a visual mockup: `mockups/story-choice-warm-ink-circuit.html` (Story/Choice screen, its echo state, and the Branch-arrival interstitial), `mockups/story-choice-three-way.html` (3-choice decision point — 2 ordinary + 1 hard-fail — at default and accessibility-Dynamic-Type sizes), `mockups/home.html` (fresh-install and run-in-progress/"Resume Story" states), `mockups/tutorial.html` (dormant frame, run-options icon introduced), `mockups/ending.html` (permanently-active frame; home vs. hard-fail variants side by side), `mockups/memory.html` (score/tier header, choice-and-consequence rows, no frame). Spine wins on conflict.
+
+→ **Landscape composition reference** (see Responsive & Platform): `mockups/home-landscape.html` (fresh-install and run-in-progress states, reflowed), `mockups/tutorial-landscape.html` (dormant frame, reading column capped/centered), `mockups/story-choice-landscape.html` (2-choice and 3-choice states at default text size; the accessibility-Dynamic-Type 2+1 wrap case is deferred to Story 5.3). Branch-arrival interstitial, Ending, and Memory landscape mockups are deferred to their own future epics.
 
 ## Voice and Tone
 
@@ -99,6 +101,21 @@ Behavioral. Visual contrast and Dynamic Type values live in `DESIGN.md`.
 - Focus traversal follows reading order — eyebrow tag → prose → choices → pager — on every Story/Choice page; the run-options button sits last in traversal order so it never interrupts reading flow.
 - The Restart confirmation uses the platform's native destructive-action pattern (system alert/action sheet) — inherits VoiceOver announcement and Dynamic Type behavior for free; no custom-built confirmation dialog.
 - Branch-reality illustrations: every illustration exposes a distinct, descriptive `accessibilityLabel` — not restating the interstitial's caption, but conveying the illustration's specific visual content, so VoiceOver users get equivalent access to the branch reality's atmosphere. No illustration relies on a meaningless default label, and none is silently hidden from the accessibility tree — the visual detail is part of the experience, not decoration.
+
+## Responsive & Platform
+
+Both portrait and landscape are first-class on iPhone (v1 originally shipped portrait-only; reversed via Sprint Change Proposal, 2026-07-26 — Epic 5). No iPad/Universal support (unchanged from Foundation).
+
+- **Reading surfaces** (Story/Choice, Tutorial, Ending, Memory): the reading column grows wider with the screen in landscape, capped at `DESIGN.md.components.reading-surface.column-max-width-landscape` for readability — extra width becomes side margin, not longer lines. Portrait is unaffected. The Dynamic Type headroom rule (`DESIGN.md.Layout & Spacing`) applies identically in both orientations — landscape's shorter frame requires the same clearance as portrait.
+- **Circuit frame:** unchanged in concept and behavior (dormant brass / ember echo, shape-cue redundancy) — only its corner geometry reflows to the new aspect ratio. Corner mark sizes don't change, only their position along the frame edges.
+- **Choice cards:** stack vertically in portrait; arrange in a horizontal row in landscape (2, occasionally 3 cards) — same gap token, same hold/tap-commit interaction, same equal ordinary/hard-fail styling, same 44pt tap-target floor regardless of orientation (`DESIGN.md.components.choice-card.layout-landscape`). VoiceOver traversal order among choice cards follows their narrative/document order regardless of visual arrangement (vertical stack or horizontal row), so accessibility order and visual order never diverge. A 3-card row wraps to a 2+1 layout (not a vertical stack) once any label would exceed 2 lines at the current column width, or at Dynamic Type accessibility sizes and above — a hard constraint, not a deferred judgment call.
+- **Home / Tutorial:** same vertical stack (title, subtitle, actions) in both orientations, simply centered within the wider landscape frame — no side-by-side rearrangement. Action buttons carry the same 44pt tap-target floor in both orientations.
+- **Branch-arrival interstitial:** same full-bleed composition (art, headline, caption bar), reflows to fill the landscape frame — no new layout, no frame (unchanged from portrait).
+- **Page-turn tap zones / swipe:** same proportional left/right-third split in both orientations — no new gesture design.
+- **Rotation mid-interaction** (device rotated while something is already in progress):
+  - Branch-arrival interstitial active: the Continue-gate and blocking behavior survive rotation untouched; the art recomposes to the new aspect ratio without a jarring cut (a plain reflow, not a transition to replay).
+  - Echo-active page: the powered-up frame state and echo callback block simply persist/re-render — the power-up shape/color cue does not restart or replay its transition.
+  - [ASSUMPTION] Choice-card hold in progress: rotation cancels the charge, identical to releasing early. This affects only the hold path — the tap-plus-undo-window path (the documented VoiceOver-compatible equivalent, always available) and VoiceOver double-tap are both instant and unaffected by rotation, so no interaction is ever left without a rotation-safe path. Revisit if this reads as jarring during implementation/playtesting.
 
 ## Inspiration & Anti-patterns
 

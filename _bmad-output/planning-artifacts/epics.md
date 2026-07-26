@@ -77,7 +77,7 @@ NFR8: Dynamic Type — Every text role scales via its bound named iOS text style
 - Alignment score is accumulated per choice (AD-3/AD-4) purely as Memory-screen display data — it plays no role in ending resolution (FR7, FR8, AD-6).
 - The story tree must always contain an ideal path leading home, even if not obvious to the player while choosing (authoring guidance, addendum.md).
 - Safe-looking choices must not always guarantee the safe outcome (narrative pushback so players aren't trained to always pick "safest"); no spendable resource backs this in v1 (addendum.md).
-- Device target: iPhone only, portrait only, single Xcode app target, Debug/Release configurations only.
+- Device target: iPhone only, supporting both portrait and landscape orientation (see Epic 5: Landscape Support), single Xcode app target, Debug/Release configurations only.
 - Illustrations (~10-15 total) are produced with generative AI image tools at development time and bundled at build time — an asset-production dependency, not a runtime concern (FR-12, addendum.md).
 - Distribution is via App Store Connect, with TestFlight for solo/friends playtesting pre-submission. Apple Developer Program enrollment is a blocking external prerequisite for either and is **not yet in place** — an unresolved dependency this epics/stories set cannot close, tracked here for visibility.
 - App Store content rating / age disclosure for the dark-comedy hard-fail content is unresolved and needs settling before submission (PRD Open Question 3) — not an engineering story, but a pre-submission checklist item.
@@ -177,6 +177,14 @@ The player experiences the actual v1 story — real branches, real prose, real e
 **FRs covered:** none new — Epics 1-3 already cover full FR capability; this epic delivers the content volume/completeness that realizes it at scale.
 
 **Dependency:** builds on Epics 1-3 being complete (needs the real Content tree shape and working echo/interstitial/ending mechanics before it's worth writing real branches against them).
+
+### Epic 5: Landscape Support
+
+Player can use the app in either portrait or landscape orientation on iPhone, with every screen reflowing correctly rather than locking to portrait.
+
+**FRs covered:** None new — extends FR1/FR2/FR11's existing screens to a second orientation; a device-support/NFR-level change, not new functionality.
+
+**Sequencing note:** Numbered 5 to avoid renumbering Epics 2-4 (already cross-referenced by number in Story 1.2's implementation and Dev Notes), but scheduled in `sprint-status.yaml` to execute immediately after Epic 1 and before Epic 2 — the landscape layout strategy needs to exist before Epic 2 builds the reading-surface/pager mechanics, to avoid an expensive retrofit later.
 
 ## Epic 1: Home & Onboarding
 
@@ -815,6 +823,70 @@ So the app can actually be submitted (SM-1).
 **Given** this is explicitly "not a business" (PRD Non-Goals)
 **When** this story is scoped
 **Then** it covers only mandatory listing requirements for submission — no ASO strategy, no keyword-ranking optimization, no iterative marketing copy testing
+
+## Epic 5: Landscape Support
+
+Player can use the app in either portrait or landscape orientation on iPhone, with every screen reflowing correctly rather than locking to portrait.
+
+**FRs covered:** None new — extends FR1/FR2/FR11 to a second orientation.
+
+**Added via Sprint Change Proposal (2026-07-26):** originally the app was scoped iPhone-only, portrait-only (v1 architecture decision). This epic reverses that constraint before Epic 2's reading-surface/pager work builds further portrait-only assumptions. See `sprint-change-proposal-2026-07-26.md` for full impact analysis.
+
+### Story 5.1: Landscape UX Design Pass
+
+As a UX Designer,
+I want a documented landscape layout strategy for every screen type (Home, Tutorial, Story/Choice, Interstitial, Ending, Memory),
+So that Epic 5 and all subsequent epics can build landscape-aware screens consistently.
+
+**Acceptance Criteria:**
+
+**Given** DESIGN.md/EXPERIENCE.md's current portrait-only specs
+**When** this story is complete
+**Then** both docs include an explicit landscape section covering: reading-surface reflow (column/margin/max-width behavior), circuit-frame behavior in landscape, gesture-zone geometry (swipe/tap-zone page-turn, hold-to-choose) adapted for landscape's wider/shorter aspect ratio, and Home/Tutorial's title-card layout in landscape
+
+**Given** the 7 existing portrait mockups
+**When** this story is complete
+**Then** Home and Tutorial have landscape companion mockups at minimum (Story/Choice, Ending, Memory landscape mockups may follow when their own epics are built, informed by this story's design language)
+
+*(Owner: UX Designer agent, via the `bmad-ux` skill — not the Developer agent.)*
+
+### Story 5.2: Landscape Architecture Decision & Orientation Unlock
+
+As a developer,
+I want the orientation lock lifted and the architecture doc updated with the landscape layout strategy,
+So that landscape becomes a first-class, documented constraint for all future stories.
+
+**Acceptance Criteria:**
+
+**Given** Story 5.1's landscape design language
+**When** this story is complete
+**Then** `ARCHITECTURE-SPINE.md`'s Structural Seed documents the landscape layout strategy in full (replacing the "TBD" note added by the 2026-07-26 Sprint Change Proposal), including any new Architecture Decision needed (e.g. a landscape reflow AD)
+
+**Given** the current orientation lock (`INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait`)
+**When** this story is complete
+**Then** both Debug and Release configurations support the orientations Story 5.1 designed for
+
+*(Owner: Architect agent + Developer.)*
+
+### Story 5.3: Home & Tutorial Landscape Retrofit
+
+As a player,
+I want Home and Tutorial to work correctly in landscape,
+So that rotating my device doesn't break the two screens that already exist.
+
+**Acceptance Criteria:**
+
+**Given** Story 5.1's landscape design and Story 5.2's unlocked orientation
+**When** Home/Tutorial render in landscape
+**Then** they reflow per the documented design, not a stretched/clipped portrait layout
+
+**Given** FR11 accessibility parity
+**When** in landscape
+**Then** Dynamic Type/VoiceOver/tap-target requirements still hold (same bar Story 1.4 already establishes for portrait, extended to the landscape variant)
+
+*(Owner: Developer.)*
+
+**Downstream note:** Starting with Epic 2 (whose stories are created after Epic 5 lands), every screen-building story should incorporate Story 5.1's landscape design language directly — no separate landscape-retrofit story should be needed for Epic 2/3/4's screens if this is done from the start.
 
 ## What's Next
 

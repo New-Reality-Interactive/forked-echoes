@@ -145,7 +145,9 @@ stateDiagram-v2
   Memory --> Reading: Start New Run
 ```
 
-**Device target:** iPhone only for v1 — matches the portrait-only, single-column reading surface `EXPERIENCE.md` specifies. iPad/Universal is not excluded by anything architectural, just not designed for; see Deferred.
+**Device target:** iPhone only for v1, supporting both portrait and landscape orientation — the single-column reading surface `EXPERIENCE.md` specifies reflows for landscape rather than assuming portrait-only. iPad/Universal is not excluded by anything architectural, just not designed for; see Deferred.
+
+**Landscape layout strategy:** TBD — pending the UX Designer's landscape design pass (Epic 5, Story 5.1). Until that lands, no new story may hard-code portrait-only layout assumptions (fixed aspect-ratio frames, orientation-locked navigation chrome, etc.).
 
 **Deployment & environments:** Single Xcode app target; Debug/Release configurations only. No backend, server, or infra of any kind — fully on-device (PRD platform constraint). Distribution via App Store Connect; TestFlight for solo/friends playtesting pre-submission. Apple Developer Program enrollment is a **blocking prerequisite** for any TestFlight or App Store distribution and is not yet in place (PRD Open Question 5) — tracked here as an unresolved dependency, not something this spine can close.
 

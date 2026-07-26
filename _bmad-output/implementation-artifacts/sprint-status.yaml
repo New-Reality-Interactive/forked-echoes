@@ -55,6 +55,12 @@ development_status:
   1-4-home-and-tutorial-visual-identity-and-accessibility-pass: backlog
   epic-1-retrospective: optional
 
+  epic-5: backlog
+  5-1-landscape-ux-design-pass: backlog
+  5-2-landscape-architecture-decision-and-orientation-unlock: backlog
+  5-3-home-and-tutorial-landscape-retrofit: backlog
+  epic-5-retrospective: optional
+
   epic-2: backlog
   2-1-minimal-story-content-and-engine-foundation: backlog
   2-2-page-navigation: backlog

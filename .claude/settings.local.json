@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(xdg-open /workspaces/game/.claude/skills/bmad-brainstorming/assets/brain-selector.html)",
+      "Bash(open /workspaces/game/.claude/skills/bmad-brainstorming/assets/brain-selector.html)",
+      "Bash(python3 *)",
+      "Artifact",
+      "WebSearch",
+      "WebFetch(domain:releasebot.io)",
+      "Bash(bash -n /tmp/claude-1000/-workspaces-game/fc37fcaa-2797-4c79-9e5d-53cccfba64c3/scratchpad/create_github_issues.sh)",
+      "Bash(cp /tmp/claude-1000/-workspaces-game/fc37fcaa-2797-4c79-9e5d-53cccfba64c3/scratchpad/create_github_issues.sh /workspaces/game/_bmad-output/planning-artifacts/create_github_issues.sh)",
+      "Bash(chmod +x /workspaces/game/_bmad-output/planning-artifacts/create_github_issues.sh)",
+      "Bash(bash -n /workspaces/game/_bmad-output/planning-artifacts/create_github_issues.sh)",
+      "Bash(xargs -I{} sed -n '{}p' /workspaces/game/_bmad-output/planning-artifacts/create_github_issues.sh)",
+      "Bash(xxd)",
+      "Bash(bash /workspaces/game/_bmad-output/planning-artifacts/create_github_issues.sh)",
+      "Bash(bash /tmp/test_snippet.sh)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(pip install *)",
+      "Bash(xargs -I{} echo {})",
+      "Bash(git -C /workspaces/game status)",
+      "Bash(grep -v -E \"^\\\\.$|^\\\\.\\\\.$\")",
+      "Bash(swift --version)"
+    ]
+  }
+}

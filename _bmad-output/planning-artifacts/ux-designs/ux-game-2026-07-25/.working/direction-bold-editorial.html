@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Many-Worlds CYOA — Direction: Bold Editorial</title>
+<style>
+/* ============================================================
+   DIRECTION: BOLD EDITORIAL — high-contrast / graphic / cover-story
+   Hex values used:
+     --bg:           #FFFFFF  (page white)
+     --ink:          #0A0A0A  (near-black, body text)
+     --ink-soft:     #5C5C5C  (muted grey, secondary text)
+     --frame-idle:   #0A0A0A  (bracket + rule, resting = black)
+     --frame-active: #FF4B1F  (bracket + rule, ECHO-active state = signal orange)
+     --accent-yellow:#F5FF3D  (selected choice fill)
+     --device-bezel: #1B1B1B  (phone hardware, neutral across all 4 directions)
+     --interstitial-bg:#0A0A0A
+     --interstitial-glow:#FF4B1F
+     --interstitial-glow2:#F5FF3D
+   ============================================================ */
+:root{
+  --bg:#FFFFFF; --ink:#0A0A0A; --ink-soft:#5C5C5C;
+  --frame-idle:#0A0A0A; --frame-active:#FF4B1F; --accent-yellow:#F5FF3D; --device-bezel:#1B1B1B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#EFEFEF;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color:var(--ink);
+  padding:32px 24px 64px;
+}
+.rationale{
+  max-width:820px; margin:0 auto 40px; background:#FFFFFF;
+  border:3px solid var(--ink); padding:24px 28px;
+}
+.rationale h1{ font-size:26px; margin:0 0 4px; letter-spacing:-0.01em; font-weight:900; text-transform:uppercase;}
+.rationale .kicker{ font-size:12px; text-transform:uppercase; letter-spacing:0.18em; color:var(--frame-active); margin-bottom:10px; font-weight:800;}
+.rationale p{ font-size:16px; line-height:1.55; color:var(--ink); margin:0;}
+
+.frames{ display:flex; gap:36px; overflow-x:auto; padding:8px 8px 24px; max-width:1400px; margin:0 auto;}
+.frame-col{ flex:0 0 auto; width:393px;}
+.frame-title{ font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink); margin-bottom:10px; text-align:center; font-weight:800;}
+
+.phone{
+  width:393px; height:852px; border-radius:44px; border:10px solid var(--device-bezel);
+  background:var(--bg); position:relative; overflow:hidden;
+  box-shadow:0 24px 50px rgba(0,0,0,0.4);
+}
+.island{ position:absolute; top:16px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#000; border-radius:20px; z-index:6;}
+.statustime{ position:absolute; top:14px; left:30px; font-size:14px; font-weight:800; color:var(--ink); z-index:6;}
+
+.content{ position:absolute; top:56px; left:0; right:0; bottom:0; padding:16px 14px 18px;}
+.frame-well{ position:relative; height:100%; background:#fff; padding:26px 18px 16px; display:flex; flex-direction:column;}
+
+/* Signature border motif: thick crop-mark brackets, editorial-grid style */
+.bracket{ position:absolute; width:26px; height:26px; z-index:2;}
+.bracket.tl{ top:0; left:0; border-top:6px solid var(--frame-idle); border-left:6px solid var(--frame-idle);}
+.bracket.tr{ top:0; right:0; border-top:6px solid var(--frame-idle); border-right:6px solid var(--frame-idle);}
+.bracket.bl{ bottom:0; left:0; border-bottom:6px solid var(--frame-idle); border-left:6px solid var(--frame-idle);}
+.bracket.br{ bottom:0; right:0; border-bottom:6px solid var(--frame-idle); border-right:6px solid var(--frame-idle);}
+.bracket.active{ border-color:var(--frame-active);}
+
+.eyebrow{ font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#fff; background:var(--ink); display:inline-block; padding:4px 9px; margin-bottom:16px; font-weight:800;}
+.scene{ font-size:20px; line-height:1.5; color:var(--ink); margin:0 0 16px; font-weight:500;}
+.scene:last-of-type{ margin-bottom:0;}
+.scene b{ font-weight:900;}
+
+.echo-line{ position:relative; padding:12px 14px; margin:4px 0 16px; background:var(--ink); }
+.echo-tag{ display:inline-block; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--frame-active); font-weight:900; margin-bottom:6px;}
+.echo-line p{ margin:0; font-size:20px; line-height:1.5; color:#fff; font-weight:600;}
+
+.choices{ margin-top:auto; display:flex; flex-direction:column; gap:12px; padding-top:8px;}
+.choice{
+  font-size:17px; text-align:left; color:var(--ink); font-weight:800;
+  background:#fff; border:3px solid var(--ink);
+  padding:15px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.choice .arrow{ color:var(--ink); font-size:18px; font-weight:900;}
+.choice.selected{ background:var(--accent-yellow); color:var(--ink); border-color:var(--ink);}
+.choice.selected::after{ content:"✓"; margin-left:6px; font-weight:900;}
+
+.pager{ font-size:12px; color:var(--ink-soft); text-align:center; margin-top:14px; letter-spacing:0.08em; font-weight:700; text-transform:uppercase;}
+.swipehint{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:4px; font-weight:700; text-transform:uppercase;}
+
+/* Interstitial */
+.interstitial{ position:absolute; inset:0; background:#0A0A0A;}
+.art{ position:absolute; inset:0;}
+.big-circle{ position:absolute; top:26%; left:60%; width:160px; height:160px; border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, #FF4B1F 0%, #FF4B1F 40%, rgba(255,75,31,0) 72%);
+  box-shadow:0 0 90px 30px rgba(255,75,31,0.45);}
+.road{ position:absolute; left:50%; bottom:0; width:0; height:0; transform:translateX(-50%);
+  border-left:130px solid transparent; border-right:130px solid transparent; border-bottom:480px solid #FFFFFF;}
+.road-strip{ position:absolute; left:50%; bottom:0; width:6px; height:400px; background:#0A0A0A; transform:translateX(-50%);}
+.headline{ position:absolute; top:56%; left:20px; right:20px; font-size:34px; font-weight:900; color:#F5FF3D; line-height:1; text-transform:uppercase; letter-spacing:-0.02em;}
+.caption-wrap{ position:absolute; left:0; right:0; bottom:0; padding:24px 20px 28px; background:#0A0A0A; border-top:6px solid var(--frame-active);}
+.caption{ font-size:17px; line-height:1.4; color:#fff; margin:0 0 18px; font-weight:600;}
+.continue-btn{ display:inline-flex; align-items:center; gap:8px; background:var(--accent-yellow); color:#0A0A0A; border:none; padding:14px 24px; font-size:14px; font-weight:900; letter-spacing:0.04em; text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <div class="kicker">Direction 3 of 4</div>
+  <h1>Bold Editorial</h1>
+  <p>Bold Editorial borrows the confidence of a magazine cover — thick crop-mark brackets, a strict black-and-white grid, and one hot accent color — to make the branch-reality premise feel like breaking news you want to keep reading, not a threat. Type is oversized and blunt because anticipation, done graphically, is about certainty and momentum rather than shadow; the choices read like headlines you get to write. When the story echoes a past choice, the bracket frame flips from black to signal-orange, a visible "this matters" flag instead of a subtle typographic hint.</p>
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Point</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="bracket tl"></div><div class="bracket tr"></div><div class="bracket bl"></div><div class="bracket br"></div>
+          <div class="eyebrow">Ch. 4 — The Lake House</div>
+          <p class="scene">The photo on the mantel is still you and Sam at the lake — except Sam's hair is longer, and you <b>don't remember the boat</b>.</p>
+          <p class="scene">"You said you wanted to steer," Sam says, not looking up from the dishes. You did say that. Didn't you?</p>
+          <div class="choices">
+            <div class="choice selected"><span>Ask Sam about the boat.</span><span class="arrow">→</span></div>
+            <div class="choice"><span>Let it go. Change the subject.</span><span class="arrow">→</span></div>
+          </div>
+          <div class="pager">Page 12 / 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Echo (state variant)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:44</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="bracket tl active"></div><div class="bracket tr active"></div><div class="bracket bl active"></div><div class="bracket br active"></div>
+          <div class="eyebrow">Ch. 9 — The Long Way Home</div>
+          <p class="scene">Sam tosses you the keys without a word, the way you hand something to someone you trust completely.</p>
+          <div class="echo-line">
+            <span class="echo-tag">The story remembers</span>
+            <p>You remember steering the boat, back when the lake still had a shore you recognized. It's why Sam trusts you with the car now.</p>
+          </div>
+          <p class="scene">The engine turns over on the second try. It never used to do that.</p>
+          <div class="swipehint">‹ swipe to continue ›</div>
+          <div class="pager">Page 27 / 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Branch Arrival — Interstitial</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:46</div>
+      <div class="interstitial">
+        <div class="art">
+          <div class="road"></div>
+          <div class="road-strip"></div>
+          <div class="big-circle"></div>
+          <div class="headline">WRONG<br>LIGHT.</div>
+        </div>
+        <div class="caption-wrap">
+          <p class="caption">Somewhere between the third left turn and home, the streetlights changed color.</p>
+          <div class="continue-btn">Continue reading  →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

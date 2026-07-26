@@ -1,0 +1,63 @@
+# Spine Pair Review — Many-Worlds CYOA
+
+## Overall verdict
+
+The spine pair is close to source-extractable: token definitions are complete and resolve cleanly, section order matches the canonical shape, and both Key Flows mirror the PRD's UJ-1/UJ-2 verbatim with named protagonist, numbered steps, and a clear climax. One critical defect breaks the "source-extract cleanly" bar outright — EXPERIENCE.md's Information Architecture section falsely claims four of the five IA surfaces have no visual mockup when all five exist and DESIGN.md already links them — plus two high-severity gaps (no stated contrast targets despite a hard FR-11 requirement, and no DESIGN.md spec at all for the Memory screen's score/tier display). A downstream consumer building from these two files alone would ship an under-specified Memory screen and could easily skip mockups that actually exist.
+
+## 1. Flow coverage — strong
+Checked: PRD UJ-1/UJ-2 against EXPERIENCE.md Key Flows for protagonist naming, numbered steps, climax/resolution beats, and failure path; all 12 FRs traced to a Key Flow, Component Pattern, State Pattern, or IA row citation.
+### Findings
+- **medium** FR-7 (silent alignment scoring) is never explicitly addressed as a behavioral rule anywhere in EXPERIENCE.md — the score/tier's *reveal* at Memory is well covered, but the "invisible during play" half of FR-7 (its actual testable consequence) has no corresponding line in State Patterns or Component Patterns (EXPERIENCE.md, whole doc — absence). *Fix:* add a one-line rule, e.g. in State Patterns: "Alignment running total: never rendered or exposed during a run (FR-7); first surfaces on Memory."
+
+## 2. Token completeness — adequate
+Checked: every color/typography/rounded/spacing/component token in DESIGN.md's frontmatter, every `{path.to.token}` reference in the prose body, and whether contrast guidance exists for load-bearing text/background pairs given FR-11's hard HIG requirement.
+### Findings
+- **high** No contrast ratio or WCAG target is stated anywhere in DESIGN.md, for any color pair — yet EXPERIENCE.md's Accessibility Floor explicitly delegates "Visual contrast... values live in `DESIGN.md`" (EXPERIENCE.md Accessibility Floor intro), and FR-11 makes "sufficient contrast" a hard, testable requirement. The load-bearing pairs most at risk of silent regression are `ink-secondary` on `surface-raised`/`surface-base` (memory-row consequence text, captions) and both dark-mode equivalents (DESIGN.md Colors section, lines 144-156; Components → memory-row, lines 130-135). *Fix:* add explicit verified ratios (e.g., "ink-secondary on surface-raised: ≥4.5:1, verified") for each load-bearing pair, light and dark.
+
+## 3. Component coverage — adequate
+Checked: every component name in DESIGN.md and EXPERIENCE.md (frame, choice-button, eyebrow-tag, echo-callback, interstitial, continue-button, run-options-button, ending-frame, memory-row, plus EXPERIENCE-only names) against a visual row in DESIGN.md.Components and a behavioral row in EXPERIENCE.md.Component Patterns.
+### Findings
+- **high** The Memory/Recap score/tier display — a load-bearing FR-7/FR-10 element, rendered in ember accent per `.memlog.md` and visibly prominent in `mockups/memory.html` (lines 41-43, `.score .num{ color:var(--frame-active) }`) — has no token or component entry in DESIGN.md at all. `components.memory-row` only specs the choice/consequence rows (DESIGN.md lines 130-135); the score header's typography and color are only discoverable by reverse-engineering the mockup, which inverts "spines win on conflict." *Fix:* add a `score` sub-spec (to `memory-row` or as its own component) naming the ember color and typography role used for the number and tier label.
+- **medium** Eyebrow tag has a full visual row in DESIGN.md.Components (line 183) but no corresponding row in EXPERIENCE.md.Component Patterns — it's mentioned only in passing inside the Accessibility Floor's focus-traversal order (EXPERIENCE.md line 95). *Fix:* add an Eyebrow tag row to Component Patterns stating its (minimal) behavioral rule — e.g., "always present, static, non-interactive, never absent on a reading screen."
+- **low** DESIGN.md's component/token is named `choice-button` / "Choice button" (DESIGN.md line 90, 184) while EXPERIENCE.md uses "Choice card" throughout (Component Patterns row header, Foundation, State Patterns, Accessibility Floor). Same component, different name — see also Finding 7.1.
+
+## 4. State coverage — adequate
+Checked every IA surface (Home, Tutorial, Story/Choice, Branch-arrival interstitial, Ending, Memory/Recap) against plausible states (idle, cold-load/resume, in-progress/charging, committed/locked); error/offline states correctly and deliberately absent (zero-network app).
+### Findings
+- **medium** The Ending → Memory transition mechanism is unspecified and the two artifacts disagree by omission: EXPERIENCE.md's Key Flow (UJ-1 step 7) describes Memory as following the Ending screen automatically ("followed immediately by the Memory screen"), but `mockups/ending.html` renders an explicit "Tap to see your run →" hint (lines 76, 93), implying a required user action. No Component Patterns or State Patterns row resolves which is correct. *Fix:* add an explicit interaction rule to the Ending screen row in Component Patterns (e.g., "tap anywhere to advance to Memory; no auto-advance").
+- **low** Branch-arrival interstitial gets a Component Patterns row but no State Patterns row, unlike the structurally similar transient/blocking "Echo active" beat, which does get one (EXPERIENCE.md State Patterns table). *Fix:* add a symmetric "Interstitial active" state row, or note explicitly that Component Patterns fully covers it and no separate state is needed.
+
+## 5. Visual reference coverage — broken
+Listed all 5 files in `mockups/`: `story-choice-warm-ink-circuit.html`, `home.html`, `tutorial.html`, `ending.html`, `memory.html`. Checked that both spines link each inline with what it illustrates, and that "spines win on conflict" is stated once.
+### Findings
+- **critical** EXPERIENCE.md's Information Architecture section states: "Home, Tutorial, Ending, and Memory are spine-only for now — no visual mockup yet" (EXPERIENCE.md line 35). This is false/stale — `mockups/home.html`, `tutorial.html`, `ending.html`, and `memory.html` all exist, and DESIGN.md's own "Reference mockups" line (DESIGN.md line 194) already links all five files. `.memlog.md` (line 19) confirms all four were mocked in a later working session, but EXPERIENCE.md's IA section was never updated afterward. A downstream consumer trusting only EXPERIENCE.md (as the rubric's contract implies they should be able to) will wrongly conclude four of six surfaces have no visual reference and skip them. *Fix:* update EXPERIENCE.md's composition-reference line to list and briefly describe all 5 mockups, matching DESIGN.md.
+- **medium** DESIGN.md's "Reference mockups" line (line 194) names all 5 files but only describes what the first (`story-choice-warm-ink-circuit.html`) illustrates; `home.html`, `tutorial.html`, `ending.html`, and `memory.html` are listed with no parenthetical saying which states/variants they show — unspecific references. *Fix:* add short parentheticals matching the detail already given to the first mockup (e.g., "(fresh-install + resume states)" for home.html, "(home vs. hard-fail variants)" for ending.html).
+
+"Spine wins on conflict" is stated once, in EXPERIENCE.md's IA section — satisfies the requirement.
+
+## 6. Bloat & overspecification — strong
+Checked for pixel specs duplicating tokens, verbatim source restatement, prose-where-a-table-would-work, decorative narrative untied to a decision, and marketing-voice creep into EXPERIENCE.md.
+### Findings
+No significant issues found. DESIGN.md's editorial voice (Brand & Style) is permitted and every narrative line ties to a real decision (ember-is-echo-only, sharp corners, warm-not-cool palette). EXPERIENCE.md reads as a spec throughout — Voice and Tone, Component Patterns, and State Patterns are tables with terse behavioral rules, and Key Flows stay functional rather than promotional. FR/UJ numbers are cited rather than FR text being reproduced, avoiding source duplication.
+
+## 7. Inheritance discipline — adequate
+Checked: `sources` frontmatter resolution, UJ naming verbatim from PRD, glossary term consistency (branch reality, choice echo, alignment score, ending taxonomy, memory screen, gesture), component name identity across files, and resolution of every cross-file reference.
+### Findings
+- **medium** "Choice button" (DESIGN.md token `choice-button`, line 90/184) vs. "Choice card" (EXPERIENCE.md, used consistently in the Component Patterns row header and in Foundation, State Patterns, and Accessibility Floor prose) is a real naming drift, not a trivial casing difference — a downstream dev has to decide whether the shipped type is `ChoiceButton` or `ChoiceCard`. *Fix:* pick one name and apply it in both files.
+- **low** `run-options-button` (DESIGN.md kebab-case token) vs. "Run options button" (EXPERIENCE.md title-case prose) — this one is trivial, a pure formatting difference for the same name, not a real problem.
+
+All three `sources` paths (prd.md, brainstorm-intent.md, pitch-one-pager.md) resolve in both files' frontmatter. UJ-1/UJ-2 names and protagonist (Mary, unnamed in UJ-2 exactly as the PRD itself leaves her unnamed) match the PRD verbatim. Glossary terms "branch reality" and "ending taxonomy" (home/stay/limbo/hard-fail) are used identically across PRD/DESIGN/EXPERIENCE. "Choice echo" is consistently shortened to "echo" in both spines — internally consistent, not flagged. "Alignment score" has no DESIGN.md-side representation at all (see Finding 3.1) — a glossary term with zero visual-spec footprint despite being rendered distinctly in the mockup.
+
+## 8. Shape fit — adequate
+Checked DESIGN.md section order (Brand & Style → Colors → Typography → Layout & Spacing → Elevation & Depth → Shapes → Components → Do's and Don'ts) and EXPERIENCE.md's required defaults (Foundation, IA, Voice and Tone, Component Patterns, State Patterns, Interaction Primitives, Accessibility Floor, Key Flows), both confirmed in canonical order with no section out of place.
+### Findings
+- **medium** "Inspiration & Anti-patterns" was omitted from DESIGN.md, but the omission is only partly defensible. There genuinely are no *named reference products* to cite — but the direction is explicitly built on editorial/magazine-masthead typography and PCB/circuit-board trace geometry (both stated in DESIGN.md's own Brand & Style prose), and `.memlog.md` (line 11) records an explicit rejected alternative: "corner treatment redrawn as circuit-trace geometry... instead of a plain bracket/hairline." That lineage and rejected-alternative record exists in the memlog but never landed in the shipped spine, where a downstream reader would look for it. *Fix:* add a short Inspiration & Anti-patterns section (or fold a condensed "lifted from / rejected" note into Brand & Style) capturing the editorial + PCB lineage and the rejected plain-bracket corner.
+
+"Responsive & Platform" is correctly and defensibly omitted — this is a genuine single-surface, portrait-only native iOS app with no breakpoints to define.
+
+## Mechanical notes
+
+- **Frontmatter:** Both DESIGN.md and EXPERIENCE.md list identical `sources` (prd.md, brainstorm-intent.md, pitch-one-pager.md); all three resolve on disk. EXPERIENCE.md's `design_ref: ./DESIGN.md` resolves correctly. Both files are `status: draft` — consistent with each other, expected at this review stage.
+- **Cross-reference syntax:** DESIGN.md's body uses the `{path.to.token}` curly-brace convention throughout and every instance resolves to a real frontmatter token — no broken refs found. EXPERIENCE.md does *not* use that curly-brace syntax at all; instead it cites DESIGN.md via backtick dotted-paths (e.g. `` `DESIGN.md.components.frame` ``, `` `DESIGN.md.Brand & Style` ``). This is a different but internally consistent convention, and every one of those dotted-path references resolves to a real DESIGN.md section or component — no broken cross-refs, just a note that item 7's literal `{path.to.token}` check doesn't apply to EXPERIENCE.md as written.
+- **Naming inconsistencies:** choice-button/Choice card (real drift, see Finding 7.1); run-options-button/Run options button (trivial, format-only).
+- **Single most important mechanical defect:** the stale "no visual mockup yet" line in EXPERIENCE.md (Finding 5.1) — it directly contradicts both DESIGN.md and the actual contents of `mockups/`.

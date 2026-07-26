@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of 1-5-home-story-subtitle (2026-07-26)
+
+- No automated existence/regression test for the new `home.storySubtitle` string/view. Pre-existing: no UI existence/snapshot testing pattern exists anywhere in this codebase (1.2/1.3/1.4/5.3 all lack it too), and AD-7 scopes automated Swift Testing coverage to `StoryRunEngine` logic only — a UI-existence test would be the first of its kind, not a gap this story introduced.
+
 ## Deferred from: code review of 1-4-home-and-tutorial-visual-identity-and-accessibility-pass (2026-07-26)
 
 - `.background(Color.surfaceBase.ignoresSafeArea())` is duplicated per-screen (`HomeView.swift`, `TutorialView.swift`) rather than centralized (e.g. on `RootView`'s `NavigationStack`). Pre-existing pattern, not a bug: centralizing was out of this story's declared scope (its own Dev Notes explicitly forbid touching `RootView.swift`), and only two screens currently need the background. Revisit once a third frame-free screen (if any) needs the same treatment.

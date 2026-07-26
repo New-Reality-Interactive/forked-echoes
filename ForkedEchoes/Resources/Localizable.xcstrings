@@ -49,6 +49,18 @@
         }
       }
     },
+    "home.storySubtitle" : {
+      "comment" : "Home screen: short one-line subtitle beneath the story title, describes the story (placeholder until Epic 4 authors the real copy)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A choose-your-own-adventure about finding your way back, one decision at a time."
+          }
+        }
+      }
+    },
     "home.storyTitle" : {
       "comment" : "Home screen: large headline, the in-fiction story's title (placeholder until Epic 4 authors the real title)",
       "extractionState" : "manual",

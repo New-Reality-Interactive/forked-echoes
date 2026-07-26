@@ -308,6 +308,36 @@ So that I know what I'm about to start before committing to it.
 
 *(Owner: Developer. Added via sprint-demo/party-mode review, 2026-07-26 — the user noticed `mockups/home.html`'s `.story-sub` field was never carried into Story 1.2's implementation or any later Home story. Not a regression: Story 1.2's AC never specified a subtitle, so this was a mockup-vs-story gap present from the start, not something later work broke.)*
 
+### Story 1.6: Named Design Constants for Layout Values
+
+As a developer,
+I want numeric layout literals (spacing, sizing, opacity) in view code to reference named constants — sourced from a DESIGN.md token where one exists, or a suitably named local constant where one doesn't,
+So that values stay traceable to design intent and are never silently duplicated or drifted between call sites.
+
+**Acceptance Criteria:**
+
+**Given** a numeric layout literal in `Views/Home/HomeView.swift` or `Views/Tutorial/TutorialView.swift` that corresponds to a DESIGN.md token (the 8pt spacing scale `{spacing.1}`–`{spacing.8}`, `{components.reading-surface.min-tap-target}` = 44pt, `{components.reading-surface.column-max-width-landscape}` = 680px)
+**When** it is used
+**Then** it references a named Swift constant derived from that token, not an inline literal
+
+**Given** a numeric layout literal with no corresponding DESIGN.md token (e.g. the action-stack width cap, the subtitle width cap, `SecondaryActionButtonStyle`'s border width, the pressed/disabled opacity values in `ButtonStyles.swift`)
+**When** it is used
+**Then** it is defined as a named Swift constant with a descriptive name, not an inline literal
+
+**Given** two or more literals across the touched files that share the same value and the same semantic context (e.g. the `320`pt action-stack cap used identically in both `HomeView.swift` and `TutorialView.swift`)
+**When** they are extracted
+**Then** they reference one shared constant, not separate per-file definitions
+
+**Given** the existing `Views/DesignSystem/` folder (established in Story 1.4) already holds `Typography.swift`/`ButtonStyles.swift` as the project's design-token home
+**When** new constants are added
+**Then** they live in a new file in that same folder, following its existing naming/organization conventions
+
+**Given** this is a pure refactor of existing, already-shipped Home/Tutorial/ButtonStyles code
+**When** the change is complete
+**Then** rendered output, layout, and behavior are pixel-for-pixel unchanged — no visual or functional diff
+
+*(Owner: Developer. Added via post-1.5 code-review discussion, 2026-07-26 — the user noticed several magic numbers across `HomeView.swift`/`TutorialView.swift`/`ButtonStyles.swift` while reviewing Story 1.5 and asked for a dedicated cleanup story: DESIGN.md-sourced values get a named constant tied to their token, valueless numbers get a descriptive name, and duplicate same-context values collapse to one shared constant.)*
+
 ## Epic 2: Story Reader, Choice Echo & Branch Realities
 
 Player can read a branching story, make permanent choices (gesture or tap), watch the story explicitly call back to an earlier choice 2-3 times, and see a bundled illustration on arriving in a new branch reality.

@@ -21,7 +21,15 @@
       "Bash(xargs -I{} echo {})",
       "Bash(git -C /workspaces/game status)",
       "Bash(grep -v -E \"^\\\\.$|^\\\\.\\\\.$\")",
-      "Bash(swift --version)"
+      "Bash(swift --version)",
+      "Bash(pip3 list *)",
+      "Bash(pip3 install *)",
+      "Bash(apt list *)",
+      "Bash(git status *)",
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(git check-ignore *)",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

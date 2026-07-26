@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXContainerItemProxy section */
@@ -22,14 +22,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DF9497A38B3C2D22A0A7E006 /* Exceptions for "Content" folder in "ForkedEchoes" target */ = {
+		CA6ADC1CF0E2EC2A627845FB /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				.gitkeep,
 			);
 			target = E938FCFEE26010F398BE0062 /* ForkedEchoes */;
 		};
-		CA6ADC1CF0E2EC2A627845FB /* Exceptions for "Engine" folder in "ForkedEchoes" target */ = {
+		DF9497A38B3C2D22A0A7E006 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				.gitkeep,
@@ -39,53 +39,23 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		EE5F622BD80BD6DFB81348C7 /* App */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = App;
-			sourceTree = "<group>";
-		};
-		0C945DF37E675F28E39B8829 /* Content */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				DF9497A38B3C2D22A0A7E006 /* Exceptions for "Content" folder in "ForkedEchoes" target */,
-			);
-			path = Content;
-			sourceTree = "<group>";
-		};
-		F05E7BCBCD195E28E6F0EBDA /* Engine */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				CA6ADC1CF0E2EC2A627845FB /* Exceptions for "Engine" folder in "ForkedEchoes" target */,
-			);
-			path = Engine;
-			sourceTree = "<group>";
-		};
-		BA209C8E83E65CD2C371C5A9 /* Views */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Views;
-			sourceTree = "<group>";
-		};
-		F03BED9051C8E6506B7E20E8 /* Resources */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		43288A41207E42FD6C40C291 /* ForkedEchoesTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ForkedEchoesTests;
-			sourceTree = "<group>";
-		};
+		0C945DF37E675F28E39B8829 /* Content */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (DF9497A38B3C2D22A0A7E006 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Content; sourceTree = "<group>"; };
+		43288A41207E42FD6C40C291 /* ForkedEchoesTests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = ForkedEchoesTests; sourceTree = "<group>"; };
+		BA209C8E83E65CD2C371C5A9 /* Views */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Views; sourceTree = "<group>"; };
+		EE5F622BD80BD6DFB81348C7 /* App */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = App; sourceTree = "<group>"; };
+		F03BED9051C8E6506B7E20E8 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+		F05E7BCBCD195E28E6F0EBDA /* Engine */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (CA6ADC1CF0E2EC2A627845FB /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = Engine; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		577B5312CB90063216390683 /* Frameworks */ = {
+		0E78CFF2294E4F01D787E087 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0E78CFF2294E4F01D787E087 /* Frameworks */ = {
+		577B5312CB90063216390683 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -95,15 +65,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D8FD10920641B7FABE22F979 = {
-			isa = PBXGroup;
-			children = (
-				3606F0921C1C4F8A012796F2 /* ForkedEchoes */,
-				43288A41207E42FD6C40C291 /* ForkedEchoesTests */,
-				FBC9E6B3690906C050391B10 /* Products */,
-			);
-			sourceTree = "<group>";
-		};
 		3606F0921C1C4F8A012796F2 /* ForkedEchoes */ = {
 			isa = PBXGroup;
 			children = (
@@ -114,6 +75,15 @@
 				F03BED9051C8E6506B7E20E8 /* Resources */,
 			);
 			path = ForkedEchoes;
+			sourceTree = "<group>";
+		};
+		D8FD10920641B7FABE22F979 = {
+			isa = PBXGroup;
+			children = (
+				3606F0921C1C4F8A012796F2 /* ForkedEchoes */,
+				43288A41207E42FD6C40C291 /* ForkedEchoesTests */,
+				FBC9E6B3690906C050391B10 /* Products */,
+			);
 			sourceTree = "<group>";
 		};
 		FBC9E6B3690906C050391B10 /* Products */ = {
@@ -128,30 +98,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E938FCFEE26010F398BE0062 /* ForkedEchoes */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AA0F7548967E75B532FFA947 /* Build configuration list for PBXNativeTarget "ForkedEchoes" */;
-			buildPhases = (
-				28D83D6D237B865407A6FC2B /* Sources */,
-				577B5312CB90063216390683 /* Frameworks */,
-				7CCC29387AF91CBA5669DB57 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				EE5F622BD80BD6DFB81348C7 /* App */,
-				0C945DF37E675F28E39B8829 /* Content */,
-				F05E7BCBCD195E28E6F0EBDA /* Engine */,
-				BA209C8E83E65CD2C371C5A9 /* Views */,
-				F03BED9051C8E6506B7E20E8 /* Resources */,
-			);
-			name = ForkedEchoes;
-			productName = ForkedEchoes;
-			productReference = 003821BBEEEA5FDBFEC595B0 /* ForkedEchoes.app */;
-			productType = "com.apple.product-type.application";
-		};
 		DBE6DAAAA99A6BD5AE643E5D /* ForkedEchoesTests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6DED5793218C342FE57129B2 /* Build configuration list for PBXNativeTarget "ForkedEchoesTests" */;
@@ -173,6 +119,30 @@
 			productReference = 70CF8B6A1E3EF92BF855F61D /* ForkedEchoesTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		E938FCFEE26010F398BE0062 /* ForkedEchoes */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AA0F7548967E75B532FFA947 /* Build configuration list for PBXNativeTarget "ForkedEchoes" */;
+			buildPhases = (
+				28D83D6D237B865407A6FC2B /* Sources */,
+				577B5312CB90063216390683 /* Frameworks */,
+				7CCC29387AF91CBA5669DB57 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0C945DF37E675F28E39B8829 /* Content */,
+				BA209C8E83E65CD2C371C5A9 /* Views */,
+				EE5F622BD80BD6DFB81348C7 /* App */,
+				F03BED9051C8E6506B7E20E8 /* Resources */,
+				F05E7BCBCD195E28E6F0EBDA /* Engine */,
+			);
+			name = ForkedEchoes;
+			productName = ForkedEchoes;
+			productReference = 003821BBEEEA5FDBFEC595B0 /* ForkedEchoes.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -183,12 +153,12 @@
 				LastSwiftUpdateCheck = 2660;
 				LastUpgradeCheck = 2660;
 				TargetAttributes = {
-					E938FCFEE26010F398BE0062 = {
-						CreatedOnToolsVersion = 26.6;
-					};
 					DBE6DAAAA99A6BD5AE643E5D = {
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = E938FCFEE26010F398BE0062;
+					};
+					E938FCFEE26010F398BE0062 = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -212,14 +182,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		7CCC29387AF91CBA5669DB57 /* Resources */ = {
+		1F09604600188116F73794C1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1F09604600188116F73794C1 /* Resources */ = {
+		7CCC29387AF91CBA5669DB57 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -254,6 +224,62 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		1E13F997DB14A5B0FF8E8E6C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 6.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		35E5A97EE5573E9B820F6ED8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -317,59 +343,20 @@
 			};
 			name = Debug;
 		};
-		1E13F997DB14A5B0FF8E8E6C /* Release */ = {
+		6FB316754721093E2C5D4136 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				SDKROOT = iphoneos;
-				SWIFT_COMPILATION_MODE = wholemodule;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.forkedechoes.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 6.0;
-				VALIDATE_PRODUCT = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ForkedEchoes.app/ForkedEchoes";
 			};
 			name = Release;
 		};
@@ -440,26 +427,18 @@
 			};
 			name = Debug;
 		};
-		6FB316754721093E2C5D4136 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.forkedechoes.tests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_STRICT_CONCURRENCY = complete;
-				SWIFT_VERSION = 6.0;
-				TARGETED_DEVICE_FAMILY = 1;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ForkedEchoes.app/ForkedEchoes";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		6DED5793218C342FE57129B2 /* Build configuration list for PBXNativeTarget "ForkedEchoesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EA1C25241ABF8A09FD4CDE6C /* Debug */,
+				6FB316754721093E2C5D4136 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		80B65C2954CA7E7568711D85 /* Build configuration list for PBXProject "ForkedEchoes" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -474,15 +453,6 @@
 			buildConfigurations = (
 				9974EB4CD2CBE8A318135A8F /* Debug */,
 				D8BEF3C657ABBE2B2833E386 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		6DED5793218C342FE57129B2 /* Build configuration list for PBXNativeTarget "ForkedEchoesTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				EA1C25241ABF8A09FD4CDE6C /* Debug */,
-				6FB316754721093E2C5D4136 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

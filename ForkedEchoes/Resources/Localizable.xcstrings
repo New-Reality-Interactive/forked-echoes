@@ -1,7 +1,66 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-
+    "home.action.resumeStory" : {
+      "comment" : "Home screen: primary action label when a run is already in progress",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume Story"
+          }
+        }
+      }
+    },
+    "home.action.startStory" : {
+      "comment" : "Home screen: primary action label when no run is in progress",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Story"
+          }
+        }
+      }
+    },
+    "home.action.startTutorial" : {
+      "comment" : "Home screen: secondary action label, opens the tutorial",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start Tutorial"
+          }
+        }
+      }
+    },
+    "home.appTitle" : {
+      "comment" : "Home screen: small eyebrow label above the story title, the app's display name",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forked Echoes"
+          }
+        }
+      }
+    },
+    "home.storyTitle" : {
+      "comment" : "Home screen: large headline, the in-fiction story's title (placeholder until Epic 4 authors the real title)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untitled Story"
+          }
+        }
+      }
+    }
   },
   "version" : "1.0"
 }

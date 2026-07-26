@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-07-26
+last_updated: 2026-07-26 (5-2 marked done after code review; 5-1/epic-5 status corrected to reflect completed work)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -55,9 +55,9 @@ development_status:
   1-4-home-and-tutorial-visual-identity-and-accessibility-pass: backlog
   epic-1-retrospective: optional
 
-  epic-5: backlog
-  5-1-landscape-ux-design-pass: backlog
-  5-2-landscape-architecture-decision-and-orientation-unlock: backlog
+  epic-5: in-progress
+  5-1-landscape-ux-design-pass: done
+  5-2-landscape-architecture-decision-and-orientation-unlock: done
   5-3-home-and-tutorial-landscape-retrofit: backlog
   epic-5-retrospective: optional
 

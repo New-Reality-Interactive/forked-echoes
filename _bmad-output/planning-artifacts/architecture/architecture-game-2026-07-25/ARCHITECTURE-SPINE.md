@@ -81,6 +81,12 @@ Maps to source tree: `Content/`, `Engine/`, `Views/` (see Structural Seed).
 - **Prevents:** engine logic shipping unverified. (An earlier draft of this spine built ending resolution around a score-threshold function; that mechanism was a misreading of the original design intent, caught and corrected before implementation began — see `addendum.md`'s correction note. This test surface verifies the corrected, simpler contract instead.)
 - **Rule:** Swift Testing covers `StoryRunEngine` logic: every terminal node in the content tree resolves to exactly one `EndingKind` with no ambiguity (FR-8), echo-callback reachability as authored in the tree, hard-fail terminal nodes reachable only via their designated gotcha choice, pager-gating (forward blocked on an unresolved choice; back-navigation shows a decided choice locked, per FR-5), and `RunSnapshot` encode/decode round-trip (including the alignment-score field, verified only for correct accumulation/persistence, not for any ending-resolution role). No automated UI-test requirement beyond the manual/VoiceOver playtesting FR-11 already calls for.
 
+### AD-8 — Landscape is a continuous layout reflow, detected via vertical size class, not a distinct engine phase or code path
+
+- **Binds:** all screens (Home, Tutorial, Story/Choice, Ending, Memory), Presentation layer, FR-11, PRD §4.6 Orientation NFR
+- **Prevents:** duplicate view hierarchies per orientation (e.g. a separate `LandscapeHomeView` alongside `HomeView`); brittle `UIDevice.orientation`/`UIDeviceOrientationDidChangeNotification` observation, which doesn't map cleanly onto SwiftUI's declarative environment model and requires manual lifecycle handling; misclassifying orientation via `horizontalSizeClass`, which reports `.compact` in *both* portrait and landscape on standard (non-Plus/Max) iPhones and so cannot distinguish the two.
+- **Rule:** Every screen is a single SwiftUI view hierarchy that reflows continuously across orientation. Where a structural layout branch is needed (e.g. `choice-card` stack→row), the view reads `@Environment(\.verticalSizeClass)` (`.compact` = landscape, `.regular` = portrait — reliable across all iPhone sizes, unlike `horizontalSizeClass`) and branches inline (e.g. a conditional modifier or `Group`) — never a second view type or file. Where only geometry changes (e.g. `reading-surface`'s landscape column-width cap), express it as a plain `.frame(maxWidth:)`-style constraint that is simply a no-op in portrait, not a size-class branch at all. No orientation-specific view types, no `UIDevice.orientation` polling, no manual rotation lifecycle code anywhere in `Views/`. `verticalSizeClass` is `Optional` — if it is ever `nil` (e.g. a view instantiated outside a window scene, such as certain preview contexts with no explicit size-class override), treat it as `.regular` (portrait), the safer default since no orientation-dependent layout should ever silently assume the more space-constrained landscape branch. `StoryRunEngine`'s phase model (AD-5) is orientation-agnostic and untouched by this — landscape is a Presentation-layer-only concern.
+
 ### Dependency Direction
 
 ```mermaid
@@ -147,7 +153,7 @@ stateDiagram-v2
 
 **Device target:** iPhone only for v1, supporting both portrait and landscape orientation — the single-column reading surface `EXPERIENCE.md` specifies reflows for landscape rather than assuming portrait-only. iPad/Universal is not excluded by anything architectural, just not designed for; see Deferred.
 
-**Landscape layout strategy:** TBD — pending the UX Designer's landscape design pass (Epic 5, Story 5.1). Until that lands, no new story may hard-code portrait-only layout assumptions (fixed aspect-ratio frames, orientation-locked navigation chrome, etc.).
+**Landscape layout strategy** (AD-8): Both orientations reflow from one SwiftUI view hierarchy per screen — orientation is detected via `verticalSizeClass` (never `UIDevice.orientation` or `horizontalSizeClass`, see AD-8). The reading surface (Story/Choice, Tutorial, Ending, Memory) caps at `680px`/`{components.reading-surface.column-max-width-landscape}` and centers, so extra screen width becomes side margin rather than longer lines. Choice cards switch from a vertical stack to a horizontal row, wrapping to a 2+1 layout once a label would exceed 2 lines or at accessibility Dynamic Type sizes — a hard constraint, not an implementation-time judgment call. The circuit frame, Home/Tutorial's centered stack, and the branch-arrival interstitial all reflow their existing geometry to the new aspect ratio — no new component types are introduced for landscape. The 44pt minimum tap target and the frame-well's Dynamic Type headroom clearance hold identically in both orientations. Full behavioral spec: `EXPERIENCE.md#Responsive and Platform`; token values: `DESIGN.md#Layout & Spacing` (Landscape paragraph), `DESIGN.md#Components` (`reading-surface`, `choice-card.layout-landscape`). This paragraph names the components Story 5.1 explicitly designed for; AD-8's general rule still governs any component not yet named here (e.g. Epic 2/3's not-yet-built screens) — no story may hard-code a portrait-only layout assumption for a new component, even one absent from this list.
 
 **Deployment & environments:** Single Xcode app target; Debug/Release configurations only. No backend, server, or infra of any kind — fully on-device (PRD platform constraint). Distribution via App Store Connect; TestFlight for solo/friends playtesting pre-submission. Apple Developer Program enrollment is a **blocking prerequisite** for any TestFlight or App Store distribution and is not yet in place (PRD Open Question 5) — tracked here as an unresolved dependency, not something this spine can close.
 
@@ -155,17 +161,17 @@ stateDiagram-v2
 
 | Capability | Lives in | Governed by |
 | --- | --- | --- |
-| FR-1 Home entry | `Views/Home` | AD-3, AD-4 (Resume/Start relabel) |
-| FR-2 Tutorial | `Views/Tutorial` | AD-3 |
-| FR-3 Page navigation | `Engine` (advancePage/goBack), `Views/StoryChoice` | AD-5 |
+| FR-1 Home entry | `Views/Home` | AD-3, AD-4 (Resume/Start relabel), AD-8 |
+| FR-2 Tutorial | `Views/Tutorial` | AD-3, AD-8 |
+| FR-3 Page navigation | `Engine` (advancePage/goBack), `Views/StoryChoice` | AD-5, AD-8 |
 | FR-4 Choice presentation & selection | `Content` (choice cases), `Engine` (selectChoice) | AD-1, AD-3 |
 | FR-5 Choice permanence | `Engine` (locked choice history) | AD-3, AD-5 |
 | FR-6 Narrative callback (echo) | `Content` (echo wiring) | AD-1, AD-7 |
 | FR-7 Silent alignment scoring | `Engine` (score accumulation, never exposed) | AD-3 |
 | FR-8 Ending resolution | `Content` (per-node `EndingKind`), `Engine` (hard-fail bypass transition) | AD-1, AD-6 |
-| FR-9 Ending screen | `Views/Ending` (one shared template) | AD-3 |
-| FR-10 Memory/recap | `Engine` (choice history), `Views/Memory` | AD-3, AD-4 |
-| FR-11 Accessible interaction parity | `Views` (VoiceOver/Dynamic Type), `Resources/Localizable.xcstrings` (a11y labels) | AD-2, AD-3 |
+| FR-9 Ending screen | `Views/Ending` (one shared template) | AD-3, AD-8 |
+| FR-10 Memory/recap | `Engine` (choice history), `Views/Memory` | AD-3, AD-4, AD-8 |
+| FR-11 Accessible interaction parity | `Views` (VoiceOver/Dynamic Type), `Resources/Localizable.xcstrings` (a11y labels) | AD-2, AD-3, AD-8 |
 | FR-12 Bundled illustrations | `Resources/Assets.xcassets` | AD-2 |
 
 ## Deferred

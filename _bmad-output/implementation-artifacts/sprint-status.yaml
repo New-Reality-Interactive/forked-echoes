@@ -53,12 +53,14 @@ development_status:
   1-2-home-screen-start-resume-story-and-start-tutorial: done
   1-3-tutorial-screen: done
   1-4-home-and-tutorial-visual-identity-and-accessibility-pass: done
+  1-5-home-story-subtitle: backlog
   epic-1-retrospective: optional
 
   epic-5: in-progress
   5-1-landscape-ux-design-pass: done
   5-2-landscape-architecture-decision-and-orientation-unlock: done
   5-3-home-and-tutorial-landscape-retrofit: done
+  5-4-cold-launch-orientation-fix: backlog
   epic-5-retrospective: optional
 
   epic-2: backlog

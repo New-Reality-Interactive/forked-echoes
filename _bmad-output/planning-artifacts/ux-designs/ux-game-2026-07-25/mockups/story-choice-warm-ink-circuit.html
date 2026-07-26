@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Many-Worlds CYOA — Hybrid B: Warm Ink, Circuit Frame</title>
+<style>
+/* ============================================================
+   HYBRID B — WARM INK, CIRCUIT FRAME — high-contrast / graphic / cover-story
+   Hex values used:
+     --bg:           #FFFFFF  (page white)
+     --ink:          #0A0A0A  (near-black, body text)
+     --ink-soft:     #5C5C5C  (muted grey, secondary text)
+     --frame-idle:   #241C14  (warm ink, body/rule)
+     --frame-active: #C2540F  (ember, ECHO-active accent)
+     --trace-idle:   #8B6F47  (aged-brass circuit trace, resting)
+     --accent-yellow:#F5FF3D  (selected choice fill)
+     --device-bezel: #1B1B1B  (phone hardware, neutral across all 4 directions)
+     --interstitial-bg:#0A0A0A
+     --interstitial-glow:#FF4B1F
+     --interstitial-glow2:#F5FF3D
+   ============================================================ */
+:root{
+  --bg:#FAF6EE; --ink:#241C14; --ink-soft:#6A5A45;
+  --frame-idle:#241C14; --frame-active:#C2540F; --frame-active-text:#E37A2E; --trace-idle:#8B6F47; --accent-yellow:#F0DDAF; --device-bezel:#1B1B1B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#EDE6D6;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color:var(--ink);
+  padding:32px 24px 64px;
+}
+.rationale{
+  max-width:820px; margin:0 auto 40px; background:#FFFFFF;
+  border:3px solid var(--ink); padding:24px 28px;
+}
+.rationale h1{ font-size:26px; margin:0 0 4px; letter-spacing:-0.01em; font-weight:900; text-transform:uppercase;}
+.rationale .kicker{ font-size:12px; text-transform:uppercase; letter-spacing:0.18em; color:var(--frame-active); margin-bottom:10px; font-weight:800;}
+.rationale p{ font-size:16px; line-height:1.55; color:var(--ink); margin:0;}
+
+.frames{ display:flex; gap:36px; overflow-x:auto; padding:8px 8px 24px; max-width:1400px; margin:0 auto;}
+.frame-col{ flex:0 0 auto; width:393px;}
+.frame-title{ font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink); margin-bottom:10px; text-align:center; font-weight:800;}
+
+.phone{
+  width:393px; height:852px; border-radius:44px; border:10px solid var(--device-bezel);
+  background:var(--bg); position:relative; overflow:hidden;
+  box-shadow:0 24px 50px rgba(0,0,0,0.4);
+}
+.island{ position:absolute; top:16px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#000; border-radius:20px; z-index:6;}
+.statustime{ position:absolute; top:14px; left:30px; font-size:14px; font-weight:800; color:var(--ink); z-index:6;}
+
+.content{ position:absolute; top:56px; left:0; right:0; bottom:0; padding:16px 14px 18px;}
+.frame-well{ position:relative; height:100%; background:#fff; padding:26px 18px 16px; display:flex; flex-direction:column;}
+
+/* Signature border motif (circuit): brass trace corners, a via node at each bend, open pads at the stub ends -- reads as a time-machine console's routed circuitry. On echo, the traces power up to the ember accent and glow, as if current just reached this corner. */
+.frame-well::before{ content:""; position:absolute; inset:9px; border:1px solid var(--trace-idle); pointer-events:none; z-index:1;}
+.frame-well.active-frame::before{ border-color:var(--frame-active); box-shadow:inset 0 0 0 1px var(--frame-active);}
+
+.circuit-corner{ position:absolute; width:30px; height:30px; z-index:2;}
+.circuit-corner .trace-h{ position:absolute; top:9px; left:0; width:22px; height:2px; background:var(--trace-idle);}
+.circuit-corner .trace-v{ position:absolute; top:0; left:9px; width:2px; height:22px; background:var(--trace-idle);}
+.circuit-corner .via{ position:absolute; top:6px; left:6px; width:7px; height:7px; border-radius:50%; background:var(--trace-idle);}
+.circuit-corner .pad{ position:absolute; width:5px; height:5px; border:1.5px solid var(--trace-idle); background:transparent; box-sizing:border-box;}
+.circuit-corner .pad.end-h{ top:8px; left:19px;}
+.circuit-corner .pad.end-v{ top:19px; left:8px;}
+
+.circuit-corner.tl{ top:0; left:0;}
+.circuit-corner.tr{ top:0; right:0; transform:scaleX(-1);}
+.circuit-corner.bl{ bottom:0; left:0; transform:scaleY(-1);}
+.circuit-corner.br{ bottom:0; right:0; transform:scale(-1,-1);}
+
+.circuit-corner.active .trace-h, .circuit-corner.active .trace-v{ background:var(--frame-active); box-shadow:0 0 6px 1px rgba(194,84,15,0.55);}
+/* Active state carries a shape cue alongside color -- via grows 7px->9px, pads go from hollow to filled -- since brass/ember sit at near-identical luminance and would otherwise be a pure hue shift (CVD-safe redundancy) */
+.circuit-corner.active .via{ width:9px; height:9px; top:5px; left:5px; background:var(--frame-active); box-shadow:0 0 8px 2px rgba(194,84,15,0.6);}
+.circuit-corner.active .pad{ background:var(--frame-active); border-color:var(--frame-active); box-shadow:0 0 6px 1px rgba(194,84,15,0.5);}
+
+.eyebrow{ font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:#fff; background:var(--ink); display:inline-block; padding:4px 9px; margin-bottom:16px; font-weight:800;}
+.scene{ font-size:20px; line-height:1.5; color:var(--ink); margin:0 0 16px; font-weight:500;}
+.scene:last-of-type{ margin-bottom:0;}
+.scene b{ font-weight:900;}
+
+.echo-line{ position:relative; padding:12px 14px; margin:4px 0 16px; background:var(--ink); }
+.echo-tag{ display:inline-block; font-size:11px; letter-spacing:0.16em; text-transform:uppercase; color:var(--frame-active-text); font-weight:900; margin-bottom:6px;}
+.echo-line p{ margin:0; font-size:20px; line-height:1.5; color:#fff; font-weight:600;}
+
+.choices{ margin-top:auto; display:flex; flex-direction:column; gap:12px; padding-top:8px;}
+.choice{
+  font-size:17px; text-align:left; color:var(--ink); font-weight:800;
+  background:#fff; border:3px solid var(--ink);
+  padding:15px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.choice .arrow{ color:var(--ink); font-size:18px; font-weight:900;}
+.choice.selected{ background:var(--accent-yellow); color:var(--ink); border-color:var(--ink);}
+.choice.selected::after{ content:"✓"; margin-left:6px; font-weight:900;}
+
+.pager{ font-size:12px; color:var(--ink-soft); text-align:center; margin-top:14px; letter-spacing:0.08em; font-weight:700; text-transform:uppercase;}
+.swipehint{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:4px; font-weight:700; text-transform:uppercase;}
+
+/* Interstitial */
+.interstitial{ position:absolute; inset:0; background:#241C14;}
+.art{ position:absolute; inset:0;}
+.big-circle{ position:absolute; top:26%; left:60%; width:160px; height:160px; border-radius:50%;
+  background:radial-gradient(circle at 40% 35%, #C2540F 0%, #C2540F 40%, rgba(194,84,15,0) 72%);
+  box-shadow:0 0 90px 30px rgba(194,84,15,0.4);}
+.road{ position:absolute; left:50%; bottom:0; width:0; height:0; transform:translateX(-50%);
+  border-left:130px solid transparent; border-right:130px solid transparent; border-bottom:480px solid #FFFFFF;}
+.road-strip{ position:absolute; left:50%; bottom:0; width:6px; height:400px; background:#241C14; transform:translateX(-50%);}
+.headline{ position:absolute; top:56%; left:20px; right:20px; font-size:34px; font-weight:900; color:#F0DDAF; line-height:1; text-transform:uppercase; letter-spacing:-0.02em;}
+.caption-wrap{ position:absolute; left:0; right:0; bottom:0; padding:24px 20px 28px; background:#241C14; border-top:3px solid var(--frame-active);}
+.caption{ font-size:17px; line-height:1.4; color:#fff; margin:0 0 18px; font-weight:600;}
+.continue-btn{ display:inline-flex; align-items:center; gap:8px; background:var(--accent-yellow); color:#241C14; border:none; padding:14px 24px; font-size:14px; font-weight:900; letter-spacing:0.04em; text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <div class="kicker">Hybrid B of 2</div>
+  <h1>Warm Ink, Circuit Frame</h1>
+  <p>Same warm-ink-on-paper palette and bold sans confidence as before, but the corner treatment is now routed circuitry: aged-brass trace lines meeting at a via node, with open component pads at each stub's end — a quiet time-machine-console cue rather than a generic bracket. When the story echoes a past choice, the traces power up from brass to ember and glow, as if the console just registered the past reaching into the present.</p>
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Point</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="circuit-corner tl"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner tr"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner bl"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner br"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div>
+          <div class="eyebrow">Ch. 4 — The Lake House</div>
+          <p class="scene">The photo on the mantel is still you and Sam at the lake — except Sam's hair is longer, and you <b>don't remember the boat</b>.</p>
+          <p class="scene">"You said you wanted to steer," Sam says, not looking up from the dishes. You did say that. Didn't you?</p>
+          <div class="choices">
+            <div class="choice selected"><span>Ask Sam about the boat.</span><span class="arrow">→</span></div>
+            <div class="choice"><span>Let it go. Change the subject.</span><span class="arrow">→</span></div>
+          </div>
+          <div class="pager">Page 12 / 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Echo (state variant)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:44</div>
+      <div class="content">
+        <div class="frame-well active-frame">
+          <div class="circuit-corner tl active"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner tr active"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner bl active"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div><div class="circuit-corner br active"><span class="trace-h"></span><span class="trace-v"></span><span class="via"></span><span class="pad end-h"></span><span class="pad end-v"></span></div>
+          <div class="eyebrow">Ch. 9 — The Long Way Home</div>
+          <p class="scene">Sam tosses you the keys without a word, the way you hand something to someone you trust completely.</p>
+          <div class="echo-line">
+            <span class="echo-tag">The story remembers</span>
+            <p>You remember steering the boat, back when the lake still had a shore you recognized. It's why Sam trusts you with the car now.</p>
+          </div>
+          <p class="scene">The engine turns over on the second try. It never used to do that.</p>
+          <div class="swipehint">‹ swipe to continue ›</div>
+          <div class="pager">Page 27 / 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Branch Arrival — Interstitial</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:46</div>
+      <div class="interstitial">
+        <div class="art">
+          <div class="road"></div>
+          <div class="road-strip"></div>
+          <div class="big-circle"></div>
+          <div class="headline">WRONG<br>LIGHT.</div>
+        </div>
+        <div class="caption-wrap">
+          <p class="caption">Somewhere between the third left turn and home, the streetlights changed color.</p>
+          <div class="continue-btn">Continue reading  →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

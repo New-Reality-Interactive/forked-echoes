@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Many-Worlds CYOA — Home</title>
+<style>
+/* Tokens mirrored from DESIGN.md */
+:root{
+  --bg:#FAF6EE; --ink:#241C14; --ink-soft:#6A5A45;
+  --frame-active:#C2540F; --trace-idle:#8B6F47; --accent-yellow:#F0DDAF; --device-bezel:#1B1B1B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#EDE6D6;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color:var(--ink);
+  padding:32px 24px 64px;
+}
+.caption{ max-width:820px; margin:0 auto 28px; font-size:14px; color:var(--ink-soft); line-height:1.5;}
+.caption strong{ color:var(--ink);}
+
+.frames{ display:flex; gap:36px; overflow-x:auto; padding:8px 8px 24px; max-width:1400px; margin:0 auto;}
+.frame-col{ flex:0 0 auto; width:393px;}
+.frame-title{ font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink); margin-bottom:10px; text-align:center; font-weight:800;}
+
+.phone{
+  width:393px; height:852px; border-radius:44px; border:10px solid var(--device-bezel);
+  background:var(--bg); position:relative; overflow:hidden;
+  box-shadow:0 24px 50px rgba(0,0,0,0.4);
+}
+.island{ position:absolute; top:16px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#000; border-radius:20px; z-index:6;}
+.statustime{ position:absolute; top:14px; left:30px; font-size:14px; font-weight:800; color:var(--ink); z-index:6;}
+
+/* Home is title-card chrome -- deliberately NOT the circuit reading-frame */
+.content{ position:absolute; top:0; left:0; right:0; bottom:0; padding:0 32px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;}
+
+.mark{ width:34px; height:2px; background:var(--trace-idle); margin-bottom:28px;}
+.mark::before, .mark::after{ content:none;}
+
+.app-title{ font-size:15px; text-transform:uppercase; letter-spacing:0.22em; color:var(--ink-soft); font-weight:800; margin:0 0 14px;}
+.story-title{ font-size:38px; font-weight:900; line-height:1.05; letter-spacing:-0.02em; margin:0 0 12px; text-wrap:balance;}
+.story-sub{ font-size:15px; color:var(--ink-soft); line-height:1.5; margin:0 0 44px; max-width:280px;}
+
+.actions{ width:100%; display:flex; flex-direction:column; gap:14px;}
+.btn{ display:flex; align-items:center; justify-content:center; padding:16px 20px; font-size:16px; font-weight:800; letter-spacing:0.01em;}
+.btn-primary{ background:var(--accent-yellow); color:var(--ink);}
+.btn-secondary{ background:transparent; color:var(--ink); border:2px solid var(--ink);}
+
+.state-label{ position:absolute; top:64px; left:0; right:0; text-align:center; font-size:11px; text-transform:uppercase; letter-spacing:0.14em; color:var(--frame-active); font-weight:800;}
+</style>
+</head>
+<body>
+
+<p class="caption"><strong>Home</strong> — title-card chrome, deliberately without the circuit reading-frame (that motif is reserved for Story/Choice, Tutorial, and Ending). Two states shown: fresh install, and a run already in progress.</p>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-title">Fresh Install</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="mark"></div>
+        <p class="app-title">Many-Worlds</p>
+        <h1 class="story-title">The Long Way Home</h1>
+        <p class="story-sub">A choose-your-own-adventure about finding your way back, one decision at a time.</p>
+        <div class="actions">
+          <div class="btn btn-primary">Start Story</div>
+          <div class="btn btn-secondary">Start Tutorial</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Run In Progress (state variant)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="state-label">Chapter 4 · The Lake House</div>
+      <div class="content">
+        <div class="mark"></div>
+        <p class="app-title">Many-Worlds</p>
+        <h1 class="story-title">The Long Way Home</h1>
+        <p class="story-sub">A choose-your-own-adventure about finding your way back, one decision at a time.</p>
+        <div class="actions">
+          <div class="btn btn-primary">Resume Story</div>
+          <div class="btn btn-secondary">Start Tutorial</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Branch Point — A Many-Worlds Brainstorm Keepsake</title>
+<style>
+/* ============================================================
+   BRANCH POINT — brainstorm keepsake
+   Single-file, self-contained. No external deps.
+   ============================================================ */
+
+:root{
+  color-scheme: dark;
+  --bg: #0a0d1a;
+  --bg-1: #0e1226;
+  --bg-2: #141a33;
+  --panel: rgba(20,25,51,0.62);
+  --panel-border: rgba(148,163,255,0.18);
+  --text: #e9ecfb;
+  --text-dim: #a3aad0;
+  --text-faint: #6d759f;
+  --user: #4fe0c6;
+  --user-soft: rgba(79,224,198,0.14);
+  --coach: #f5a742;
+  --coach-soft: rgba(245,167,66,0.14);
+  --decision: #ff6ec8;
+  --decision-soft: rgba(255,110,200,0.14);
+  --insight: #9dd1ff;
+  --insight-soft: rgba(157,209,255,0.13);
+  --home: #7dffb0;
+  --stay: #c39dff;
+  --limbo: #8a92b2;
+  --line: rgba(148,163,255,0.25);
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  --radius: 14px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --font-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+}
+
+:root[data-theme="light"]{
+  color-scheme: light;
+  --bg: #f3f2fb;
+  --bg-1: #eceafb;
+  --bg-2: #e2e0f7;
+  --panel: rgba(255,255,255,0.72);
+  --panel-border: rgba(60,50,120,0.14);
+  --text: #201d3a;
+  --text-dim: #4a4670;
+  --text-faint: #74709c;
+  --user: #0b8f78;
+  --user-soft: rgba(11,143,120,0.10);
+  --coach: #b5680a;
+  --coach-soft: rgba(181,104,10,0.10);
+  --decision: #c22a8d;
+  --decision-soft: rgba(194,42,141,0.10);
+  --insight: #1f6fb2;
+  --insight-soft: rgba(31,111,178,0.10);
+  --home: #178a52;
+  --stay: #6d3fc9;
+  --limbo: #6b7086;
+  --line: rgba(60,50,120,0.18);
+  --shadow: 0 10px 24px rgba(60,50,120,0.12);
+}
+
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    color-scheme: light;
+    --bg: #f3f2fb;
+    --bg-1: #eceafb;
+    --bg-2: #e2e0f7;
+    --panel: rgba(255,255,255,0.72);
+    --panel-border: rgba(60,50,120,0.14);
+    --text: #201d3a;
+    --text-dim: #4a4670;
+    --text-faint: #74709c;
+    --user: #0b8f78;
+    --user-soft: rgba(11,143,120,0.10);
+    --coach: #b5680a;
+    --coach-soft: rgba(181,104,10,0.10);
+    --decision: #c22a8d;
+    --decision-soft: rgba(194,42,141,0.10);
+    --insight: #1f6fb2;
+    --insight-soft: rgba(31,111,178,0.10);
+    --home: #178a52;
+    --stay: #6d3fc9;
+    --limbo: #6b7086;
+    --line: rgba(60,50,120,0.18);
+    --shadow: 0 10px 24px rgba(60,50,120,0.12);
+  }
+}
+
+*{ box-sizing: border-box; }
+html{ scroll-behavior: smooth; }
+body{
+  margin:0;
+  background: radial-gradient(1200px 800px at 20% -10%, var(--bg-2), transparent),
+              radial-gradient(1000px 700px at 100% 10%, var(--bg-1), transparent),
+              var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ---------- fixed decorative layers ---------- */
+#bg-forks{
+  position: fixed; inset:0; width:100%; height:100%;
+  z-index:-2; opacity:0.5; pointer-events:none;
+}
+#stars{ position: fixed; inset:0; z-index:-1; pointer-events:none; }
+.star{
+  position:absolute; width:2px; height:2px; border-radius:50%;
+  background: var(--text);
+  opacity:0.5;
+  animation: twinkle 4.5s ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{ opacity:0.15; }
+  50%{ opacity:0.85; }
+}
+
+#progress{
+  position: fixed; top:0; left:0; height:3px; width:0%;
+  background: linear-gradient(90deg, var(--user), var(--decision), var(--coach));
+  z-index: 50; transition: width .08s linear;
+}
+
+#theme-toggle{
+  position: fixed; top:16px; right:16px; z-index:60;
+  background: var(--panel); border:1px solid var(--panel-border);
+  color: var(--text); font-family: var(--font-mono); font-size:12px;
+  padding:8px 12px; border-radius: 999px; cursor:pointer;
+  backdrop-filter: blur(8px); box-shadow: var(--shadow);
+}
+#theme-toggle:hover{ border-color: var(--decision); }
+
+/* ---------- generic layout ---------- */
+main{ max-width: 1080px; margin:0 auto; padding: 0 20px 40px; position:relative; }
+section{ padding: 90px 0 20px; scroll-margin-top: 30px; }
+.section-kicker{
+  font-family: var(--font-mono); font-size:12px; letter-spacing:.18em;
+  text-transform:uppercase; color: var(--text-faint); margin:0 0 6px;
+}
+.section-title{
+  font-size: clamp(26px, 4vw, 40px); margin: 0 0 8px; font-weight:800;
+  letter-spacing: -0.01em;
+}
+.section-sub{ color: var(--text-dim); max-width: 640px; margin: 0 0 36px; }
+
+/* ---------- badges ---------- */
+.badge{
+  display:inline-flex; align-items:center; gap:5px;
+  font-family: var(--font-mono); font-size:10.5px; letter-spacing:.06em;
+  text-transform:uppercase; padding:3px 8px; border-radius:999px;
+  border:1px solid transparent; white-space:nowrap;
+}
+.badge--user{ color: var(--user); background: var(--user-soft); border-color: color-mix(in srgb, var(--user) 40%, transparent); }
+.badge--coach{ color: var(--coach); background: var(--coach-soft); border-color: color-mix(in srgb, var(--coach) 40%, transparent); }
+.badge--decision{ color: var(--decision); background: var(--decision-soft); border-color: color-mix(in srgb, var(--decision) 40%, transparent); }
+.badge--insight{ color: var(--insight); background: var(--insight-soft); border-color: color-mix(in srgb, var(--insight) 40%, transparent); }
+.badge--direction{ color: var(--text-dim); background: transparent; border:1px dashed var(--text-faint); }
+
+/* ---------- idea card ---------- */
+.card{
+  background: var(--panel); border:1px solid var(--panel-border);
+  border-radius: var(--radius); padding:14px 16px; box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+.card-head{ display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.card p{ margin:0; font-size:14.5px; color: var(--text); }
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{
+  min-height: 92vh; display:flex; flex-direction:column; justify-content:center;
+  position:relative; padding-top: 40px;
+}
+.hero-eyebrow{
+  font-family: var(--font-mono); color: var(--text-faint); font-size:13px;
+  letter-spacing:.2em; text-transform:uppercase; margin-bottom:18px;
+}
+.hero h1{
+  font-size: clamp(48px, 11vw, 108px); margin:0; line-height:0.92;
+  font-weight:900; letter-spacing:-0.02em;
+  background: linear-gradient(120deg, var(--user), var(--insight) 40%, var(--decision) 75%, var(--coach));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  position:relative;
+}
+.glitch{ position:relative; display:inline-block; }
+.glitch::before, .glitch::after{
+  content: attr(data-text); position:absolute; left:0; top:0; width:100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  background: linear-gradient(120deg, var(--user), var(--insight) 40%, var(--decision) 75%, var(--coach));
+  opacity:0.6;
+}
+.glitch::before{ animation: glitch1 6.5s infinite; clip-path: inset(0 0 60% 0); }
+.glitch::after{ animation: glitch2 7.5s infinite; clip-path: inset(60% 0 0 0); }
+@keyframes glitch1{
+  0%,92%,100%{ transform: translate(0,0); opacity:0; }
+  93%{ transform: translate(-3px,-1px); opacity:.5; }
+  95%{ transform: translate(3px,1px); opacity:.5; }
+  97%{ transform: translate(-2px,0); opacity:.3; }
+}
+@keyframes glitch2{
+  0%,90%,100%{ transform: translate(0,0); opacity:0; }
+  91%{ transform: translate(3px,1px); opacity:.5; }
+  94%{ transform: translate(-3px,-1px); opacity:.4; }
+  96%{ transform: translate(2px,0); opacity:.3; }
+}
+.hero-tag{
+  font-size: clamp(16px, 2.4vw, 20px); color: var(--text-dim); max-width:600px;
+  margin: 22px 0 30px; font-weight:400;
+}
+.hero-tag em{ color:var(--text); font-style:normal; border-bottom:2px solid var(--decision); }
+.meta-row{ display:flex; flex-wrap:wrap; gap:10px; font-family: var(--font-mono); font-size:12.5px; }
+.meta-chip{
+  border:1px solid var(--panel-border); background:var(--panel); border-radius:8px;
+  padding:6px 10px; color: var(--text-dim);
+}
+.meta-chip b{ color: var(--text); }
+.scroll-hint{
+  margin-top:56px; font-family: var(--font-mono); font-size:12px; color: var(--text-faint);
+  display:flex; align-items:center; gap:8px;
+}
+.scroll-hint .arrow{ animation: bob 1.8s ease-in-out infinite; }
+@keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(6px);} }
+
+/* jump nav */
+.jumpnav{
+  display:flex; flex-wrap:wrap; gap:8px; margin-top:34px;
+}
+.jumpnav a{
+  font-family: var(--font-mono); font-size:11.5px; text-decoration:none;
+  color: var(--text-dim); border:1px solid var(--panel-border); padding:6px 10px;
+  border-radius:999px; transition: all .15s ease;
+}
+.jumpnav a:hover{ color: var(--text); border-color: var(--decision); }
+
+/* ============================================================
+   MIND MAP
+   ============================================================ */
+.mindmap-root{
+  text-align:center; margin: 0 auto 10px; max-width:560px;
+}
+.mindmap-root .node{
+  display:inline-block; padding:14px 22px; border-radius:12px;
+  background: linear-gradient(160deg, var(--panel), transparent);
+  border:1px solid var(--panel-border); font-weight:700; font-size:15px;
+  box-shadow: var(--shadow);
+}
+.constraint-ring{
+  font-family: var(--font-mono); font-size:11px; color: var(--text-faint);
+  border:1px dashed var(--text-faint); border-radius:999px; padding:6px 14px;
+  display:inline-block; margin-top:14px; letter-spacing:.03em;
+}
+.trunk-line{ width:2px; height:34px; background: var(--line); margin: 0 auto; }
+
+.branches{
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr));
+  gap:22px; margin-top:10px;
+}
+.branch{
+  position:relative; padding-top:18px;
+}
+.branch::before{
+  content:""; position:absolute; top:0; left:50%; width:2px; height:18px;
+  background: var(--line); transform: translateX(-50%);
+}
+.branch-head{
+  font-weight:700; font-size:14px; text-align:center; margin-bottom:12px;
+  color: var(--text);
+}
+.branch-stack{ display:flex; flex-direction:column; gap:8px; position:relative; }
+.branch-stack::before{
+  content:""; position:absolute; left:10px; top:2px; bottom:2px; width:2px;
+  background: var(--line);
+}
+.twig{
+  position:relative; margin-left:26px; padding:9px 11px; font-size:12.8px;
+  background: var(--panel); border:1px solid var(--panel-border); border-radius:9px;
+}
+.twig::before{
+  content:""; position:absolute; left:-16px; top:14px; width:14px; height:2px;
+  background: var(--line);
+}
+.twig .badge{ margin-right:5px; margin-bottom:4px; }
+.branch-defer{
+  margin-top:10px; text-align:center; font-family: var(--font-mono); font-size:10.5px;
+  color: var(--decision); letter-spacing:.04em;
+}
+
+/* ============================================================
+   JOB TO BE DONE — console panels
+   ============================================================ */
+.jtbd-grid{
+  display:grid; grid-template-columns: 1fr 1fr; gap:22px;
+}
+@media (max-width:760px){ .jtbd-grid{ grid-template-columns:1fr; } }
+.console{
+  background: linear-gradient(180deg, rgba(10,13,26,0.7), rgba(10,13,26,0.4));
+  border:1px solid var(--panel-border); border-radius: var(--radius);
+  padding:20px; font-family: var(--font-mono); position:relative; overflow:hidden;
+  box-shadow: var(--shadow);
+}
+.console::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background: repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 3px);
+}
+.console-label{ font-size:11px; color: var(--text-faint); letter-spacing:.14em; text-transform:uppercase; margin-bottom:10px; }
+.console-quote{
+  font-size:16px; color: var(--insight); line-height:1.5; margin:0 0 16px;
+  border-left:3px solid var(--insight); padding-left:12px;
+}
+.console-quote::before{ content:"> "; color: var(--text-faint); }
+.cursor{ display:inline-block; width:8px; height:14px; background: var(--insight); animation: blink 1s step-end infinite; vertical-align:-2px; }
+@keyframes blink{ 50%{ opacity:0; } }
+.console .card{ background: rgba(0,0,0,0.16); font-family: var(--font-sans); margin-bottom:8px; }
+:root[data-theme="light"] .console .card{ background: rgba(255,255,255,0.5); }
+
+/* ============================================================
+   ONE FEATURE ONLY — spotlight
+   ============================================================ */
+.spotlight-wrap{
+  position:relative; display:flex; flex-direction:column; align-items:center;
+  padding: 30px 0 10px;
+}
+.orbit{
+  display:grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+  gap:12px; max-width:760px; width:100%; margin-bottom:26px;
+}
+.orbit-item{
+  text-align:center; font-size:12px; color: var(--text-faint);
+  border:1px dashed var(--panel-border); border-radius:10px; padding:10px;
+  text-decoration: line-through; opacity:0.6;
+}
+.orbit-caption{
+  text-align:center; font-family: var(--font-mono); font-size:11px; color: var(--text-faint);
+  margin-bottom:14px; letter-spacing:.03em;
+}
+.spotlight{
+  max-width:520px; width:100%; text-align:center; padding:32px 26px;
+  border-radius:20px; position:relative;
+  background: radial-gradient(circle at 50% 0%, var(--decision-soft), transparent 70%), var(--panel);
+  border:1px solid var(--decision); box-shadow: 0 0 0 1px var(--decision-soft), 0 20px 60px rgba(255,110,200,0.15);
+}
+.spotlight h3{ margin:6px 0 10px; font-size:22px; }
+.spotlight p{ color: var(--text-dim); font-size:14px; margin:0 0 14px; }
+.enhance-list{ text-align:left; display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.enhance-list .card{ font-size:13px; }
+
+/* ============================================================
+   PIRATE CODE — parchment
+   ============================================================ */
+.parchment-bg{
+  background:
+    radial-gradient(120% 140% at 10% 0%, rgba(245,167,66,0.10), transparent 60%),
+    var(--panel);
+  border:1px solid var(--panel-border); border-radius: var(--radius);
+  padding: 26px; font-family: var(--font-serif); box-shadow: var(--shadow);
+}
+.pirate-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:16px; }
+@media (max-width:760px){ .pirate-grid{ grid-template-columns:1fr; } }
+.loot{
+  border:1px solid var(--coach); border-radius:12px; padding:16px;
+  background: var(--coach-soft);
+}
+.loot-title{ font-weight:700; font-size:15px; margin-bottom:6px; color: var(--coach); font-family: var(--font-sans); }
+.captains-log{
+  border-left:3px solid var(--decision); padding-left:14px; margin:18px 0;
+  font-style:italic; color: var(--text);
+}
+.bottle{
+  margin-top:16px; border:1px dashed var(--insight); border-radius:12px; padding:14px 16px;
+  background: var(--insight-soft); font-family: var(--font-sans); font-size:13.5px;
+}
+table.manifest{ width:100%; border-collapse:collapse; margin-top:14px; font-family: var(--font-sans); font-size:13px; }
+table.manifest th{
+  text-align:left; font-family: var(--font-mono); font-size:10.5px; text-transform:uppercase;
+  letter-spacing:.06em; color: var(--text-faint); border-bottom:1px solid var(--panel-border); padding:6px 8px;
+}
+table.manifest td{ padding:8px; border-bottom:1px solid var(--panel-border); vertical-align:top; }
+table.manifest tr:last-child td{ border-bottom:none; }
+
+/* ============================================================
+   MANY WORLDS CENTERPIECE
+   ============================================================ */
+.multiverse{
+  text-align:center;
+}
+.multiverse svg{ width:100%; height:auto; max-width:900px; display:block; margin:0 auto; }
+.mv-legend{
+  display:flex; justify-content:center; flex-wrap:wrap; gap:18px; margin-top:6px;
+  font-family: var(--font-mono); font-size:12px; color: var(--text-dim);
+}
+.mv-legend span{ display:inline-flex; align-items:center; gap:6px; }
+.mv-dot{ width:10px; height:10px; border-radius:50%; display:inline-block; }
+.mv-caption{
+  max-width:520px; margin: 18px auto 0; text-align:center; color: var(--text-dim); font-size:14px;
+}
+
+/* ============================================================
+   SYNTHESIS — climax
+   ============================================================ */
+.climax{
+  position:relative; padding: 100px 0 120px; text-align:center;
+}
+.climax::before{
+  content:""; position:absolute; left:50%; top:0; width:1px; height:60px;
+  background: linear-gradient(var(--line), transparent); transform: translateX(-50%);
+}
+.throughline{
+  font-size: clamp(24px, 4vw, 38px); font-weight:800; max-width:760px; margin:0 auto 8px;
+  line-height:1.25;
+}
+.throughline .hl{
+  background: linear-gradient(120deg, var(--user), var(--decision));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.throughline-sub{ color: var(--text-dim); max-width:600px; margin: 0 auto 46px; font-size:15px; }
+
+.moscow{
+  display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:16px;
+  text-align:left; margin: 0 auto 50px; max-width:920px;
+}
+.moscow .card ul{ margin:0; padding-left:18px; font-size:13px; color: var(--text-dim); }
+.moscow .card ul li{ margin-bottom:5px; }
+.moscow .card h4{ margin:0 0 8px; font-size:13px; letter-spacing:.06em; text-transform:uppercase; font-family: var(--font-mono); }
+.moscow .must h4{ color: var(--home); }
+.moscow .wont h4{ color: var(--limbo); }
+
+.horizon{
+  max-width:640px; margin: 0 auto; padding: 22px 24px; border-radius: var(--radius);
+  border:1px dashed var(--insight); background: var(--insight-soft); text-align:left;
+  font-size:14px; color: var(--text);
+}
+.horizon b{ color: var(--insight); }
+.horizon-arrow{
+  font-family: var(--font-mono); font-size:12px; color: var(--text-faint); margin-top:16px;
+  display:flex; align-items:center; gap:10px; justify-content:center;
+}
+.horizon-arrow .line{ flex:1; max-width:80px; height:1px; background: var(--line); }
+
+footer{
+  text-align:center; padding:40px 20px 60px; color: var(--text-faint);
+  font-family: var(--font-mono); font-size:11.5px;
+}
+footer a{ color:inherit; }
+</style>
+</head>
+<body>
+
+<canvas id="bg-forks"></canvas>
+<div id="stars"></div>
+<div id="progress"></div>
+<button id="theme-toggle" type="button" aria-label="Toggle light/dark theme">◐ theme</button>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero" id="top">
+    <div class="hero-eyebrow">Brainstorming session keepsake · 2026-07-25</div>
+    <h1 class="glitch" data-text="BRANCH POINT">BRANCH POINT</h1>
+    <p class="hero-tag">Every idea in this room forked a reality. This page is the timeline where <em>we picked one and started walking</em>.</p>
+
+    <div class="meta-row">
+      <span class="meta-chip"><b>Topic:</b> first iOS app to learn the full build &amp; App&nbsp;Store pipeline</span>
+      <span class="meta-chip"><b>Mode:</b> Creative Partner — user &amp; coach, both contributing</span>
+      <span class="meta-chip"><b>Status:</b> Complete</span>
+      <span class="meta-chip"><b>Techniques:</b> 4</span>
+    </div>
+
+    <nav class="jumpnav" aria-label="Jump to section">
+      <a href="#mindmap">1 · Mind Mapping</a>
+      <a href="#jtbd">2 · Job To Be Done</a>
+      <a href="#onefeature">3 · One Feature Only</a>
+      <a href="#pirate">4 · Pirate Code</a>
+      <a href="#multiverse">Many Worlds</a>
+      <a href="#synthesis">Synthesis</a>
+    </nav>
+
+    <div class="scroll-hint"><span class="arrow">↓</span> scroll to follow the fork</div>
+  </section>
+
+  <!-- ============ TECHNIQUE 1: MIND MAPPING ============ -->
+  <section id="mindmap">
+    <div class="section-kicker">Technique 1 of 4</div>
+    <h2 class="section-title">Mind Mapping</h2>
+    <p class="section-sub">The session opened wide — one root idea sprawling into five branches of possibility, from format down to art direction. Every leaf tagged by who planted it.</p>
+
+    <div class="mindmap-root">
+      <div class="node">🌀 First iOS App — Learn the Full Pipeline</div>
+      <div class="trunk-line"></div>
+      <div class="constraint-ring">DIRECTION · YOU — 100% on-device, zero network calls, zero external integrations</div>
+    </div>
+
+    <div class="branches">
+
+      <div class="branch">
+        <div class="branch-head">Core Format</div>
+        <div class="branch-stack">
+          <div class="twig"><span class="badge badge--user">You</span> Choose Your Own Adventure — branching text narrative.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Split the format: hand-authored branching tree (JSON) vs. procedurally-remixed scenes from local content pools.</div>
+          <div class="twig"><span class="badge badge--user">You</span> Combine the remix engine with a time-travel theme.</div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="branch-head">Time &amp; Many Worlds</div>
+        <div class="branch-stack">
+          <div class="twig"><span class="badge badge--coach">Coach</span> Two time-travel flavors: time-loop (Groundhog-Day reset) vs. time-tourist (same places, rippling eras).</div>
+          <div class="twig"><span class="badge badge--user">You</span> Many-worlds branching: choices fork new realities. Character is stranded in a branch, must find the way home.</div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="branch-head">Feedback Mechanics</div>
+        <div class="branch-stack">
+          <div class="twig"><span class="badge badge--coach">Coach</span> Anchor Points: a few home-reality details that choices preserve or corrupt.</div>
+          <div class="twig"><span class="badge badge--user">You</span> Farther from home ⇒ the branch reality gets more absurd.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Deviation meter (0–100), flavor-text only, gates which scene pools the remix engine draws from.</div>
+          <div class="twig"><span class="badge badge--user">You</span> Even "safe" choices should sometimes branch anyway — can't game your way home too fast.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Hidden 60–80% success chance on safe choices; spend a scarce "certainty" resource to force one.</div>
+        </div>
+        <div class="branch-defer">↳ this whole branch deferred to v1.1+</div>
+      </div>
+
+      <div class="branch">
+        <div class="branch-head">Visual &amp; Art</div>
+        <div class="branch-stack">
+          <div class="twig"><span class="badge badge--direction">Direction</span> <span class="badge badge--user">You</span> Explore visual style next, staying zero-art-background friendly.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Typography + SF Symbols only; deviation meter drives a calm→glitchy accent-color shift.</div>
+          <div class="twig"><span class="badge badge--user">You</span> Include custom art — roughly one illustration per branch-reality scene.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Two shapes: reusable 8–12 "archetype" library vs. one unique illustration per branch flavor (10–15).</div>
+          <div class="twig"><span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span> One unique illustration per branch-reality flavor (~10–15 total).</div>
+          <div class="twig"><span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span> Generative-AI art at dev-time, pre-generated and bundled — not fetched at runtime.</div>
+        </div>
+      </div>
+
+      <div class="branch">
+        <div class="branch-head">Endings &amp; Fails</div>
+        <div class="branch-stack">
+          <div class="twig"><span class="badge badge--user">You</span> Ending taxonomy: 1–2 stay, 2–4 home, the rest limbo.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Wire endings to mechanics: home = anchors restored; stay = deliberately let go; limbo = everything else.</div>
+          <div class="twig"><span class="badge badge--user">You</span> Deviation maxing out is a hard fail; scatter hard-fail choices through the tree.</div>
+          <div class="twig"><span class="badge badge--coach">Coach</span> Hard-fail tone options: fair/telegraphed vs. absurd comedic gotcha.</div>
+          <div class="twig"><span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span> Hard-fails lean comedic-gotcha — dark humor over fairness.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ TECHNIQUE 2: JOB TO BE DONE ============ -->
+  <section id="jtbd">
+    <div class="section-kicker">Technique 2 of 4</div>
+    <h2 class="section-title">Job To Be Done</h2>
+    <p class="section-sub">Two "hires" for this project — the builder's and the player's — running side by side on the console. Both had to be satisfied by whatever survived scoping.</p>
+
+    <div class="jtbd-grid">
+      <div class="console">
+        <div class="console-label">Job 01 · The Builder</div>
+        <p class="console-quote">Get all the way through App&nbsp;Store submission, and learn what it actually takes to build an iOS app.<span class="cursor"></span></p>
+        <div class="card">
+          <div class="card-head"><span class="badge badge--coach">Coach</span></div>
+          <p>Scope-vs-job tension surfaced: build the full concept (deviation, anchors, certainty, remix engine) as v1 — more risk before the first submission — or ship a lean MVP first and treat richer mechanics as a v1.1 update, which also teaches the update pipeline.</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span></div>
+          <p>Ship the lean, linear MVP first to reach submission fast. Richer mechanics deferred to v1.1.</p>
+        </div>
+      </div>
+
+      <div class="console">
+        <div class="console-label">Job 02 · The Player</div>
+        <p class="console-quote">See how their choices affect the story — and the story has to be compelling enough to keep them going.<span class="cursor"></span></p>
+        <div class="card">
+          <div class="card-head"><span class="badge badge--coach">Coach</span></div>
+          <p>A minimal "choice echo" belongs in the lean MVP itself, not deferred: later scenes reference an earlier pick by name/detail via a few conditional branches — cheap delivery of "my choices matter."</p>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span></div>
+          <p>Choice echo stays in v1. It does not get cut with the rest of the mechanics.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TECHNIQUE 3: ONE FEATURE ONLY ============ -->
+  <section id="onefeature">
+    <div class="section-kicker">Technique 3 of 4</div>
+    <h2 class="section-title">One Feature Only</h2>
+    <p class="section-sub">If everything else got cut, what's the one thing that has to survive? Everything dimmed and struck through below was on the table — and stayed off the table.</p>
+
+    <div class="spotlight-wrap">
+      <div class="orbit-caption">cut if it came down to it (deferred, see Mind Map → Feedback Mechanics)</div>
+      <div class="orbit">
+        <div class="orbit-item">Deviation meter</div>
+        <div class="orbit-item">Anchor Points</div>
+        <div class="orbit-item">Certainty resource</div>
+        <div class="orbit-item">Live glitch theming</div>
+      </div>
+
+      <div class="spotlight">
+        <span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span>
+        <h3>🎯 Branching Choices With Real Consequence</h3>
+        <p>"Choice echo" — the single capability that survives if everything else is cut.</p>
+        <div class="enhance-list">
+          <div class="card">
+            <div class="card-head"><span class="badge badge--coach">Coach</span></div>
+            <p>Make it unbelievably good: let a choice's consequence resurface 2–3 times across the tree instead of a single callback — a felt thread, not a one-liner.</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="badge badge--coach">Coach</span></div>
+            <p>End-of-run "memory" screen: lists the choices made and what they actually caused.</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="badge badge--user">You</span></div>
+            <p>The memory screen also carries a score — how closely you stayed to the "ideal," home-bound path.</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="badge badge--coach">Coach</span></div>
+            <p>Lightweight v1 version: each choice gets a small +/− alignment value at write-time, summed silently through play, surfaced only as a score/tier at the end. No live meter, no theming system pulled forward.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TECHNIQUE 4: PIRATE CODE ============ -->
+  <section id="pirate">
+    <div class="section-kicker">Technique 4 of 4</div>
+    <h2 class="section-title">Pirate Code Brainstorm 🏴‍☠️</h2>
+    <p class="section-sub">Steal shamelessly, log the captain's calls, and read the manifest before setting sail. The last idea got corked in a bottle for later waters.</p>
+
+    <div class="parchment-bg">
+
+      <div class="loot">
+        <div class="loot-title">🗝️ Steal — <span class="badge badge--user">You</span></div>
+        <p style="margin:0;">An earnable "undo choice": rewind to the last choice and pick differently. Limited to one use per branch reality. Earned by accumulating "ideal path" alignment points — the same scoring system that feeds the memory screen — with a later in-app-purchase option floated too.</p>
+      </div>
+
+      <div class="captains-log">
+        <span class="badge badge--decision">Decision</span> <span class="badge badge--user">You</span> —
+        Rewind credit stays as compensation for the non-guaranteed "safe" choice. Design principle: there is always an ideal path through the story, even if it isn't obvious to the player.
+      </div>
+
+      <div class="pirate-grid">
+        <div>
+          <table class="manifest">
+            <thead><tr><th colspan="2">Ship's Manifest — v1 MoSCoW <span class="badge badge--decision" style="margin-left:6px;">Decision · You</span></th></tr></thead>
+            <tbody>
+              <tr><td><b>Must</b></td><td>Ending taxonomy (home / stay / limbo, wired off alignment score/tier) · comedic hard-fail choices · "safe choice unreliable" pushback (token version, no spendable resource)</td></tr>
+              <tr><td><b>Should</b></td><td>— none remaining —</td></tr>
+              <tr><td><b>Could</b></td><td>— none remaining —</td></tr>
+              <tr><td><b>Won't (this time)</b></td><td>Undo/rewind credit · IAP addon for rewind credits</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <div class="loot" style="background: var(--decision-soft); border-color: var(--decision);">
+            <div class="loot-title" style="color: var(--decision);">⚠️ Insight — <span class="badge badge--user">You</span></div>
+            <p style="margin:0;">Main concern, stated plainly: creating a compelling enough story to keep the audience engaged.</p>
+          </div>
+          <div class="bottle">
+            🍾 <b>Message in a bottle</b> — <span class="badge badge--user">You</span><br>
+            A later feature, deliberately breaking on-device-only: send anonymized play metadata to a self-maintained endpoint, to actually understand player engagement. Corked for now — it washes up again at the end of this page.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ MANY WORLDS CENTERPIECE ============ -->
+  <section id="multiverse" class="multiverse">
+    <div class="section-kicker">The shape of the idea itself</div>
+    <h2 class="section-title">Every Playthrough Is a Fork</h2>
+    <p class="section-sub" style="margin-left:auto;margin-right:auto;">One stranding, many timelines. The player never sees this map — it's decided silently, choice by choice, by the alignment score, and only revealed at the very end.</p>
+
+    <svg viewBox="0 0 1000 520" role="img" aria-labelledby="mv-title mv-desc">
+      <title id="mv-title">Many-worlds branch diagram</title>
+      <desc id="mv-desc">A trunk representing the stranded start forks into seven timelines, colored by ending type: limbo, stay, home, home, home, stay, limbo.</desc>
+      <defs>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- trunk -->
+      <line x1="500" y1="18" x2="500" y2="120" stroke="var(--line)" stroke-width="2"/>
+      <circle cx="500" cy="18" r="6" fill="var(--decision)" filter="url(#glow)"/>
+      <text x="500" y="0" text-anchor="middle" font-family="ui-monospace,monospace" font-size="12" fill="var(--text-dim)">START — stranded in a branch reality</text>
+
+      <!-- fork lines: limbo, stay, home, home, home, stay, limbo -->
+      <path d="M500,120 C374,260 206,380 80,460"  fill="none" stroke="var(--limbo)" stroke-width="2.5" stroke-dasharray="2 6" filter="url(#glow)"/>
+      <path d="M500,120 C416,260 304,380 220,460" fill="none" stroke="var(--stay)"  stroke-width="2.5" stroke-dasharray="6 4" filter="url(#glow)"/>
+      <path d="M500,120 C458,260 402,380 360,460" fill="none" stroke="var(--home)"  stroke-width="2.5" filter="url(#glow)"/>
+      <path d="M500,120 C500,260 500,380 500,460" fill="none" stroke="var(--home)"  stroke-width="3"   filter="url(#glow)"/>
+      <path d="M500,120 C542,260 598,380 640,460" fill="none" stroke="var(--home)"  stroke-width="2.5" filter="url(#glow)"/>
+      <path d="M500,120 C584,260 696,380 780,460" fill="none" stroke="var(--stay)"  stroke-width="2.5" stroke-dasharray="6 4" filter="url(#glow)"/>
+      <path d="M500,120 C626,260 794,380 920,460" fill="none" stroke="var(--limbo)" stroke-width="2.5" stroke-dasharray="2 6" filter="url(#glow)"/>
+
+      <!-- deferred-mechanic ghost markers, v1.1+ -->
+      <circle cx="440" cy="260" r="4" fill="none" stroke="var(--coach)" stroke-width="1.5" stroke-dasharray="2 2"/>
+      <text x="440" y="248" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="var(--coach)">v1.1+ anchors</text>
+      <circle cx="560" cy="300" r="4" fill="none" stroke="var(--coach)" stroke-width="1.5" stroke-dasharray="2 2"/>
+      <text x="560" y="316" text-anchor="middle" font-family="ui-monospace,monospace" font-size="9" fill="var(--coach)">v1.1+ deviation</text>
+
+      <!-- endpoints -->
+      <circle cx="80"  cy="460" r="6" fill="var(--limbo)" filter="url(#glow)"/>
+      <circle cx="220" cy="460" r="6" fill="var(--stay)"  filter="url(#glow)"/>
+      <circle cx="360" cy="460" r="6" fill="var(--home)"  filter="url(#glow)"/>
+      <circle cx="500" cy="460" r="7" fill="var(--home)"  filter="url(#glow)"/>
+      <circle cx="640" cy="460" r="6" fill="var(--home)"  filter="url(#glow)"/>
+      <circle cx="780" cy="460" r="6" fill="var(--stay)"  filter="url(#glow)"/>
+      <circle cx="920" cy="460" r="6" fill="var(--limbo)" filter="url(#glow)"/>
+
+      <text x="80"  y="486" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--limbo)">LIMBO</text>
+      <text x="220" y="486" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--stay)">STAY</text>
+      <text x="360" y="486" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--home)">HOME</text>
+      <text x="500" y="500" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--home)">HOME</text>
+      <text x="640" y="486" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--home)">HOME</text>
+      <text x="780" y="486" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--stay)">STAY</text>
+      <text x="920" y="486" text-anchor="middle" font-family="ui-monospace,monospace" font-size="11" fill="var(--limbo)">LIMBO</text>
+    </svg>
+
+    <div class="mv-legend">
+      <span><span class="mv-dot" style="background:var(--home);"></span> Home — 2–4 endings, all anchors restored before certainty runs out</span>
+      <span><span class="mv-dot" style="background:var(--stay);"></span> Stay — 1–2 endings, player deliberately lets the anchors go</span>
+      <span><span class="mv-dot" style="background:var(--limbo);"></span> Limbo — the rest: partial restoration, or certainty exhausted, anchors still broken</span>
+    </div>
+    <p class="mv-caption">Illustrated counts above are one representative sample inside the taxonomy's designed ranges — the exact tree shape is a v1 writing decision, not a fixed spec.</p>
+  </section>
+
+  <!-- ============ SYNTHESIS / CLIMAX ============ -->
+  <section id="synthesis" class="climax">
+    <div class="section-kicker">Where every branch converged</div>
+    <p class="throughline">v1's whole Must-have set — choice echo, alignment score, ending taxonomy — is one idea wearing three coats:<br><span class="hl">make the story visibly respond to the player.</span></p>
+    <p class="throughline-sub">That throughline is also the direct answer to the session's real worry: is this story compelling enough to keep someone playing? Every surviving mechanic exists to make the answer "yes."</p>
+
+    <div class="moscow">
+      <div class="card must">
+        <h4>Ships in v1</h4>
+        <ul>
+          <li>Choice echo — consequences resurface 2–3× across the tree</li>
+          <li>Silent +/− alignment score, tallied at write-time</li>
+          <li>End-of-run "memory" screen with score/tier</li>
+          <li>Ending taxonomy: home / stay / limbo, wired off that score</li>
+          <li>Comedic, dark-humor hard-fail choices</li>
+          <li>Token "safe choices aren't guaranteed" pushback</li>
+          <li>~10–15 dev-time generative illustrations, one per branch flavor</li>
+        </ul>
+      </div>
+      <div class="card wont">
+        <h4>Deferred to v1.1+</h4>
+        <ul>
+          <li>Deviation meter &amp; glitch theming</li>
+          <li>Anchor Points as a live mechanic</li>
+          <li>Certainty resource</li>
+          <li>Undo / rewind credit (+ IAP)</li>
+          <li>Anonymized telemetry endpoint</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="horizon">
+      <p style="margin:0 0 8px;">🍾 The bottled idea washes up here. <b>Telemetry-for-engagement</b> is a natural v1.1+ milestone, not a v1 need: validate compellingness informally first — self and friends playtesting the small v1 story — then add a maintained analytics endpoint later.</p>
+      <p style="margin:0;">That's a second, deliberate revisit of the on-device-only constraint — paired on purpose with a second real iOS skill: networking, a backend, and an App&nbsp;Store privacy disclosure.</p>
+      <div class="horizon-arrow"><span class="line"></span> v1 ships first <span class="line"></span> then this <span class="line"></span></div>
+    </div>
+  </section>
+
+  <footer>
+    Session: <code>brainstorm-ios-app-concept-2026-07-25</code> · Mode: partner · Status: complete · Updated 2026-07-25T15:28<br>
+    Rendered as a one-file keepsake — no network calls in this document either.
+  </footer>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- theme toggle ---------- */
+  var root = document.documentElement;
+  var btn = document.getElementById('theme-toggle');
+  function currentTheme(){
+    var attr = root.getAttribute('data-theme');
+    if(attr) return attr;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  function applyLabel(){
+    btn.textContent = currentTheme() === 'dark' ? '◐ dark' : '◑ light';
+  }
+  btn.addEventListener('click', function(){
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    applyLabel();
+    drawForks();
+  });
+  applyLabel();
+
+  /* ---------- scroll progress ---------- */
+  var bar = document.getElementById('progress');
+  function updateProgress(){
+    var h = document.documentElement;
+    var scrollTop = h.scrollTop || document.body.scrollTop;
+    var height = (h.scrollHeight - h.clientHeight) || 1;
+    bar.style.width = Math.min(100, (scrollTop / height) * 100) + '%';
+  }
+  document.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
+
+  /* ---------- twinkling stars ---------- */
+  var starLayer = document.getElementById('stars');
+  var starCount = Math.min(70, Math.floor(window.innerWidth / 16));
+  for(var i=0;i<starCount;i++){
+    var s = document.createElement('div');
+    s.className = 'star';
+    s.style.left = (Math.random()*100) + 'vw';
+    s.style.top = (Math.random()*100) + 'vh';
+    var size = (Math.random()*1.6 + 1).toFixed(1);
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.animationDelay = (Math.random()*4.5).toFixed(2) + 's';
+    s.style.animationDuration = (3 + Math.random()*3).toFixed(2) + 's';
+    starLayer.appendChild(s);
+  }
+
+  /* ---------- faint background fork lines (canvas, static redraw on theme flip) ---------- */
+  var canvas = document.getElementById('bg-forks');
+  var ctx = canvas.getContext('2d');
+  function resize(){
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = document.documentElement.scrollHeight * devicePixelRatio;
+    canvas.style.height = document.documentElement.scrollHeight + 'px';
+    drawForks();
+  }
+  function cssVar(name){
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  }
+  function drawForks(){
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+    var colors = [cssVar('--user'), cssVar('--coach'), cssVar('--decision'), cssVar('--insight')];
+    var trunks = 6;
+    for(var t=0; t<trunks; t++){
+      var startX = (w/(trunks+1)) * (t+1);
+      var startY = -20;
+      ctx.strokeStyle = colors[t % colors.length];
+      ctx.globalAlpha = 0.08;
+      ctx.lineWidth = 1.5 * devicePixelRatio;
+      branch(startX, startY, h*0.55, -90 + (Math.random()*30-15), 4);
+    }
+    ctx.globalAlpha = 1;
+    function branch(x, y, len, angle, depth){
+      if(depth <= 0 || len < 20) return;
+      var rad = angle * Math.PI/180;
+      var x2 = x + Math.cos(rad)*len;
+      var y2 = y + Math.sin(rad)*len;
+      ctx.beginPath();
+      ctx.moveTo(x,y);
+      ctx.lineTo(x2,y2);
+      ctx.stroke();
+      var na = angle + (Math.random()*40 - 20);
+      var nb = angle - (Math.random()*40 - 20);
+      branch(x2, y2, len*0.68, na + 18, depth-1);
+      branch(x2, y2, len*0.68, nb - 18, depth-1);
+    }
+  }
+  window.addEventListener('resize', resize);
+  window.addEventListener('load', resize);
+  setTimeout(resize, 50);
+  setTimeout(resize, 600); /* catch late layout shifts (fonts/images) */
+})();
+</script>
+
+</body>
+</html>

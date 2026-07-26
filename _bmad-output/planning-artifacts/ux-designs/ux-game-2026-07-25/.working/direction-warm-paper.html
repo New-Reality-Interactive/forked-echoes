@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Many-Worlds CYOA — Direction: Warm Paper</title>
+<style>
+/* ============================================================
+   DIRECTION: WARM PAPER — literary / analog / book-in-hand
+   Hex values used:
+     --bg-page:      #F6EFE1  (cream stock, page background)
+     --bg-frame:     #EFE4CC  (slightly deeper cream, content well)
+     --ink:          #3B2E24  (warm near-black brown, body text)
+     --ink-soft:     #6B5B49  (muted brown, secondary text)
+     --rule-gold:    #C9A227  (hairline rule / bracket, resting)
+     --rule-ember:   #B5651D  (bracket + rule, ECHO-active state)
+     --accent-rust:  #A6553B  (choice border / selected fill)
+     --paper-shadow: rgba(59,46,36,0.18)
+     --device-bezel: #1B1B1B  (phone hardware, neutral across all 4 directions)
+     --interstitial-1: #3E2A22
+     --interstitial-2: #7A3E2A
+     --interstitial-3: #C97B3D
+     --interstitial-glow: #E8B65A
+   ============================================================ */
+:root{
+  --bg-page:#F6EFE1; --bg-frame:#EFE4CC; --ink:#3B2E24; --ink-soft:#6B5B49;
+  --rule-gold:#C9A227; --rule-ember:#B5651D; --accent-rust:#A6553B;
+  --paper-shadow:rgba(59,46,36,0.18); --device-bezel:#1B1B1B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#DCD0BA;
+  font-family: ui-serif, Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  color:var(--ink);
+  padding:32px 24px 64px;
+}
+.rationale{
+  max-width:820px; margin:0 auto 40px; background:var(--bg-page);
+  border:1px solid var(--rule-gold); border-radius:4px; padding:24px 28px;
+  box-shadow:0 6px 18px var(--paper-shadow);
+}
+.rationale h1{ font-size:22px; margin:0 0 4px; letter-spacing:0.02em;}
+.rationale .kicker{ font-size:12px; text-transform:uppercase; letter-spacing:0.14em; color:var(--ink-soft); margin-bottom:10px;}
+.rationale p{ font-size:16px; line-height:1.55; color:var(--ink); margin:0;}
+
+.frames{ display:flex; gap:36px; overflow-x:auto; padding:8px 8px 24px; max-width:1400px; margin:0 auto;}
+.frame-col{ flex:0 0 auto; width:393px;}
+.frame-title{ font-family: ui-sans-serif, system-ui, sans-serif; font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-soft); margin-bottom:10px; text-align:center;}
+
+.phone{
+  width:393px; height:852px; border-radius:54px; border:10px solid var(--device-bezel);
+  background:var(--bg-page); position:relative; overflow:hidden;
+  box-shadow:0 24px 50px rgba(0,0,0,0.35);
+}
+.island{ position:absolute; top:16px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#000; border-radius:20px; z-index:6;}
+.statustime{ position:absolute; top:14px; left:30px; font-family: ui-sans-serif, system-ui, sans-serif; font-size:14px; font-weight:600; color:var(--ink); z-index:6;}
+
+.content{ position:absolute; top:56px; left:0; right:0; bottom:0; padding:20px 18px 24px;}
+.frame-well{ position:relative; height:100%; background:var(--bg-frame); border-radius:8px; padding:22px 20px 18px; display:flex; flex-direction:column;}
+
+/* Signature border motif: hairline gold rule + serif corner brackets */
+.frame-well::before{
+  content:""; position:absolute; inset:8px; border:1px solid var(--rule-gold); border-radius:4px; pointer-events:none;
+}
+.bracket{ position:absolute; width:20px; height:20px; z-index:2;}
+.bracket.tl{ top:2px; left:2px; border-top:3px solid var(--rule-gold); border-left:3px solid var(--rule-gold); border-top-left-radius:3px;}
+.bracket.tr{ top:2px; right:2px; border-top:3px solid var(--rule-gold); border-right:3px solid var(--rule-gold); border-top-right-radius:3px;}
+.bracket.bl{ bottom:2px; left:2px; border-bottom:3px solid var(--rule-gold); border-left:3px solid var(--rule-gold); border-bottom-left-radius:3px;}
+.bracket.br{ bottom:2px; right:2px; border-bottom:3px solid var(--rule-gold); border-right:3px solid var(--rule-gold); border-bottom-right-radius:3px;}
+.bracket.active{ border-color:var(--rule-ember); filter:drop-shadow(0 0 3px rgba(181,101,29,0.55));}
+
+.eyebrow{ font-family: ui-sans-serif, system-ui, sans-serif; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:14px;}
+.scene{ font-size:19px; line-height:1.6; color:var(--ink); margin:0 0 16px;}
+.scene:last-of-type{ margin-bottom:0;}
+.scene em{ font-style:italic;}
+
+.echo-line{ position:relative; padding:12px 14px 12px 16px; margin:4px 0 16px; background:rgba(201,162,39,0.13); border-left:3px solid var(--rule-ember); border-radius:0 4px 4px 0;}
+.echo-tag{ display:inline-block; font-family: ui-sans-serif, system-ui, sans-serif; font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color:var(--rule-ember); font-weight:700; margin-bottom:6px;}
+.echo-line p{ margin:0; font-size:19px; line-height:1.6; color:var(--ink);}
+
+.choices{ margin-top:auto; display:flex; flex-direction:column; gap:12px; padding-top:8px;}
+.choice{
+  font-family: ui-serif, Georgia, serif; font-size:16px; text-align:left; color:var(--ink);
+  background:var(--bg-page); border:1.5px solid var(--accent-rust); border-radius:6px;
+  padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px;
+}
+.choice .arrow{ color:var(--accent-rust); font-size:16px;}
+.choice.selected{ background:var(--accent-rust); color:#FBF3E4; border-color:var(--accent-rust);}
+.choice.selected .arrow{ color:#FBF3E4;}
+.choice.selected::after{ content:"✓"; font-size:15px; margin-left:6px;}
+
+.pager{ font-family: ui-sans-serif, system-ui, sans-serif; font-size:11px; color:var(--ink-soft); text-align:center; margin-top:14px; letter-spacing:0.05em;}
+.swipehint{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+/* Interstitial */
+.interstitial{ position:absolute; inset:0;}
+.art{ position:absolute; inset:0; background:
+  radial-gradient(120px 90px at 72% 30%, #E8B65A 0%, rgba(232,182,90,0.35) 40%, rgba(232,182,90,0) 70%),
+  radial-gradient(90px 70px at 30% 55%, #C97B3D 0%, rgba(201,123,61,0.25) 45%, rgba(201,123,61,0) 70%),
+  linear-gradient(180deg, #2C1E17 0%, #3E2A22 35%, #7A3E2A 68%, #C97B3D 100%);
+}
+.art .street{ position:absolute; left:50%; bottom:0; width:0; height:0; transform:translateX(-50%);
+  border-left:170px solid transparent; border-right:170px solid transparent; border-bottom:520px solid rgba(20,13,10,0.55);}
+.art .house{ position:absolute; bottom:120px; width:60px; height:70px; background:rgba(20,13,10,0.55);}
+.art .house.h1{ left:18px;} .art .house.h2{ left:90px; height:50px; bottom:110px;} .art .house.h3{ right:18px;} .art .house.h4{ right:90px; height:50px; bottom:110px;}
+.art .grain{ position:absolute; inset:0; background: repeating-linear-gradient(115deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 4px);}
+.caption-wrap{ position:absolute; left:0; right:0; bottom:0; padding:26px 22px 30px; background:linear-gradient(0deg, rgba(20,13,10,0.85) 20%, rgba(20,13,10,0) 100%);}
+.caption{ font-size:18px; line-height:1.5; color:#F6EFE1; margin:0 0 18px; font-style:italic;}
+.continue-btn{ display:inline-flex; align-items:center; gap:8px; background:#F6EFE1; color:#3B2E24; border:1px solid var(--rule-gold); border-radius:24px; padding:12px 22px; font-family: ui-sans-serif, system-ui, sans-serif; font-size:14px; font-weight:600; letter-spacing:0.03em;}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <div class="kicker">Direction 1 of 4</div>
+  <h1>Warm Paper</h1>
+  <p>Warm Paper leans into the feeling of a book already in your hands: cream stock, a hairline gold rule, and a serif built for long reading, so the uncanny content reads as a story you're already inside rather than a warning. The corner-bracket frame — a quiet nod to a bookplate — is the one constant across every screen; when the prose echoes an earlier choice, the brackets warm from gold to ember, as if this page has been turned back to and softened with re-reading. Nothing here signals danger — only that the next page is already waiting to be turned.</p>
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Point</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="bracket tl"></div><div class="bracket tr"></div><div class="bracket bl"></div><div class="bracket br"></div>
+          <div class="eyebrow">Chapter 4 · The Lake House</div>
+          <p class="scene">The photo on the mantel is still you and Sam at the lake — except Sam's hair is longer, and you don't remember the boat.</p>
+          <p class="scene">"You said you wanted to steer," Sam says, not looking up from the dishes. You did say that. Didn't you?</p>
+          <div class="choices">
+            <div class="choice selected"><span>Ask Sam about the boat.</span><span class="arrow">›</span></div>
+            <div class="choice"><span>Let it go. Change the subject.</span><span class="arrow">›</span></div>
+          </div>
+          <div class="pager">Page 12 of 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Echo (state variant)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:44</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="bracket tl active"></div><div class="bracket tr active"></div><div class="bracket bl active"></div><div class="bracket br active"></div>
+          <div class="eyebrow">Chapter 9 · The Long Way Home</div>
+          <p class="scene">Sam tosses you the keys without a word, the way you hand something to someone you trust completely.</p>
+          <div class="echo-line">
+            <span class="echo-tag">The story remembers</span>
+            <p>You remember steering the boat, back when the lake still had a shore you recognized. It's why Sam trusts you with the car now.</p>
+          </div>
+          <p class="scene">The engine turns over on the second try. It never used to do that.</p>
+          <div class="swipehint">‹ swipe to continue ›</div>
+          <div class="pager">Page 27 of 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Branch Arrival — Interstitial</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:46</div>
+      <div class="interstitial">
+        <div class="art">
+          <div class="street"></div>
+          <div class="house h1"></div><div class="house h2"></div><div class="house h3"></div><div class="house h4"></div>
+          <div class="grain"></div>
+        </div>
+        <div class="caption-wrap">
+          <p class="caption">Somewhere between the third left turn and home, the streetlights changed color.</p>
+          <div class="continue-btn">Continue reading  →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

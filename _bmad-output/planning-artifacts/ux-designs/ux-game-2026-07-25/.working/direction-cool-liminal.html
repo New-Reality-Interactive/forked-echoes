@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Many-Worlds CYOA — Direction: Cool Liminal</title>
+<style>
+/* ============================================================
+   DIRECTION: COOL LIMINAL — twilight / geometric / threshold
+   Hex values used:
+     --bg-deep:      #1B1F3B  (deep indigo, base)
+     --bg-mid:       #372A5C  (violet transition)
+     --bg-well:      #241E42  (content well, slightly lighter than page bg)
+     --ink:          #EDEAF6  (near-white lavender, body text)
+     --ink-soft:     #B4ADD6  (muted lavender, secondary text)
+     --stud-idle:    #8FD8D2  (diamond stud + rule, resting)
+     --stud-active:  #6FF0E8  (diamond stud + rule, ECHO-active state)
+     --accent-rose:  #C98CA7  (choice border / selected fill)
+     --device-bezel: #1B1B1B  (phone hardware, neutral across all 4 directions)
+     --interstitial-1:#151735
+     --interstitial-2:#372A5C
+     --interstitial-3:#6B4E8E
+     --interstitial-glow:#9AD1D6
+   ============================================================ */
+:root{
+  --bg-deep:#1B1F3B; --bg-mid:#372A5C; --bg-well:#241E42; --ink:#EDEAF6; --ink-soft:#B4ADD6;
+  --stud-idle:#8FD8D2; --stud-active:#6FF0E8; --accent-rose:#C98CA7; --device-bezel:#1B1B1B;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#0F1128;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  color:var(--ink);
+  padding:32px 24px 64px;
+}
+.rationale{
+  max-width:820px; margin:0 auto 40px; background:var(--bg-deep);
+  border:1px solid var(--stud-idle); border-radius:4px; padding:24px 28px;
+  box-shadow:0 6px 24px rgba(0,0,0,0.5);
+}
+.rationale h1{ font-size:22px; margin:0 0 4px; letter-spacing:0.01em; font-weight:700;}
+.rationale .kicker{ font-size:12px; text-transform:uppercase; letter-spacing:0.16em; color:var(--stud-idle); margin-bottom:10px;}
+.rationale p{ font-size:16px; line-height:1.55; color:var(--ink-soft); margin:0;}
+
+.frames{ display:flex; gap:36px; overflow-x:auto; padding:8px 8px 24px; max-width:1400px; margin:0 auto;}
+.frame-col{ flex:0 0 auto; width:393px;}
+.frame-title{ font-size:13px; text-transform:uppercase; letter-spacing:0.1em; color:var(--stud-idle); margin-bottom:10px; text-align:center;}
+
+.phone{
+  width:393px; height:852px; border-radius:54px; border:10px solid var(--device-bezel);
+  background:linear-gradient(180deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+  position:relative; overflow:hidden;
+  box-shadow:0 24px 50px rgba(0,0,0,0.5);
+}
+.island{ position:absolute; top:16px; left:50%; transform:translateX(-50%); width:96px; height:26px; background:#000; border-radius:20px; z-index:6;}
+.statustime{ position:absolute; top:14px; left:30px; font-size:14px; font-weight:600; color:var(--ink); z-index:6;}
+
+.content{ position:absolute; top:56px; left:0; right:0; bottom:0; padding:20px 18px 24px;}
+.frame-well{ position:relative; height:100%; background:var(--bg-well); border-radius:2px; padding:26px 22px 18px; display:flex; flex-direction:column;}
+
+/* Signature border motif: geometric diamond studs at frame corners + edge ticks */
+.frame-well::before{ content:""; position:absolute; inset:9px; border:1px solid var(--stud-idle); pointer-events:none;}
+.stud{ position:absolute; width:9px; height:9px; background:var(--stud-idle); transform:rotate(45deg); z-index:2;}
+.stud.tl{ top:5px; left:5px;} .stud.tr{ top:5px; right:5px;} .stud.bl{ bottom:5px; left:5px;} .stud.br{ bottom:5px; right:5px;}
+.stud.active{ background:var(--stud-active); box-shadow:0 0 8px var(--stud-active);}
+.ticks{ position:absolute; left:9px; right:9px; top:2px; height:4px; display:flex; justify-content:space-between; padding:0 20px; pointer-events:none;}
+.ticks span{ width:1px; height:4px; background:var(--stud-idle); opacity:0.5;}
+.ticks.active span{ background:var(--stud-active); opacity:0.9;}
+
+.eyebrow{ font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:16px; font-weight:600;}
+.scene{ font-size:19px; line-height:1.6; color:var(--ink); margin:0 0 16px; font-weight:400;}
+.scene:last-of-type{ margin-bottom:0;}
+
+.echo-line{ position:relative; padding:12px 14px 12px 16px; margin:4px 0 16px; background:rgba(143,216,210,0.09); border-left:3px solid var(--stud-active); }
+.echo-tag{ display:inline-block; font-size:10px; letter-spacing:0.16em; text-transform:uppercase; color:var(--stud-active); font-weight:700; margin-bottom:6px;}
+.echo-line p{ margin:0; font-size:19px; line-height:1.6; color:var(--ink);}
+
+.choices{ margin-top:auto; display:flex; flex-direction:column; gap:12px; padding-top:8px;}
+.choice{
+  font-size:16px; text-align:left; color:var(--ink);
+  background:transparent; border:1.5px solid var(--accent-rose); border-radius:2px;
+  padding:14px 16px; display:flex; justify-content:space-between; align-items:center; gap:10px; position:relative;
+}
+.choice::before{ content:""; position:absolute; left:-1.5px; top:-1.5px; width:6px; height:6px; background:var(--accent-rose); transform:rotate(45deg);}
+.choice .arrow{ color:var(--accent-rose); font-size:16px;}
+.choice.selected{ background:var(--accent-rose); color:#1B1F3B; border-color:var(--accent-rose); font-weight:600;}
+.choice.selected .arrow{ color:#1B1F3B;}
+.choice.selected::after{ content:"✓"; margin-left:6px;}
+
+.pager{ font-size:11px; color:var(--ink-soft); text-align:center; margin-top:14px; letter-spacing:0.08em;}
+.swipehint{ text-align:center; font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+/* Interstitial */
+.interstitial{ position:absolute; inset:0;}
+.art{ position:absolute; inset:0; background:
+  radial-gradient(160px 130px at 50% 22%, #9AD1D6 0%, rgba(154,209,214,0.25) 40%, rgba(154,209,214,0) 70%),
+  linear-gradient(180deg, #151735 0%, #1B1F3B 30%, #372A5C 65%, #6B4E8E 100%);
+}
+.perspective{ position:absolute; left:50%; bottom:0; width:100%; height:70%; transform:translateX(-50%);}
+.perspective .line{ position:absolute; bottom:0; width:2px; background:rgba(154,209,214,0.35); transform-origin:bottom center;}
+.perspective .line.l1{ left:50%; height:100%; transform:translateX(-50%) rotate(-18deg);}
+.perspective .line.l2{ left:50%; height:100%; transform:translateX(-50%) rotate(18deg);}
+.perspective .line.l3{ left:50%; height:96%; transform:translateX(-50%) rotate(-6deg);}
+.perspective .line.l4{ left:50%; height:96%; transform:translateX(-50%) rotate(6deg);}
+.diamond-light{ position:absolute; width:10px; height:10px; background:#6FF0E8; transform:rotate(45deg); box-shadow:0 0 14px 4px rgba(111,240,232,0.6);}
+.diamond-light.d1{ top:38%; left:44%;} .diamond-light.d2{ top:50%; left:60%;} .diamond-light.d3{ top:63%; left:34%;}
+.caption-wrap{ position:absolute; left:0; right:0; bottom:0; padding:26px 22px 30px; background:linear-gradient(0deg, rgba(15,17,40,0.9) 20%, rgba(15,17,40,0) 100%);}
+.caption{ font-size:18px; line-height:1.5; color:#EDEAF6; margin:0 0 18px;}
+.continue-btn{ display:inline-flex; align-items:center; gap:8px; background:transparent; color:#EDEAF6; border:1px solid var(--stud-active); border-radius:2px; padding:12px 22px; font-size:14px; font-weight:600; letter-spacing:0.04em;}
+</style>
+</head>
+<body>
+
+<div class="rationale">
+  <div class="kicker">Direction 2 of 4</div>
+  <h1>Cool Liminal</h1>
+  <p>Cool Liminal treats the dusk gradient as a threshold you're standing in, not a horror palette — violet-to-indigo suggests the exact minute between day and night when anything could still happen. The frame's diamond corner studs read like a navigation instrument; when an echo lands, the studs and the tick marks along the top edge shift from teal to a brighter cyan, as if the frame just triangulated where you've been before. Generous negative space and confident sans type keep the mood forward-leaning and precise rather than ominous.</p>
+</div>
+
+<div class="frames">
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Point</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:41</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="ticks"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="stud tl"></div><div class="stud tr"></div><div class="stud bl"></div><div class="stud br"></div>
+          <div class="eyebrow">Chapter 4 · The Lake House</div>
+          <p class="scene">The photo on the mantel is still you and Sam at the lake — except Sam's hair is longer, and you don't remember the boat.</p>
+          <p class="scene">"You said you wanted to steer," Sam says, not looking up from the dishes. You did say that. Didn't you?</p>
+          <div class="choices">
+            <div class="choice selected"><span>Ask Sam about the boat.</span><span class="arrow">›</span></div>
+            <div class="choice"><span>Let it go. Change the subject.</span><span class="arrow">›</span></div>
+          </div>
+          <div class="pager">Page 12 of 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Story — Choice Echo (state variant)</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:44</div>
+      <div class="content">
+        <div class="frame-well">
+          <div class="ticks active"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <div class="stud tl active"></div><div class="stud tr active"></div><div class="stud bl active"></div><div class="stud br active"></div>
+          <div class="eyebrow">Chapter 9 · The Long Way Home</div>
+          <p class="scene">Sam tosses you the keys without a word, the way you hand something to someone you trust completely.</p>
+          <div class="echo-line">
+            <span class="echo-tag">The story remembers</span>
+            <p>You remember steering the boat, back when the lake still had a shore you recognized. It's why Sam trusts you with the car now.</p>
+          </div>
+          <p class="scene">The engine turns over on the second try. It never used to do that.</p>
+          <div class="swipehint">‹ swipe to continue ›</div>
+          <div class="pager">Page 27 of 34</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame-col">
+    <div class="frame-title">Branch Arrival — Interstitial</div>
+    <div class="phone">
+      <div class="island"></div>
+      <div class="statustime">9:46</div>
+      <div class="interstitial">
+        <div class="art">
+          <div class="perspective">
+            <div class="line l1"></div><div class="line l2"></div><div class="line l3"></div><div class="line l4"></div>
+          </div>
+          <div class="diamond-light d1"></div><div class="diamond-light d2"></div><div class="diamond-light d3"></div>
+        </div>
+        <div class="caption-wrap">
+          <p class="caption">Somewhere between the third left turn and home, the streetlights changed color.</p>
+          <div class="continue-btn">Continue reading  →</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

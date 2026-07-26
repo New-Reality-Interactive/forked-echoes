@@ -84,7 +84,7 @@ NFR8: Dynamic Type — Every text role scales via its bound named iOS text style
 
 ### UX Design Requirements
 
-UX-DR1: Circuit-trace Frame component — brass dormant / ember powered-up states (via-diameter grow + pad-fill shape cue, never color alone), wraps every reading surface (Story/Choice, Tutorial, Ending); never appears on Home.
+UX-DR1: Circuit-trace Frame component — brass dormant / ember powered-up states (via-diameter grow + pad-fill shape cue, never color alone), wraps every reading surface (Story/Choice, Ending); never appears on Home or Tutorial. (Corrected 2026-07-26 — Story 1.4 resolved a conflict between this record and epics.md's own Story 1.4 AC by ruling Tutorial out of the frame entirely; this record originally listed Tutorial alongside Story/Choice and Ending, which was the stale reading. See `deferred-work.md`'s "Follow-ups from: sprint demo" section.)
 
 UX-DR2: Full design token implementation — colors, typography (each role bound to a named iOS text style), 8pt spacing scale, and corner radii per DESIGN.md, with light/dark mode parity throughout.
 
@@ -281,6 +281,32 @@ So that the app is usable and on-brand regardless of ability.
 **Given** Dynamic Type is set to an accessibility size
 **When** Home/Tutorial render
 **Then** text scales without truncation or clipping (FR11, NFR8)
+
+### Story 1.5: Home Story Subtitle
+
+As a player,
+I want a short one-line description of the story beneath its title on Home,
+So that I know what I'm about to start before committing to it.
+
+**Acceptance Criteria:**
+
+**Given** Home renders, fresh install or run-in-progress
+**When** displayed
+**Then** a subtitle line appears directly below the story title (`home.storyTitle`) and above the action buttons, matching `mockups/home.html`/`mockups/home-landscape.html`'s `.story-sub` placement — present in both Home states shown in those mockups
+
+**Given** all Home screen text (AD-2)
+**When** the subtitle renders
+**Then** its copy is sourced from `Localizable.xcstrings` via a stable key (e.g. `home.storySubtitle`), never hardcoded — placeholder English copy is acceptable for now, same pattern `home.storyTitle` already uses ("Untitled Story") pending Epic 4's full prose authoring
+
+**Given** the accessibility bar Story 1.4 already established for Home (VoiceOver labels, Dynamic Type scaling without truncation, 44pt tap targets on actions)
+**When** the subtitle is added
+**Then** it meets the same bar — included in VoiceOver reading order between story title and actions, scales with Dynamic Type without clipping — no new exceptions introduced
+
+**Given** Story 5.3's landscape retrofit of Home (capped/centered content, `GeometryReader` + `ScrollView`)
+**When** the subtitle is added
+**Then** it participates in that existing layout without requiring new landscape-specific handling
+
+*(Owner: Developer. Added via sprint-demo/party-mode review, 2026-07-26 — the user noticed `mockups/home.html`'s `.story-sub` field was never carried into Story 1.2's implementation or any later Home story. Not a regression: Story 1.2's AC never specified a subtitle, so this was a mockup-vs-story gap present from the start, not something later work broke.)*
 
 ## Epic 2: Story Reader, Choice Echo & Branch Realities
 
@@ -885,6 +911,28 @@ So that rotating my device doesn't break the two screens that already exist.
 **Then** Dynamic Type/VoiceOver/tap-target requirements still hold (same bar Story 1.4 already establishes for portrait, extended to the landscape variant)
 
 *(Owner: Developer.)*
+
+### Story 5.4: Cold-Launch Orientation Fix
+
+As a player,
+I want the app to render in the correct layout the moment it launches, regardless of which orientation my device is already in,
+So that I never see a wrong, stretched, or clipped layout that only corrects itself after I rotate my device.
+
+**Acceptance Criteria:**
+
+**Given** the device is already rotated to landscape before the app is launched
+**When** Home or Tutorial first renders
+**Then** it renders the landscape layout immediately, with no portrait-then-landscape flash and no rotation required to self-correct
+
+**Given** the device is already in portrait before the app is launched
+**When** Home or Tutorial first renders
+**Then** it renders the portrait layout immediately (regression guard — confirms the fix doesn't invert the bug for the other starting orientation)
+
+**Given** the fix is in place
+**When** either cold-launch case is exercised in the Simulator
+**Then** the result is recorded in the story's Completion Notes List (date + orientation(s) checked), per the verification-reporting agreement adopted 2026-07-26
+
+*(Owner: Developer. Added via sprint-demo/party-mode review, 2026-07-26 — see `deferred-work.md`'s "Follow-ups from: sprint demo" section for the original repro and candidate fix (reading the window scene's `interfaceOrientation`, or subscribing to `UIDevice.orientationDidChangeNotification`, on `.onAppear` instead of trusting the first `GeometryReader` layout pass). Take into the sprint ahead of Story 2.1 — Epic 2's reading surface is expected to reuse the same `GeometryReader`-based centering pattern and would otherwise inherit the bug.)*
 
 **Downstream note:** Starting with Epic 2 (whose stories are created after Epic 5 lands), every screen-building story should incorporate Story 5.1's landscape design language directly — no separate landscape-retrofit story should be needed for Epic 2/3/4's screens if this is done from the start.
 

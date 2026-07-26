@@ -51,4 +51,16 @@ extension View {
             .font(.body.weight(.medium))
             .foregroundStyle(Color.inkPrimary)
     }
+
+    /// Home's story subtitle (`mockups/home.html` `.story-sub`). Not a named DESIGN.md
+    /// `typography` role — the closest named iOS text style to its 15pt/no-tracking CSS is
+    /// `subheadline`, bound (not a fixed point size) so Dynamic Type keeps scaling it.
+    /// `mockups/home-landscape.html` specifies a smaller 13px value for the same element, but
+    /// (like `.headlineStyle()` above it) this deliberately renders at one fixed size in both
+    /// orientations — no precedent anywhere in this codebase for orientation-conditional type scale.
+    func subtitleStyle() -> some View {
+        self
+            .font(.subheadline)
+            .foregroundStyle(Color.inkSecondary)
+    }
 }

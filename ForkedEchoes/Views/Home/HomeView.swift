@@ -15,6 +15,14 @@ struct HomeView: View {
                         Text("home.storyTitle")
                             .headlineStyle()
                             .multilineTextAlignment(.center)
+
+                        Text("home.storySubtitle")
+                            .subtitleStyle()
+                            .multilineTextAlignment(.center)
+                            // Matches mockups/home.html's `.story-sub { max-width:280px }` — keeps
+                            // the one-line blurb compact instead of stretching edge-to-edge on wide
+                            // layouts (landscape, larger phones), unlike the full-bleed title above it.
+                            .frame(maxWidth: 280)
                     }
 
                     VStack(spacing: 16) {

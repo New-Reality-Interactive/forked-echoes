@@ -107,6 +107,7 @@ No arrow points from Content or Engine back toward Views; Views never import Con
 | Naming | Content node/choice IDs are Swift enum cases. String Catalog keys are namespaced by node id + role (`story.<nodeId>.body`, `story.<nodeId>.choice.<n>`). Illustration asset names match branch-reality flavor identifiers 1:1, consumed only via generated `ImageResource` symbols. |
 | Data & formats | `RunSnapshot` is the only persisted data shape: `currentNodeId`, `choiceHistory: [ChoiceRecord]`, `alignmentScore: Int`, `tutorialSeen: Bool`. No timestamps or multi-session history — one run, one snapshot. |
 | State & cross-cutting | `StoryRunEngine` is the sole mutator of run state (AD-3). No auth, no networking, no logging backend (on-device only, per PRD platform constraint). Impossible engine states (e.g. advancing past an unresolved choice) are prevented by the type system and engine guard logic, not caught and recovered from at runtime. |
+| Implementation rules & AI-agent conventions | Codified in `_bmad-output/project-context.md` (localization, navigation, landscape/`verticalSizeClass`, the `GeometryReader`+`ScrollView` centering idiom, testing scope, Dynamic Type, design-token/magic-number sourcing, button styling, file organization) — auto-loaded by `create-story`/`dev-story`. This spine states the architectural *why*; that file states the implementation-level *how*, distilled from patterns established across Stories 1.1–1.5, 5.2, 5.3. |
 
 ## Stack
 

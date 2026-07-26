@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of 1-4-home-and-tutorial-visual-identity-and-accessibility-pass (2026-07-26)
+
+- `.background(Color.surfaceBase.ignoresSafeArea())` is duplicated per-screen (`HomeView.swift`, `TutorialView.swift`) rather than centralized (e.g. on `RootView`'s `NavigationStack`). Pre-existing pattern, not a bug: centralizing was out of this story's declared scope (its own Dev Notes explicitly forbid touching `RootView.swift`), and only two screens currently need the background. Revisit once a third frame-free screen (if any) needs the same treatment.
+
 ## Deferred from: code review of 1-1-project-scaffold (2026-07-26)
 
 - No `DEVELOPMENT_TEAM` set in any build configuration (`CODE_SIGN_STYLE = Automatic`) — blocks device/Archive builds; Simulator builds are unaffected. Pre-existing: the story's own Dev Notes already defer the Apple Developer Program/team decision until the account type is chosen (epics.md Pre-Submission Checklist).

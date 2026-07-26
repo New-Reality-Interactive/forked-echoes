@@ -12,18 +12,16 @@ struct TutorialView: View {
                 VStack(spacing: 24) {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("tutorial.eyebrow")
-                            .font(.subheadline)
-                            .textCase(.uppercase)
-                            .foregroundStyle(.secondary)
+                            .eyebrowStyle()
 
                         Text("tutorial.mechanic.pageTurn")
-                            .font(.body)
+                            .bodyStyle()
 
                         Text("tutorial.mechanic.choice")
-                            .font(.body)
+                            .bodyStyle()
 
                         Text("tutorial.mechanic.echo")
-                            .font(.body)
+                            .bodyStyle()
                     }
                     // AD-8: reading surfaces (Tutorial included, per DESIGN.md) cap their column
                     // width in landscape rather than stretching edge-to-edge; 680pt matches the
@@ -35,20 +33,20 @@ struct TutorialView: View {
                     .frame(maxWidth: 680, alignment: .leading)
                     .frame(maxWidth: .infinity)
 
-                    VStack(spacing: 14) {
+                    VStack(spacing: 16) {
                         Button {
                             dismiss()
                         } label: {
                             Text("tutorial.action.backHome")
                                 .frame(maxWidth: .infinity, minHeight: 44)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.secondaryAction)
 
                         NavigationLink(value: HomeDestination.storyChoice) {
                             Text(primaryActionLabel)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.primaryAction)
                     }
                     // AD-8: geometry-only landscape constraint, matches HomeView's action-cap pattern
                     // so the action stack doesn't stretch edge-to-edge in a wide landscape frame.
@@ -64,6 +62,7 @@ struct TutorialView: View {
                 // minLength during layout and can push "Start Story" out of the reachable area.
                 .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
+            .background(Color.surfaceBase.ignoresSafeArea())
         }
     }
 }

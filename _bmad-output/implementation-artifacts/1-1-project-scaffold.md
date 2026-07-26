@@ -1,6 +1,10 @@
+---
+baseline_commit: f51ec66a8113ae66fba6ebf8519cd218a3721dcb
+---
+
 # Story 1.1: Project Scaffold
 
-Status: ready-for-dev
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -21,21 +25,29 @@ so that every later story has a consistent place to add code.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Create the Xcode project from scratch, not a template clone (AC: #1)
-  - [ ] Subtask 1.1: New iOS App project, SwiftUI app lifecycle, product name `ForkedEchoes` (see Dev Notes — Naming below)
-  - [ ] Subtask 1.2: Set deployment target to iOS 18.0; SDK/build with iOS 26 SDK; language: Swift 6.3, Swift 6 language mode (strict concurrency)
-  - [ ] Subtask 1.3: Choose and record a placeholder bundle identifier (see Dev Notes — Bundle ID below)
-- [ ] Task 2: Build the Structural Seed group layout (AC: #2)
-  - [ ] Subtask 2.1: Create groups/folders: `App/`, `Content/`, `Engine/`, `Views/`, `Resources/` (empty except App's entry point)
-  - [ ] Subtask 2.2: Add a `ForkedEchoesTests/` test target using the **Swift Testing** framework (`import Testing`) — verify Xcode didn't default it to XCTest
-  - [ ] Subtask 2.3: Add one trivial `@Test` smoke case in `ForkedEchoesTests/` to prove the test target actually compiles and runs (not required by any AC, but the cheapest possible guard against a misconfigured test target going unnoticed until Story 2.2's real tests)
-- [ ] Task 3: Wire up empty Resources (AC: #3)
-  - [ ] Subtask 3.1: Add `Resources/Localizable.xcstrings` (empty String Catalog, type-safe generated symbols enabled — this is an Xcode project build setting, verify it's on)
-  - [ ] Subtask 3.2: Add `Resources/Assets.xcassets` (empty asset catalog, default AppIcon/AccentColor placeholders are fine)
-- [ ] Task 4: Placeholder root view + app entry point (AC: #4)
-  - [ ] Subtask 4.1: `App/ForkedEchoesApp.swift` — `@main` `App` struct, SwiftUI `WindowGroup` scene
-  - [ ] Subtask 4.2: `Views/` empty placeholder root `View` (plain text or empty `Color` — Home doesn't exist until Story 1.2) shown by the app scene
-  - [ ] Subtask 4.3: Confirm project builds and runs on iOS Simulator with zero warnings/errors in both Debug and Release configurations
+- [x] Task 1: Create the Xcode project from scratch, not a template clone (AC: #1)
+  - [x] Subtask 1.1: New iOS App project, SwiftUI app lifecycle, product name `ForkedEchoes` (see Dev Notes — Naming below)
+  - [x] Subtask 1.2: Set deployment target to iOS 18.0; SDK/build with iOS 26 SDK; language: Swift 6.3, Swift 6 language mode (strict concurrency)
+  - [x] Subtask 1.3: Choose and record a placeholder bundle identifier (see Dev Notes — Bundle ID below)
+- [x] Task 2: Build the Structural Seed group layout (AC: #2)
+  - [x] Subtask 2.1: Create groups/folders: `App/`, `Content/`, `Engine/`, `Views/`, `Resources/` (empty except App's entry point)
+  - [x] Subtask 2.2: Add a `ForkedEchoesTests/` test target using the **Swift Testing** framework (`import Testing`) — verify Xcode didn't default it to XCTest
+  - [x] Subtask 2.3: Add one trivial `@Test` smoke case in `ForkedEchoesTests/` to prove the test target actually compiles and runs (not required by any AC, but the cheapest possible guard against a misconfigured test target going unnoticed until Story 2.2's real tests)
+- [x] Task 3: Wire up empty Resources (AC: #3)
+  - [x] Subtask 3.1: Add `Resources/Localizable.xcstrings` (empty String Catalog, type-safe generated symbols enabled — this is an Xcode project build setting, verify it's on)
+  - [x] Subtask 3.2: Add `Resources/Assets.xcassets` (empty asset catalog, default AppIcon/AccentColor placeholders are fine)
+- [x] Task 4: Placeholder root view + app entry point (AC: #4)
+  - [x] Subtask 4.1: `App/ForkedEchoesApp.swift` — `@main` `App` struct, SwiftUI `WindowGroup` scene
+  - [x] Subtask 4.2: `Views/` empty placeholder root `View` (plain text or empty `Color` — Home doesn't exist until Story 1.2) shown by the app scene
+  - [x] Subtask 4.3: Confirm project builds and runs on iOS Simulator with zero warnings/errors in both Debug and Release configurations — verified by user on macOS/Xcode 26.6, 2026-07-26: Debug build 0 warnings/errors, Release build 0 warnings/errors, app launches to empty placeholder view, `ForkedEchoesTests` smoke test passes via ⌘U.
+
+### Review Findings
+
+- [x] [Review][Patch] Add `SWIFT_STRICT_CONCURRENCY = complete` to the `ForkedEchoesTests` target's Debug and Release build settings [ForkedEchoes.xcodeproj/project.pbxproj]
+- [x] [Review][Patch] Add the two Xcode-generated files (`project.xcworkspace/contents.xcworkspacedata`, `xcshareddata/xcschemes/ForkedEchoes.xcscheme`) to the Dev Agent Record's File List [1-1-project-scaffold.md:File List]
+- [x] [Review][Patch] Add trailing newline to `Localizable.xcstrings` [ForkedEchoes/Resources/Localizable.xcstrings]
+- [x] [Review][Defer] No `DEVELOPMENT_TEAM` set in any build configuration (`CODE_SIGN_STYLE = Automatic`) — blocks device/Archive builds; Simulator builds (all AC #4 requires) are unaffected [ForkedEchoes.xcodeproj/project.pbxproj] — deferred, pre-existing: the story's own Dev Notes already defer the Apple Developer Program/team decision until the account type is chosen
+- [x] [Review][Defer] `AppIcon.appiconset` declares a 1024x1024 slot with no image asset — will fail Release Archive/App Store validation once attempted [ForkedEchoes/Resources/Assets.xcassets/AppIcon.appiconset/Contents.json] — deferred, pre-existing: real app icon art is Epic 4's job (Story 4.6, App Store listing/submission assets), not this scaffold story
 
 ## Dev Notes
 
@@ -99,10 +111,42 @@ No bundle identifier convention is specified anywhere in the PRD, Architecture, 
 
 ### Agent Model Used
 
-_To be populated by dev-story execution._
+Claude Sonnet 5 (claude-sonnet-5), via Claude Code `bmad-dev-story` workflow.
 
 ### Debug Log References
 
+- This execution ran in a Linux devcontainer with no Swift toolchain and no Xcode installed (`swift`/`xcodebuild` not found). The `.xcodeproj`/`project.pbxproj`, Swift sources, and resource catalogs were hand-authored to the exact spec in Dev Notes rather than generated by Xcode itself.
+- `project.pbxproj` uses Xcode 16+ `PBXFileSystemSynchronizedRootGroup` (synchronized folder groups) for `App/`, `Content/`, `Engine/`, `Views/`, `Resources/`, and `ForkedEchoesTests/` — Xcode auto-discovers file membership from disk, so no per-file `PBXBuildFile`/`PBXFileReference` bookkeeping was needed for source/resource files.
+- `objectVersion = 77` (Xcode 16.0's value) was used as a conservative, known-good baseline since the exact Xcode 26.6 object-version number isn't independently verifiable from this environment. Xcode auto-upgrades older-but-compatible project formats silently; this is expected to open cleanly, but is an explicit item to confirm on first open.
+- Static validation performed (no Xcode available): brace/paren balance check and full object-ID cross-reference check on `project.pbxproj` (all 31 defined objects, all references resolve, zero orphaned/undefined IDs); JSON validation on `Contents.json` (x3) and `Localizable.xcstrings`; brace-balance check on all 3 Swift files. None of this substitutes for an actual Xcode build.
+
 ### Completion Notes List
 
+- Tasks 1-3 and Subtasks 4.1-4.2 complete and statically validated. Subtask 4.3 and AC #4 (build/run on iOS Simulator, zero warnings, Debug + Release) are **not verifiable in this environment** — flagged as an explicit open item below.
+- Bundle identifier used: `com.example.forkedechoes` (app), `com.example.forkedechoes.tests` (test target) — placeholder only, per Dev Notes' "Bundle ID (open decision)" section. Must be revisited once Apple Developer Program account type is decided.
+- **Verified on macOS/Xcode 26.6 (2026-07-26):** project opened cleanly (no format-upgrade issues beyond the expected prompt), Debug and Release builds both succeed with 0 warnings/errors, app launches to the empty placeholder view, and the `ForkedEchoesTests` smoke test passes.
+- **Build issue found and fixed during verification:** the initial scaffold's `.gitkeep` placeholders in `Content/` and `Engine/` (added purely so git would track the otherwise-empty directories) were auto-included as bundle resources by Xcode's file-system-synchronized groups, and both collided on the same output filename (`ForkedEchoes.app/.gitkeep`) → "Multiple commands produce" build error. Fixed by adding `PBXFileSystemSynchronizedBuildFileExceptionSet` membership exceptions on the `Content` and `Engine` synchronized groups, excluding `.gitkeep` from target membership. Re-verified: build succeeds.
+- **String Catalog codegen confirmed:** no distinct "Generate String Symbols" toggle exists in Xcode 26.6 (contra the original assumption it'd be a per-file inspector checkbox). The actual mechanism is two target Build Settings under Localization — `LOCALIZATION_PREFERS_STRING_CATALOGS` ("Localization Prefers String Catalogs") and `SWIFT_EMIT_LOC_STRINGS` ("Use Compiler to Extract Swift Strings") — both set `YES` in `project.pbxproj` and confirmed present/enabled by user inspection in Xcode's Build Settings UI, 2026-07-26. This satisfies Subtask 3.1's "verify it's on."
+- No new third-party dependencies introduced.
+
 ### File List
+
+- `ForkedEchoes.xcodeproj/project.pbxproj` (new; amended post-verification to add `.gitkeep` membership exceptions for `Content`/`Engine`; amended post-review to add `SWIFT_STRICT_CONCURRENCY` to the test target)
+- `ForkedEchoes.xcodeproj/project.xcworkspace/contents.xcworkspacedata` (new, Xcode-generated)
+- `ForkedEchoes.xcodeproj/xcshareddata/xcschemes/ForkedEchoes.xcscheme` (new, Xcode-generated)
+- `ForkedEchoes/App/ForkedEchoesApp.swift` (new)
+- `ForkedEchoes/Views/RootView.swift` (new)
+- `ForkedEchoes/Content/.gitkeep` (new)
+- `ForkedEchoes/Engine/.gitkeep` (new)
+- `ForkedEchoes/Resources/Localizable.xcstrings` (new; amended post-review to add trailing newline)
+- `ForkedEchoes/Resources/Assets.xcassets/Contents.json` (new)
+- `ForkedEchoes/Resources/Assets.xcassets/AppIcon.appiconset/Contents.json` (new)
+- `ForkedEchoes/Resources/Assets.xcassets/AccentColor.colorset/Contents.json` (new)
+- `ForkedEchoesTests/ForkedEchoesTests.swift` (new)
+
+### Change Log
+
+- 2026-07-26: Initial scaffold implementation (Tasks 1-3, Subtasks 4.1-4.2) by Claude Sonnet 5 via `bmad-dev-story`. Subtask 4.3 / AC #4 left open pending macOS/Xcode verification.
+- 2026-07-26: User verified build/run on macOS/Xcode 26.6. Found and fixed a `.gitkeep` resource-copy collision (duplicate output file) via synchronized-group membership exceptions. Debug + Release builds and test target confirmed passing. Subtask 4.3 checked off; story moved to `review`.
+- 2026-07-26: Confirmed String Catalog codegen build settings (`LOCALIZATION_PREFERS_STRING_CATALOGS`, `SWIFT_EMIT_LOC_STRINGS`) enabled via Xcode's Build Settings UI, resolving Subtask 3.1's "verify it's on" note.
+- 2026-07-26: Code review (Blind Hunter + Edge Case Hunter + Acceptance Auditor) run; 3 patch findings applied (test target `SWIFT_STRICT_CONCURRENCY`, File List completeness, `Localizable.xcstrings` trailing newline), 2 findings deferred (no `DEVELOPMENT_TEAM` set; `AppIcon` has no image asset — both pre-existing/expected per spec), 9 dismissed as noise. See `deferred-work.md` for deferred items.

@@ -9,8 +9,8 @@ struct TutorialView: View {
 
         GeometryReader { proxy in
             ScrollView {
-                VStack(spacing: 24) {
-                    VStack(alignment: .leading, spacing: 16) {
+                VStack(spacing: Spacing.large) {
+                    VStack(alignment: .leading, spacing: Spacing.medium) {
                         Text("tutorial.eyebrow")
                             .eyebrowStyle()
 
@@ -30,27 +30,27 @@ struct TutorialView: View {
                     // centers in extra-wide landscape frames (DESIGN.md: "extra width becomes
                     // side margin"), so this inner frame keeps `.leading` and the outer one does
                     // not.
-                    .frame(maxWidth: 680, alignment: .leading)
+                    .frame(maxWidth: LayoutMetrics.readingColumnMaxWidthLandscape, alignment: .leading)
                     .frame(maxWidth: .infinity)
 
-                    VStack(spacing: 16) {
+                    VStack(spacing: Spacing.medium) {
                         Button {
                             dismiss()
                         } label: {
                             Text("tutorial.action.backHome")
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
                         }
                         .buttonStyle(.secondaryAction)
 
                         NavigationLink(value: HomeDestination.storyChoice) {
                             Text(primaryActionLabel)
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
                         }
                         .buttonStyle(.primaryAction)
                     }
                     // AD-8: geometry-only landscape constraint, matches HomeView's action-cap pattern
                     // so the action stack doesn't stretch edge-to-edge in a wide landscape frame.
-                    .frame(maxWidth: 320)
+                    .frame(maxWidth: LayoutMetrics.actionStackMaxWidth)
                 }
                 .padding()
                 // AD-8 / Story 5.3 pattern: `minHeight: proxy.size.height` (rather than

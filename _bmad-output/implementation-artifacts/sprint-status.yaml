@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-07-26 (1-5 code review complete, marked done, user-verified in Simulator; 1-6 added to epics.md — design-token constants cleanup)
+last_updated: 2026-07-27 (1-6 code review complete, marked done)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -54,7 +54,7 @@ development_status:
   1-3-tutorial-screen: done
   1-4-home-and-tutorial-visual-identity-and-accessibility-pass: done
   1-5-home-story-subtitle: done
-  1-6-named-design-constants-for-layout-values: backlog
+  1-6-named-design-constants-for-layout-values: done
   epic-1-retrospective: optional
 
   epic-5: in-progress

@@ -35,7 +35,8 @@
       "Bash(echo \"grep exit: $?\")",
       "Bash(xcodebuild -version)",
       "Bash(echo \"exit:$?\")",
-      "Bash(xargs -I{} cat {})"
+      "Bash(xargs -I{} cat {})",
+      "Bash(xargs ls)"
     ]
   }
 }

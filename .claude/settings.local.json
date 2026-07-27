@@ -36,7 +36,9 @@
       "Bash(xcodebuild -version)",
       "Bash(echo \"exit:$?\")",
       "Bash(xargs -I{} cat {})",
-      "Bash(xargs ls)"
+      "Bash(xargs ls)",
+      "Bash(swiftly list *)",
+      "Bash(swift package *)"
     ]
   }
 }

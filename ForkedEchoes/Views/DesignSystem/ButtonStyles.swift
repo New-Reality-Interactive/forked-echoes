@@ -13,7 +13,7 @@ struct PrimaryActionButtonStyle: ButtonStyle {
             .foregroundStyle(Color.inkPrimary)
             .background(Color.selectedFill)
             .contentShape(Rectangle())
-            .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
+            .opacity(isEnabled ? (configuration.isPressed ? ButtonMetrics.pressedOpacity : 1) : ButtonMetrics.disabledOpacity)
     }
 }
 
@@ -24,11 +24,11 @@ struct SecondaryActionButtonStyle: ButtonStyle {
         configuration.label
             .fontWeight(.heavy)
             .foregroundStyle(Color.inkPrimary)
-            .overlay(Rectangle().stroke(Color.inkPrimary, lineWidth: 2))
+            .overlay(Rectangle().stroke(Color.inkPrimary, lineWidth: ButtonMetrics.borderWidth))
             // Background is otherwise fully transparent (border-only) — an explicit content
             // shape ensures the whole 44pt frame stays tappable, not just the stroke pixels.
             .contentShape(Rectangle())
-            .opacity(isEnabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
+            .opacity(isEnabled ? (configuration.isPressed ? ButtonMetrics.pressedOpacity : 1) : ButtonMetrics.disabledOpacity)
     }
 }
 

@@ -7,8 +7,8 @@ struct HomeView: View {
 
         GeometryReader { proxy in
             ScrollView {
-                VStack(spacing: 24) {
-                    VStack(spacing: 8) {
+                VStack(spacing: Spacing.large) {
+                    VStack(spacing: Spacing.small) {
                         Text("home.appTitle")
                             .eyebrowStyle()
 
@@ -22,19 +22,19 @@ struct HomeView: View {
                             // Matches mockups/home.html's `.story-sub { max-width:280px }` — keeps
                             // the one-line blurb compact instead of stretching edge-to-edge on wide
                             // layouts (landscape, larger phones), unlike the full-bleed title above it.
-                            .frame(maxWidth: 280)
+                            .frame(maxWidth: LayoutMetrics.subtitleMaxWidth)
                     }
 
-                    VStack(spacing: 16) {
+                    VStack(spacing: Spacing.medium) {
                         NavigationLink(value: HomeDestination.storyChoice) {
                             Text(primaryActionLabel)
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
                         }
                         .buttonStyle(.primaryAction)
 
                         NavigationLink(value: HomeDestination.tutorial) {
                             Text("home.action.startTutorial")
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
                         }
                         .buttonStyle(.secondaryAction)
                     }
@@ -42,7 +42,7 @@ struct HomeView: View {
                     // Caps action-button width so they don't stretch edge-to-edge in a wide landscape
                     // frame. Also applies in portrait on the largest phones, narrowing the buttons
                     // somewhat there too — an accepted trade-off per AD-8, not a true no-op.
-                    .frame(maxWidth: 320)
+                    .frame(maxWidth: LayoutMetrics.actionStackMaxWidth)
                 }
                 .padding()
                 // AD-8: explicit centering in both orientations, matching mockups/home-landscape.html's

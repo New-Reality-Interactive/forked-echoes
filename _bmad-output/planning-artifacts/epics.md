@@ -394,6 +394,8 @@ So that I can read at my own pace regardless of input method.
 
 **And** a Swift Testing case verifies pager-gating — forward blocked on unresolved choice, locked display on revisit (AD-7, NFR3)
 
+*(Flagged during Epic 1 retrospective, 2026-07-28: do not reuse `ColdLaunchOrientationFix`'s `.id(layoutGeneration)` mechanism as-is on this screen. It forces a full subtree teardown/rebuild on correction, discarding all nested `@State` — harmless on Home/Tutorial, destructive here once real pager position / in-flight choice-hold state exists. See the warning comment in `ColdLaunchOrientationFix.swift` and `project-context.md`'s Landscape/Orientation section.)*
+
 ### Story 2.3: Choice Presentation, Selection & Permanence
 
 As a player,

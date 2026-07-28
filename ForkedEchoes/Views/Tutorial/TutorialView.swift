@@ -64,6 +64,7 @@ struct TutorialView: View {
             }
             .background(Color.surfaceBase.ignoresSafeArea())
         }
+        .correctColdLaunchOrientation()
     }
 }
 

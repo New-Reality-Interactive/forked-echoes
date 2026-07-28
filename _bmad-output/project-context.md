@@ -29,7 +29,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ### Environment
 
-- **This devcontainer has no Xcode/Swift toolchain** (`swiftc`/`xcodebuild` unavailable, Linux). Every story is implemented by hand-authoring to spec, then statically validated: JSON validity (`python3 -m json.tool` on `.xcstrings`/`Contents.json`), brace/paren balance checks on touched `.swift`/`.pbxproj` files, and `grep` for banned patterns (see below). Actual build/run/Simulator verification (visual check, VoiceOver, Dynamic Type, rotation) cannot happen here — always flag it explicitly for the user rather than claiming it passed.
+- **This devcontainer has a Linux Swift toolchain (`swiftc`, Swift 6.3.3) but no Xcode/Apple SDKs** (`xcodebuild` unavailable; `UIKit`/`SwiftUI` don't resolve — `swiftc -typecheck` on a file importing either fails with `no such module`). That means real parser-level syntax validation is available and should be used: run `swiftc -parse <file>.swift` on new/edited `.swift` files for genuine syntax verification, instead of eyeballing brace/paren balance. Full compilation, build/run, and Simulator verification (visual check, VoiceOver, Dynamic Type, rotation) still cannot happen here — always flag those explicitly for the user rather than claiming they passed. Other static checks remain: JSON validity (`python3 -m json.tool` on `.xcstrings`/`Contents.json`), brace/paren balance checks on touched `.pbxproj` files (no parser-level tool covers these), and `grep` for banned patterns (see below).
 
 ### Localization (`Localizable.xcstrings`)
 
@@ -47,6 +47,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 ### Landscape / Orientation (AD-8)
 
 - Detect orientation via `@Environment(\.verticalSizeClass)` only (`.compact` = landscape, `.regular` = portrait) — **never** `UIDevice.orientation`/`UIDeviceOrientationDidChangeNotification` (fragile, manual lifecycle) and **never** `horizontalSizeClass` (reports `.compact` in *both* orientations on standard iPhones, can't distinguish them). Treat `verticalSizeClass == nil` as `.regular` (portrait) — the safer default.
+- Sanctioned exception (Story 5.4): a single, one-shot `UIWindowScene.interfaceOrientation` read at `.onAppear`, used only to correct a stale cold-launch layout pass (see `ColdLaunchOrientationFix.swift`), is allowed alongside the `verticalSizeClass` rule above — it's a bounded correctness check, not a second ongoing orientation-detection mechanism. Don't generalize this into a pattern for structural layout decisions; those still go through `verticalSizeClass` only.
 - Two different fixes for two different problems, don't conflate them:
   - **Structural** change (e.g. a stack becoming a row) → branch on `verticalSizeClass`.
   - **Geometry-only** constraint (e.g. a max-width cap) → an unconditional `.frame(maxWidth:)` that's simply a no-op in portrait, **no branch at all**.

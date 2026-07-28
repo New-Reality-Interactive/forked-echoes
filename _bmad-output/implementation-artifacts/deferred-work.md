@@ -1,5 +1,18 @@
 # Deferred Work
 
+## Deferred from: story validation of 5-4-cold-launch-orientation-fix (2026-07-27)
+
+- **[DOCS DEBT — resolved 2026-07-27]** `project-context.md`'s "this devcontainer has no Xcode/Swift toolchain (`swiftc`/`xcodebuild` unavailable)" note was half-stale: a Linux Swift toolchain (`swiftc`) was added to the devcontainer in commit `4991bce` ("Added Swift Toolchain to Devcontainer"), so `swiftc -parse` now works for real parser-level syntax checks. `xcodebuild`/Apple SDKs (`UIKit`, `SwiftUI`) are still unavailable (confirmed: `swiftc -typecheck` fails with `no such module 'UIKit'`), so full compilation and Simulator verification remain impossible here. `project-context.md`'s Environment section has been updated to state both facts precisely.
+
+## Deferred from: code review of 5-4-cold-launch-orientation-fix (2026-07-28)
+
+- `Package.swift` defines targets (`ForkedEchoes`/`ForkedEchoesTests`) sharing names with the existing Xcode project's targets. Resolved by user: intentional devcontainer test tooling, kept as-is — Xcode never reads `Package.swift`, so there's no real functional conflict, only a same-name-different-meaning risk for a human/future tool. Verified `swift build`/`swift test` both pass against the current names.
+- `.claude/settings.local.json` gained new standing Bash allowlist entries (`swift build *`, `swift test *`, `swift package *`, `xargs -I{} sh -c '...'`) during this session. Resolved by user: keep all as-is — useful for ongoing devcontainer Swift work.
+- `.id(layoutGeneration)` in `ColdLaunchOrientationFix.swift` forces a full subtree teardown/rebuild (not a scoped "corrective re-layout"), discarding any nested `@State` and re-mounting all descendants. Harmless today (Home/Tutorial have no meaningful child state), but this story's own Dev Notes say Epic 2's reading surface will reuse this exact pattern, where it will have real state (pager position, etc.) to lose.
+- The new `swiftc -parse` allowlist entry in `.claude/settings.local.json` is scoped to the literal one-off path `/tmp/swifttest/t.swift`, not real repo `.swift` files — so `project-context.md`'s own instruction to run `swiftc -parse <file>.swift` on edited files isn't actually pre-approved for future stories.
+- AC#1/AC#3 evidence rests on a single prose Completion Notes line with no attached artifact, and the corrective toggle in `ColdLaunchOrientationFix.swift` fires synchronously (no `DispatchQueue.main.async` deferral) despite this story's own Dev Notes flagging that exact timing risk. Did not materialize in practice: user reported empirical Simulator confirmation of no flash in either orientation.
+- The fix in `ColdLaunchOrientationFix.swift` compares `UIWindowScene.interfaceOrientation` against `verticalSizeClass`, not `GeometryReader`'s actual stale `proxy.size` (the value the Dev Notes diagnose as the literal root cause) — theoretical desync risk, not observed in Simulator verification.
+
 ## Deferred from: code review of 1-5-home-story-subtitle (2026-07-26)
 
 - No automated existence/regression test for the new `home.storySubtitle` string/view. Pre-existing: no UI existence/snapshot testing pattern exists anywhere in this codebase (1.2/1.3/1.4/5.3 all lack it too), and AD-7 scopes automated Swift Testing coverage to `StoryRunEngine` logic only — a UI-existence test would be the first of its kind, not a gap this story introduced.

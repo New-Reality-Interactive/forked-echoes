@@ -54,6 +54,7 @@ struct HomeView: View {
             }
             .background(Color.surfaceBase.ignoresSafeArea())
         }
+        .correctColdLaunchOrientation()
     }
 }
 

@@ -2,9 +2,9 @@
 project_name: 'game'
 user_name: 'Vscode'
 date: '2026-07-26'
-sections_completed: ['technology_stack', 'localization', 'navigation', 'landscape', 'centering_pattern', 'testing', 'accessibility', 'design_tokens', 'buttons', 'file_organization', 'cross_story_contracts', 'doc_conflicts', 'pre_completion_checklist']
+sections_completed: ['technology_stack', 'localization', 'navigation', 'landscape', 'centering_pattern', 'testing', 'accessibility', 'design_tokens', 'buttons', 'file_organization', 'cross_story_contracts', 'doc_conflicts', 'pre_completion_checklist', 'pre_creation_ac_checklist', 'process_agreements']
 status: 'complete'
-rule_count: 46
+rule_count: 49
 optimized_for_llm: true
 ---
 
@@ -109,6 +109,18 @@ Before moving a story to review, re-scan the diff against this checklist — the
 
 Add a new item here whenever a future code review catches something that should have been self-caught — that's the signal this checklist is missing an entry, not that the rule doesn't belong somewhere else in this file.
 
+## Pre-Creation Acceptance-Criteria Check
+
+Before a story is marked ready-for-dev, `create-story` must run this check against its own draft AC — added from Epic 5's retrospective (2026-07-28), after two stories (5.2, 5.3) shipped without an AC that would have surfaced the cold-launch orientation bug before a sprint demo caught it manually:
+
+- [ ] Every AC set includes an explicit testing clause: a Swift Testing AC when engine logic (AD-7 scope) is touched, or a manual-verification AC (concrete steps + where to log the result, e.g. Completion Notes) when it isn't. Model the manual-verification AC on Story 5.4's AC #3 ("the result is recorded in the story's Completion Notes List").
+- [ ] Ask explicitly, for this story: "what could surface after implementation that this AC doesn't already probe for?" — if the answer isn't "nothing," add an AC that closes the gap before the story leaves planning.
+
+## Process Agreements (from retrospectives)
+
+- **Out-of-band work stays transparent in real time.** If any agent does work outside `create-story`/`dev-story` (e.g. a direct design pass), it gets a story file and a `sprint-status.yaml` entry in the same session the work happens — not backfilled later once someone notices the tracking gap. (Epic 5 retro, 2026-07-28 — Story 5.1's design work was done directly and only got a story file during Story 5.2's kickoff.)
+- **Report Simulator/manual verification inline, when it happens.** A story's Completion Notes gets a one-line confirmation (date + what was checked) at the moment verification happens, not retroactively. (Epic 1 sprint-demo follow-up, 2026-07-26; reinforced by the Pre-Creation Acceptance-Criteria Check above.)
+
 ---
 
 ## Usage Guidelines
@@ -127,4 +139,4 @@ Add a new item here whenever a future code review catches something that should 
 - Review periodically for outdated rules (e.g. once Story 1.6 lands, the magic-number rule's "formalized as Story 1.6" note can drop the forward reference).
 - Remove rules that become obvious over time.
 
-Last Updated: 2026-07-28 (added Pre-Completion Self-Check, from Epic 1 retrospective)
+Last Updated: 2026-07-28 (added Pre-Creation Acceptance-Criteria Check and Process Agreements, from Epic 5 retrospective)

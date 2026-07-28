@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-07-28 (epic-1 retrospective complete, marked done)
+last_updated: 2026-07-28 (epic-5 marked done - all stories and retrospective complete)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -57,12 +57,12 @@ development_status:
   1-6-named-design-constants-for-layout-values: done
   epic-1-retrospective: done
 
-  epic-5: in-progress
+  epic-5: done
   5-1-landscape-ux-design-pass: done
   5-2-landscape-architecture-decision-and-orientation-unlock: done
   5-3-home-and-tutorial-landscape-retrofit: done
   5-4-cold-launch-orientation-fix: done
-  epic-5-retrospective: optional
+  epic-5-retrospective: done
 
   epic-2: backlog
   2-1-minimal-story-content-and-engine-foundation: backlog
@@ -100,4 +100,16 @@ action_items:
   - epic: 1
     action: "Close single-point-of-failure gap on the .id(layoutGeneration) state-loss risk before Epic 2's reading surface reuses it - documented in ColdLaunchOrientationFix.swift, project-context.md, and epics.md Story 2.2"
     owner: "Winston (Architect) / Amelia (Dev)"
+    status: done
+  - epic: 5
+    action: "Make testing acceptance criteria mandatory at story creation - every story's AC must include a Swift Testing clause (AD-7 scope) or a manual-verification clause (steps + where to log results), modeled on Story 5.4's AC #3"
+    owner: "Amelia (Dev)"
+    status: done
+  - epic: 5
+    action: "Scrutinize acceptance criteria harder during story creation - explicitly ask what could surface after implementation that the AC doesn't already probe for, before a story is marked ready-for-dev"
+    owner: "Amelia (Dev) / Winston (Architect)"
+    status: done
+  - epic: 5
+    action: "Any work done outside create-story/dev-story gets a story file and sprint-status entry in the same session it happens, not retroactively"
+    owner: "whichever agent performs the out-of-band work"
     status: done

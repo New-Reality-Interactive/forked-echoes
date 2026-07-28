@@ -44,7 +44,8 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(swift build *)",
       "Bash(swift test *)",
-      "Bash(xargs -I{} sh -c 'echo == {} ==; cat {}')"
+      "Bash(xargs -I{} sh -c 'echo == {} ==; cat {}')",
+      "Read(//home/vscode/.bmad/**)"
     ]
   }
 }

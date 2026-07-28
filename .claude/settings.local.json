@@ -38,7 +38,13 @@
       "Bash(xargs -I{} cat {})",
       "Bash(xargs ls)",
       "Bash(swiftly list *)",
-      "Bash(swift package *)"
+      "Bash(swift package *)",
+      "Bash(mkdir -p /tmp/swifttest)",
+      "Bash(swiftc -parse /tmp/swifttest/t.swift)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(swift build *)",
+      "Bash(swift test *)",
+      "Bash(xargs -I{} sh -c 'echo == {} ==; cat {}')"
     ]
   }
 }

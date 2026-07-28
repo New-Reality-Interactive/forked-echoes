@@ -41,21 +41,21 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-07-28 (5-4 code review complete, marked done)
+last_updated: 2026-07-28 (epic-1 retrospective complete, marked done)
 project: game
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/implementation-artifacts
 
 development_status:
-  epic-1: in-progress
+  epic-1: done
   1-1-project-scaffold: done
   1-2-home-screen-start-resume-story-and-start-tutorial: done
   1-3-tutorial-screen: done
   1-4-home-and-tutorial-visual-identity-and-accessibility-pass: done
   1-5-home-story-subtitle: done
   1-6-named-design-constants-for-layout-values: done
-  epic-1-retrospective: optional
+  epic-1-retrospective: done
 
   epic-5: in-progress
   5-1-landscape-ux-design-pass: done
@@ -91,3 +91,13 @@ development_status:
   4-5-content-playtesting-and-app-store-rating-self-assessment: backlog
   4-6-app-store-listing-and-submission-assets: backlog
   epic-4-retrospective: optional
+
+action_items:
+  - epic: 1
+    action: "Add a Pre-Completion Self-Check checklist to project-context.md (Dynamic Type tracking scaling, contentShape hit-testing, disabled-state dimming, LocalizedStringKey ternary typing, banned-pattern grep)"
+    owner: "Amelia (Dev)"
+    status: done
+  - epic: 1
+    action: "Close single-point-of-failure gap on the .id(layoutGeneration) state-loss risk before Epic 2's reading surface reuses it - documented in ColdLaunchOrientationFix.swift, project-context.md, and epics.md Story 2.2"
+    owner: "Winston (Architect) / Amelia (Dev)"
+    status: done

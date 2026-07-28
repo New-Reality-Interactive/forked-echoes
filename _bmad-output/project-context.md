@@ -2,9 +2,9 @@
 project_name: 'game'
 user_name: 'Vscode'
 date: '2026-07-26'
-sections_completed: ['technology_stack', 'localization', 'navigation', 'landscape', 'centering_pattern', 'testing', 'accessibility', 'design_tokens', 'buttons', 'file_organization', 'cross_story_contracts', 'doc_conflicts']
+sections_completed: ['technology_stack', 'localization', 'navigation', 'landscape', 'centering_pattern', 'testing', 'accessibility', 'design_tokens', 'buttons', 'file_organization', 'cross_story_contracts', 'doc_conflicts', 'pre_completion_checklist']
 status: 'complete'
-rule_count: 40
+rule_count: 46
 optimized_for_llm: true
 ---
 
@@ -48,6 +48,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 - Detect orientation via `@Environment(\.verticalSizeClass)` only (`.compact` = landscape, `.regular` = portrait) — **never** `UIDevice.orientation`/`UIDeviceOrientationDidChangeNotification` (fragile, manual lifecycle) and **never** `horizontalSizeClass` (reports `.compact` in *both* orientations on standard iPhones, can't distinguish them). Treat `verticalSizeClass == nil` as `.regular` (portrait) — the safer default.
 - Sanctioned exception (Story 5.4): a single, one-shot `UIWindowScene.interfaceOrientation` read at `.onAppear`, used only to correct a stale cold-launch layout pass (see `ColdLaunchOrientationFix.swift`), is allowed alongside the `verticalSizeClass` rule above — it's a bounded correctness check, not a second ongoing orientation-detection mechanism. Don't generalize this into a pattern for structural layout decisions; those still go through `verticalSizeClass` only.
+- **Do not reuse `ColdLaunchOrientationFix`'s `.id(layoutGeneration)` mechanism as-is on the reading surface (Epic 2).** It forces a full subtree teardown/rebuild on correction, discarding all nested `@State` — harmless on Home/Tutorial (no meaningful child state) but destructive once real state exists (pager position, in-flight choice-hold gesture). Flagged in Epic 1's retrospective (2026-07-28); see the comment in `ColdLaunchOrientationFix.swift` for the same warning at the source.
 - Two different fixes for two different problems, don't conflate them:
   - **Structural** change (e.g. a stack becoming a row) → branch on `verticalSizeClass`.
   - **Geometry-only** constraint (e.g. a max-width cap) → an unconditional `.frame(maxWidth:)` that's simply a no-op in portrait, **no branch at all**.
@@ -96,6 +97,18 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 - When `epics.md`/`DESIGN.md`/`EXPERIENCE.md`/mockups disagree (has happened at least twice — the circuit-frame-on-Tutorial question, and Home's headline case), the most recent explicit team/user decision wins and gets recorded directly in the story file (a "RESOLVED CONFLICT" banner). Don't re-litigate a resolved conflict in a later story; don't silently pick a side without recording the decision.
 
+## Pre-Completion Self-Check
+
+Before moving a story to review, re-scan the diff against this checklist — these are all rules stated above that were missed on first pass in Epic 1 and only caught by code review (Story 1.4). Reading the rules once at story start isn't enough; re-check against them right before handoff:
+
+- [ ] Any `tracking()`/letter-spacing value wrapped in `@ScaledMetric(relativeTo:)`, not a fixed point offset
+- [ ] Any button with a transparent/border-only background has `.contentShape(Rectangle())`
+- [ ] Any custom `ButtonStyle` reads `@Environment(\.isEnabled)` and dims when disabled
+- [ ] Any ternary-selected `LocalizedStringKey` has an explicit type annotation
+- [ ] `grep` for `Font.system(size:)`, `.lineLimit()`, `.fixedSize()` — none introduced without a documented reason
+
+Add a new item here whenever a future code review catches something that should have been self-caught — that's the signal this checklist is missing an entry, not that the rule doesn't belong somewhere else in this file.
+
 ---
 
 ## Usage Guidelines
@@ -114,4 +127,4 @@ _This file contains critical rules and patterns that AI agents must follow when 
 - Review periodically for outdated rules (e.g. once Story 1.6 lands, the magic-number rule's "formalized as Story 1.6" note can drop the forward reference).
 - Remove rules that become obvious over time.
 
-Last Updated: 2026-07-26
+Last Updated: 2026-07-28 (added Pre-Completion Self-Check, from Epic 1 retrospective)

@@ -7,6 +7,13 @@ import UIKit
 // orientation at appear and forces exactly one corrective re-layout if it disagrees with
 // what the environment's `verticalSizeClass` produced — never `UIDevice.orientation`/
 // `NotificationCenter` (AD-8 bans those as persistent structural signals).
+//
+// Epic 2's reading surface (Story 2.1/2.2) must NOT reuse `.id(layoutGeneration)` as-is:
+// bumping it forces a full subtree teardown/rebuild, discarding all nested `@State`. Home/
+// Tutorial have no meaningful child state today so this is harmless here, but the reading
+// surface will have real state to lose (pager position, in-flight choice-hold gesture).
+// Before reuse, either scope the `.id()` to a state-free wrapper layer, or replace this
+// mechanism with something that corrects layout without discarding descendant state.
 private struct ColdLaunchOrientationFix: ViewModifier {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
     @State private var hasAttemptedCorrection = false

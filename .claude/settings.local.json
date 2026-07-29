@@ -45,7 +45,11 @@
       "Bash(swift build *)",
       "Bash(swift test *)",
       "Bash(xargs -I{} sh -c 'echo == {} ==; cat {}')",
-      "Read(//home/vscode/.bmad/**)"
+      "Read(//home/vscode/.bmad/**)",
+      "WebFetch(domain:docs.bmad-method.org)",
+      "Bash(npx bmad-method *)",
+      "Bash(npm view *)",
+      "Bash(npm search *)"
     ]
   }
 }

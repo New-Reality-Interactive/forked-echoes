@@ -1,0 +1,66 @@
+import Foundation
+
+// Story 2.1: minimal placeholder tree (1 reading node -> 1 choice node w/ 2 options -> 2 terminal
+// ending nodes) to exercise StoryRunEngine/UI. The tree never reconverges: firstChoice's two
+// options each target a distinct ending node. Full v1 authoring is Epic 4's job (epics.md Epic 2
+// Content note) — this tree is expected to be replaced wholesale, not extended in place.
+//
+// Prose keys follow ARCHITECTURE-SPINE.md's `story.<nodeId>.body` / `story.<nodeId>.choice.<n>`
+// convention, referenced as plain dot-path String keys (project-context.md Localization section —
+// not generated symbols, see 2-1-minimal-story-content-and-engine-foundation.md's RESOLVED
+// CONFLICT note).
+enum StoryTree {
+    static let root: NodeID = .intro
+
+    // Content-authoring guardrails (code-review finding, 2026-07-31): AD-1's compile-time
+    // safety covers node/option *identity* (enum cases), but a choice node's `options` array is
+    // still a plain Swift array, so nothing in the type system stops an authored node from
+    // shipping with zero options (an unreachable soft-lock) or two options sharing the same id
+    // (an ambiguous `selectChoice(_:)` match, and a SwiftUI `ForEach(id: \.id)` identity
+    // collision). These preconditions fail loudly at content-access time instead of silently
+    // misbehaving — low-risk today with 2 hand-verified options, real risk once Epic 4 authors
+    // 10-15 branches by hand.
+    static func node(for id: NodeID) -> StoryNode {
+        let node = resolvedNode(for: id)
+        if case .choice(_, let options) = node {
+            precondition(!options.isEmpty, "content-authoring error: \(id) is a choice node with zero options")
+            precondition(
+                Set(options.map(\.id)).count == options.count,
+                "content-authoring error: \(id) has duplicate option ids"
+            )
+        }
+        return node
+    }
+
+    private static func resolvedNode(for id: NodeID) -> StoryNode {
+        switch id {
+        case .intro:
+            return .reading(bodyKey: "story.intro.body", next: .firstChoice)
+
+        case .firstChoice:
+            return .choice(
+                promptKey: "story.firstChoice.body",
+                options: [
+                    // Non-zero placeholder deltas to exercise alignmentScore accumulation in
+                    // tests — not a narrative-design decision. Real per-choice values are Epic
+                    // 4's job (Story 4.1/4.2 authoring), same as the rest of this placeholder tree.
+                    ChoiceOption(
+                        id: .boat,
+                        labelKey: "story.firstChoice.choice.1",
+                        alignmentDelta: 1,
+                        target: .endingHomeward
+                    ),
+                    ChoiceOption(
+                        id: .shore,
+                        labelKey: "story.firstChoice.choice.2",
+                        alignmentDelta: -1,
+                        target: .endingElsewhere
+                    ),
+                ]
+            )
+
+        case .endingHomeward, .endingElsewhere:
+            return .ending(EndingPayload(nodeId: id))
+        }
+    }
+}

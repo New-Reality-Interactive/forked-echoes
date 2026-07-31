@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-07-28 (epic-5 marked done - all stories and retrospective complete)
+last_updated: 2026-07-31 (2-1-minimal-story-content-and-engine-foundation done — dev-story, user-confirmed Xcode build/tests/Simulator, code-review with 7 patches applied)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -64,8 +64,8 @@ development_status:
   5-4-cold-launch-orientation-fix: done
   epic-5-retrospective: done
 
-  epic-2: backlog
-  2-1-minimal-story-content-and-engine-foundation: backlog
+  epic-2: in-progress
+  2-1-minimal-story-content-and-engine-foundation: done
   2-2-page-navigation: backlog
   2-3-choice-presentation-selection-and-permanence: backlog
   2-4-run-persistence-runsnapshot: backlog

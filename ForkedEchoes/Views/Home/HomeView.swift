@@ -64,7 +64,8 @@ struct HomeView: View {
             .navigationDestination(for: HomeDestination.self) { destination in
                 switch destination {
                 case .storyChoice:
-                    StoryChoicePlaceholderView()
+                    StoryChoiceView()
+                        .environment(StoryRunEngine())
                 case .tutorial:
                     TutorialView()
                 }

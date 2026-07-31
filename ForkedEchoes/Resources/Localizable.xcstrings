@@ -73,6 +73,54 @@
         }
       }
     },
+    "story.firstChoice.body" : {
+      "comment" : "Story 2.1 placeholder content tree: firstChoice node's prompt text, shown above the two choice options",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The dock splits two ways. One path leads back toward the boat you arrived on. The other cuts along the shoreline, away from it."
+          }
+        }
+      }
+    },
+    "story.firstChoice.choice.1" : {
+      "comment" : "Story 2.1 placeholder content tree: firstChoice node's first option label, leads to the endingHomeward placeholder",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go back to the boat."
+          }
+        }
+      }
+    },
+    "story.firstChoice.choice.2" : {
+      "comment" : "Story 2.1 placeholder content tree: firstChoice node's second option label, leads to the endingElsewhere placeholder",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow the shoreline instead."
+          }
+        }
+      }
+    },
+    "story.intro.body" : {
+      "comment" : "Story 2.1 placeholder content tree: intro reading node's body text, the story's opening page",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You make one choice too many, and suddenly you're not home anymore."
+          }
+        }
+      }
+    },
     "tutorial.action.backHome" : {
       "comment" : "Tutorial screen: secondary action label, returns to Home",
       "extractionState" : "manual",

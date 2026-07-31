@@ -8,13 +8,18 @@ enum HomeDestination: Hashable {
 }
 
 struct RootView: View {
+    // AD-3: single StoryRunEngine instance, owned here and injected via @Environment for every
+    // screen below Home in the navigation stack.
+    @State private var engine = StoryRunEngine()
+
     var body: some View {
         NavigationStack {
             HomeView()
                 .navigationDestination(for: HomeDestination.self) { destination in
                     switch destination {
                     case .storyChoice:
-                        StoryChoicePlaceholderView()
+                        StoryChoiceView()
+                            .environment(engine)
                     case .tutorial:
                         TutorialView()
                     }

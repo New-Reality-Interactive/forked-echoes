@@ -1,0 +1,5 @@
+[workflow]
+
+activation_steps_prepend = [
+  "Before gathering review context, run `git status --porcelain`. If there are uncommitted changes, tell the user this review works best against a clean baseline and ask whether to commit the outstanding work now with a descriptive commit message before the review begins — this keeps any patches this review applies as a separately-diffable commit from the implementation that preceded them. If the user declines, or there's nothing uncommitted, proceed to Step 1 as normal.",
+]

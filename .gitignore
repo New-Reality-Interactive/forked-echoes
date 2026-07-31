@@ -62,4 +62,8 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 .DS_Store
-_bmad/
+# Bulk BMad install regenerates on devcontainer rebuild — don't track it.
+# _bmad/custom/ is the exception: hand-authored team/user overrides that
+# don't regenerate and would otherwise be silently lost on a rebuild.
+_bmad/*
+!_bmad/custom/

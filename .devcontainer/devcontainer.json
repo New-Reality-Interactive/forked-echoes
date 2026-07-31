@@ -7,7 +7,7 @@
    "remoteEnv": {
       "GITHUB_TOKEN": "${localEnv:GITHUB_TOKEN}"
    },
-   "postCreateCommand": "npx bmad-method install --yes --modules bmm,bmb,cis --tools claude-code",
+   "postCreateCommand": "npx --yes bmad-method@6.10.0 install --directory . --yes --modules bmm,bmb,cis --tools claude-code",
    "customizations": {
       "vscode": {
          "extensions": [

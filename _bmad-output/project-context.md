@@ -1,10 +1,10 @@
 ---
 project_name: 'game'
 user_name: 'Vscode'
-date: '2026-07-26'
+date: '2026-07-31'
 sections_completed: ['technology_stack', 'localization', 'navigation', 'landscape', 'centering_pattern', 'testing', 'accessibility', 'design_tokens', 'buttons', 'file_organization', 'cross_story_contracts', 'doc_conflicts', 'pre_completion_checklist', 'pre_creation_ac_checklist', 'process_agreements']
 status: 'complete'
-rule_count: 49
+rule_count: 51
 optimized_for_llm: true
 ---
 
@@ -29,7 +29,8 @@ _This file contains critical rules and patterns that AI agents must follow when 
 
 ### Environment
 
-- **This devcontainer has a Linux Swift toolchain (`swiftc`, Swift 6.3.3) but no Xcode/Apple SDKs** (`xcodebuild` unavailable; `UIKit`/`SwiftUI` don't resolve — `swiftc -typecheck` on a file importing either fails with `no such module`). That means real parser-level syntax validation is available and should be used: run `swiftc -parse <file>.swift` on new/edited `.swift` files for genuine syntax verification, instead of eyeballing brace/paren balance. Full compilation, build/run, and Simulator verification (visual check, VoiceOver, Dynamic Type, rotation) still cannot happen here — always flag those explicitly for the user rather than claiming they passed. Other static checks remain: JSON validity (`python3 -m json.tool` on `.xcstrings`/`Contents.json`), brace/paren balance checks on touched `.pbxproj` files (no parser-level tool covers these), and `grep` for banned patterns (see below).
+- **This devcontainer has a Linux Swift toolchain (`swiftc`, Swift 6.3.3) but no Xcode/Apple SDKs** (`xcodebuild` unavailable; `UIKit`/`SwiftUI` don't resolve — `swiftc -typecheck` on a file importing either fails with `no such module`). That means real parser-level syntax validation is available and should be used: run `swiftc -parse <file>.swift` on new/edited `.swift` files for genuine syntax verification, instead of eyeballing brace/paren balance. Full app compilation, build/run, and Simulator verification (visual check, VoiceOver, Dynamic Type, rotation) still cannot happen here — always flag those explicitly for the user rather than claiming they passed. Other static checks remain: JSON validity (`python3 -m json.tool` on `.xcstrings`/`Contents.json`), brace/paren balance checks on touched `.pbxproj` files (no parser-level tool covers these), and `grep` for banned patterns (see below).
+- **Exception — engine-logic Swift Testing suites genuinely run here, not just parse.** The root `Package.swift` (added Story 5.4, 2026-07-27) exposes `ForkedEchoes/Engine` as a SwiftPM library target with `ForkedEchoesTests` as its test target, entirely separate from `ForkedEchoes.xcodeproj`. `swift test` from the repo root builds and executes that suite for real (confirmed empirically: technical research 2026-07-29/30, re-verified live 2026-07-31 — 3/3 tests passed, Swift Testing runner output, not `swiftc -parse`). No `swift-testing` package dependency is needed in the manifest — Swift 6 toolchains (Linux included) bundle `import Testing` natively; a `Package.swift` entry for it would be redundant, not required. **Implication for future engine work:** any new engine-logic code meant to be Swift-Testing-covered (e.g. the upcoming `StoryRunEngine` in Epic 2) must live under `ForkedEchoes/Engine/` (with tests under `ForkedEchoesTests/`) to inherit real Linux test execution — engine code written directly into the Xcode app target elsewhere would silently fall back to parse-only verification in this devcontainer.
 
 ### Localization (`Localizable.xcstrings`)
 
@@ -63,6 +64,7 @@ _This file contains critical rules and patterns that AI agents must follow when 
 ### Testing (AD-7)
 
 - Swift Testing coverage is scoped to `StoryRunEngine`/engine logic only (ending resolution, echo reachability, pager-gating, `RunSnapshot` round-trip). **There is no UI test target and no UI-test pattern in this project** — SwiftUI view correctness (layout, VoiceOver, Dynamic Type) is verified manually in Simulator, not automated. Don't add UI tests as a side effect of a view-only story; that would be introducing a new, unscoped pattern.
+- Run `swift test` from the repo root (not `xcodebuild test`, which is unavailable here) to actually execute the engine-logic suite in this devcontainer — see the Environment section above. `StoryRunEngine` itself doesn't exist yet (not started as of Epic 5 completion; specced for Epic 2) — as of now `ForkedEchoes/Engine/` contains only `RunSnapshotPresence.swift`.
 
 ### Dynamic Type & Accessibility
 
@@ -139,4 +141,4 @@ Before a story is marked ready-for-dev, `create-story` must run this check again
 - Review periodically for outdated rules (e.g. once Story 1.6 lands, the magic-number rule's "formalized as Story 1.6" note can drop the forward reference).
 - Remove rules that become obvious over time.
 
-Last Updated: 2026-07-28 (added Pre-Creation Acceptance-Criteria Check and Process Agreements, from Epic 5 retrospective)
+Last Updated: 2026-07-31 (corrected the Environment section: engine-logic Swift Testing suites under `ForkedEchoes/Engine` genuinely execute via `swift test` in this devcontainer via the root `Package.swift` from Story 5.4 — this had never been documented here despite already existing; added the rule that future engine code, including `StoryRunEngine`, must live under `ForkedEchoes/Engine` to inherit it. Source: technical research 2026-07-29/30, re-verified live 2026-07-31.)

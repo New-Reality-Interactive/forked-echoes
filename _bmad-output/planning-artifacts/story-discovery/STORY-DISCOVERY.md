@@ -41,6 +41,13 @@ The AI-generated "boat/dock/shoreline" content currently in the app (`StoryTree.
 - **Underlying want/wound:** some past experience of being genuinely, frighteningly lost/unmoored (specifics not yet authored). The driving competence reads as a ~12-year answer to never feeling that again — so a branch reality isn't mere inconvenience for her, it's the specific fear her whole adult life has been organized around avoiding.
 - **Open:** name; how explicit the "unmoored" backstory gets on-page; whether she drives alone/with family/other relationships at home worth establishing before the fork.
 
+**Open threads from a pre-mortem pass (2026-08-01), to tug on later:**
+
+1. **A non-thematic human detail for page one.** Needs one concrete, ordinary trait unrelated to driving/competence — a bad habit, a joke she tells herself, what she eats at 2am — established *before* the competence trait shows up, so she reads as a person first and a thesis second.
+2. **A second, ordinary desire, unrelated to the "never be lost again" wound.** Right now every choice risks collapsing into the same lever (toward safety / away from it). Needs something she wants day-to-day that has nothing to do with the fork — a person, a dumb concrete goal, anything — so the choice space doesn't flatten.
+3. **One specific, personal driving-behavior detail that couldn't belong to a generic version of this archetype.** Not *that* she drives competently/refuses GPS (mechanism-level, replaceable by any competent-tradesperson type) — something about *how* she drives that's hers alone: an invented route, an illogical rule she'd never break.
+4. **A sharper bar on the wrongness-detail authoring:** at least one of the two pre-reveal tells (Open Question 2) should register as noticeably odd to an attentive reader — not spelled out, but not perfectly invisible either — so the reveal pays off a hunch instead of arriving from nowhere.
+
 ## Branch Reality Catalog
 
 Budget: ~10-15 distinct illustrated flavors total (art budget constraint from brainstorm intent). None specified yet.
@@ -49,3 +56,4 @@ Budget: ~10-15 distinct illustrated flavors total (art budget constraint from br
 
 - 2026-08-01: Session opened. Established the placeholder boat content is non-canon. New premise set: run opens inside an unannounced branch reality, off-ness surfaces gradually, character and reader discover together by choice 2. Flagged the branch-arrival-interstitial timing conflict for later resolution.
 - 2026-08-01: Locked interstitial timing to Option 2 (retimed to the realization moment). Ran a What-If-Scenarios elicitation to find the player-character; landed on a night-shift rideshare driver with competence-as-identity, after rejecting a hospice-nurse concept (too close to the user's real spouse's profession) and a divorced-father concept (too on-the-nose against the alignment mechanic, echoes *Dark Matter*). Wrongness mechanism decided as geographic/social micro-detail rather than tonal unease.
+- 2026-08-01: Ran a Pre-mortem Analysis on the rideshare-driver concept. Verdict: the wound and wrongness-mechanism are solid, but she still reads as a sketch, not a lived-in person. Recorded four open threads to close that gap before Epic 4 authoring: a non-thematic page-one human detail, a second ordinary desire unrelated to the core wound, one personal (non-generic) driving-behavior detail, and a sharper legibility bar on the pre-reveal wrongness tells.

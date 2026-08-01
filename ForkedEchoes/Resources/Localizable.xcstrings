@@ -121,6 +121,30 @@
         }
       }
     },
+    "storyChoice.pager.nextPage" : {
+      "comment" : "Story/Choice screen: VoiceOver custom rotor action, advances to the next page (same effect as swiping left or tapping the right third)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next Page"
+          }
+        }
+      }
+    },
+    "storyChoice.pager.previousPage" : {
+      "comment" : "Story/Choice screen: VoiceOver custom rotor action, returns to the previous page (same effect as swiping right or tapping the left third)",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous Page"
+          }
+        }
+      }
+    },
     "tutorial.action.backHome" : {
       "comment" : "Tutorial screen: secondary action label, returns to Home",
       "extractionState" : "manual",

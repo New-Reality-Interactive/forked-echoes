@@ -34,6 +34,16 @@ enum LayoutMetrics {
     /// buttons don't stretch edge-to-edge in a wide frame (AD-8, geometry-only constraint). Shared
     /// identically by HomeView and TutorialView — one constant, not a per-file duplicate.
     static let actionStackMaxWidth: CGFloat = 320
+
+    /// DESIGN.md `{components.page-tap-zones.left-zone-width}` / `.right-zone-width` = 33%. Each
+    /// invisible page-turn tap zone spans this fraction of the reading card's width, same
+    /// proportional split in both orientations (Story 2.2).
+    static let pageTapZoneWidthFraction: CGFloat = 0.33
+
+    /// No DESIGN.md token. Minimum horizontal drag distance before a swipe counts as a page-turn
+    /// gesture (Story 2.2). Tunable by feel, like Story 2.3's charge/undo timings — not a locked
+    /// spec.
+    static let pageSwipeThreshold: CGFloat = 50
 }
 
 enum ButtonMetrics {

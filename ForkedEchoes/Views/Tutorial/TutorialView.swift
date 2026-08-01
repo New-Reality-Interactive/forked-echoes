@@ -3,6 +3,11 @@ import SwiftUI
 struct TutorialView: View {
     @Environment(\.dismiss) private var dismiss
 
+    // AD-5: the Story session is a full-screen modal presented from RootView, not a
+    // NavigationStack push -- this button just flips the shared binding, RootView owns the
+    // .fullScreenCover(isPresented:) itself.
+    @Binding var isPresentingStorySession: Bool
+
     var body: some View {
         let hasInProgressRun = RunSnapshotPresence.hasInProgressRun()
         let primaryActionLabel: LocalizedStringKey = hasInProgressRun ? "home.action.resumeStory" : "tutorial.action.startStory"
@@ -42,7 +47,9 @@ struct TutorialView: View {
                         }
                         .buttonStyle(.secondaryAction)
 
-                        NavigationLink(value: HomeDestination.storyChoice) {
+                        Button {
+                            isPresentingStorySession = true
+                        } label: {
                             Text(primaryActionLabel)
                                 .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
                         }
@@ -70,14 +77,11 @@ struct TutorialView: View {
 
 #Preview {
     NavigationStack {
-        TutorialView()
+        TutorialView(isPresentingStorySession: .constant(false))
             .navigationDestination(for: HomeDestination.self) { destination in
                 switch destination {
-                case .storyChoice:
-                    StoryChoiceView()
-                        .environment(StoryRunEngine())
                 case .tutorial:
-                    TutorialView()
+                    TutorialView(isPresentingStorySession: .constant(false))
                 }
             }
     }

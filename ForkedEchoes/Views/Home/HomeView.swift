@@ -1,6 +1,11 @@
 import SwiftUI
 
 struct HomeView: View {
+    // AD-5: the Story session is a full-screen modal presented from RootView, not a
+    // NavigationStack push -- this button just flips the shared binding, RootView owns the
+    // .fullScreenCover(isPresented:) itself.
+    @Binding var isPresentingStorySession: Bool
+
     var body: some View {
         let hasInProgressRun = RunSnapshotPresence.hasInProgressRun()
         let primaryActionLabel: LocalizedStringKey = hasInProgressRun ? "home.action.resumeStory" : "home.action.startStory"
@@ -26,7 +31,9 @@ struct HomeView: View {
                     }
 
                     VStack(spacing: Spacing.medium) {
-                        NavigationLink(value: HomeDestination.storyChoice) {
+                        Button {
+                            isPresentingStorySession = true
+                        } label: {
                             Text(primaryActionLabel)
                                 .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
                         }
@@ -60,14 +67,11 @@ struct HomeView: View {
 
 #Preview {
     NavigationStack {
-        HomeView()
+        HomeView(isPresentingStorySession: .constant(false))
             .navigationDestination(for: HomeDestination.self) { destination in
                 switch destination {
-                case .storyChoice:
-                    StoryChoiceView()
-                        .environment(StoryRunEngine())
                 case .tutorial:
-                    TutorialView()
+                    TutorialView(isPresentingStorySession: .constant(false))
                 }
             }
     }

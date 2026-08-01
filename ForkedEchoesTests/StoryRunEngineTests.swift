@@ -100,4 +100,38 @@ struct StoryRunEngineTests {
 
         #expect(engine.currentNodeId == .intro)
     }
+
+    // Story 2.2 (pager-gating, FR-3/AD-5/AD-7): the tests below give this story's own AC #4/#5
+    // dedicated traceability. The underlying guard already existed from Story 2.1's skeleton
+    // (advancePage() no-ops on any non-.reading node) — these don't change engine behavior, they
+    // pin down the pager-gating contract explicitly rather than leaving it implied by a
+    // more generic node-kind test.
+
+    @Test func advancePageIsBlockedOnAnUnresolvedChoiceNode() {
+        let engine = StoryRunEngine(startingAt: .firstChoice)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.choiceHistory.isEmpty)
+    }
+
+    @Test func advancePageRemainsBlockedOnAChoiceNodeEvenAfterItHasBeenResolved() {
+        // Forward-blocking is keyed on the current node's *type* (any non-.reading node),
+        // not on whether a choice there has been resolved (AD-5). Resolving a choice moves
+        // currentNodeId away via selectChoice(_:) itself — there is no scenario where
+        // advancePage() is the thing that unblocks at the *same* choice node. Revisiting a
+        // decided choice via goBack() must still block advancePage() there, matching AD-5's
+        // "back-navigation shows a decided choice locked" contract from the navigation side
+        // (the locked *display* itself is Story 2.3's job).
+        let engine = StoryRunEngine(startingAt: .firstChoice)
+        engine.selectChoice(.boat)
+        engine.goBack()
+        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.choiceHistory == [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)])
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .firstChoice)
+    }
 }

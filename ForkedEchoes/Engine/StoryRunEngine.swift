@@ -1,16 +1,17 @@
+import Foundation
 import Observation
 
 // AD-3: the sole owner and mutator of run state. Views never write currentNodeId/choiceHistory/
 // alignmentScore directly — every mutation goes through one of the intent methods below.
 //
-// This story (2.1) is a skeleton only: persistence (RunSnapshot/UserDefaults) is Story 2.4's job.
-// Pager-gating (forward blocked on an *unresolved* choice, permeable once decided) is Story 2.2/
-// 2.3's job — see advancePage()'s own doc comment for the corrected AD-5 semantics. A committed
-// choice is irrevocable (AD-3, FR-5) in both directions: `goBack()` only moves `currentNodeId`
-// back along `visitedNodeIds` — it never removes a `choiceHistory` entry or reverses
-// `alignmentScore` — and `selectChoice(_:)` refuses to fire again on a node that already has a
-// `choiceHistory` entry, so navigating back to a decided choice and picking again is a no-op, not
-// a second commit.
+// AD-4 (Story 2.4): every mutating intent persists (or clears) a RunSnapshot synchronously as a
+// side effect of completing — see persistOrClearSnapshot(). Pager-gating (forward blocked on an
+// *unresolved* choice, permeable once decided) is Story 2.2/2.3's job — see advancePage()'s own
+// doc comment for the corrected AD-5 semantics. A committed choice is irrevocable (AD-3, FR-5) in
+// both directions: `goBack()` only moves `currentNodeId` back along `visitedNodeIds` — it never
+// removes a `choiceHistory` entry or reverses `alignmentScore` — and `selectChoice(_:)` refuses
+// to fire again on a node that already has a `choiceHistory` entry, so navigating back to a
+// decided choice and picking again is a no-op, not a second commit.
 @Observable
 final class StoryRunEngine {
     private(set) var currentNodeId: NodeID
@@ -18,9 +19,39 @@ final class StoryRunEngine {
     private(set) var alignmentScore: Int = 0
 
     private var visitedNodeIds: [NodeID] = []
+    private let defaults: UserDefaults
 
-    init(startingAt nodeId: NodeID = StoryTree.root) {
+    /// Never reads `UserDefaults` at construction time — pre-dates this story unchanged (Task 3).
+    /// `StoryRunEngine()`/`StoryRunEngine(startingAt:)` must keep meaning exactly this, since
+    /// existing tests rely on it to pin an exact starting node without any snapshot interference.
+    init(startingAt nodeId: NodeID = StoryTree.root, defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         currentNodeId = nodeId
+    }
+
+    /// Cold-launch construction (RootView's call site): attempts to resume from a validated
+    /// `RunSnapshot`; falls back to a fresh run at `StoryTree.root` on any decode/validation
+    /// failure (AC #2, #3) — identical fallback logic to `RunSnapshotPresence.hasInProgressRun`.
+    /// `visitedNodeIds` is not part of `RunSnapshot` (AD-4's four fields are exhaustive), so a
+    /// resumed run starts with an empty back-navigation stack — `goBack()` is a no-op until the
+    /// player advances forward again this session. This is an accepted, deliberate consequence of
+    /// AD-4's fixed shape, not a bug.
+    ///
+    /// Deliberately a distinctly-named factory rather than a third `init` overload: an earlier
+    /// version of this made a bare `StoryRunEngine()` call resolve here instead of the plain init
+    /// above, which silently broke `StoryRunEngineTests.freshEngineStartsAtRootWithEmptyHistoryAndZeroScore()`
+    /// the moment a real (persistent, cross-run) `UserDefaults.standard` was involved — the test
+    /// only proved it started fresh on Linux SwiftPM, where `.standard` is effectively ephemeral
+    /// per process; a real Xcode/Simulator run surfaced the collision immediately.
+    static func resumingFromSnapshot(defaults: UserDefaults = .standard) -> StoryRunEngine {
+        guard let snapshot = RunSnapshot.loadValid(from: defaults) else {
+            return StoryRunEngine(defaults: defaults)
+        }
+
+        let engine = StoryRunEngine(startingAt: snapshot.currentNodeId, defaults: defaults)
+        engine.choiceHistory = snapshot.choiceHistory
+        engine.alignmentScore = snapshot.alignmentScore
+        return engine
     }
 
     /// Commits the option with the given id on the current choice node. No-op if the current node
@@ -38,6 +69,7 @@ final class StoryRunEngine {
         alignmentScore += option.alignmentDelta
         visitedNodeIds.append(currentNodeId)
         currentNodeId = option.target
+        persistOrClearSnapshot()
     }
 
     /// Moves forward. From a reading node, follows its `next` link. From a *decided* choice node
@@ -57,6 +89,7 @@ final class StoryRunEngine {
         case .reading(_, let next):
             visitedNodeIds.append(currentNodeId)
             currentNodeId = next
+            persistOrClearSnapshot()
 
         case .choice(_, let options):
             guard let decision = choiceHistory.first(where: { $0.nodeId == currentNodeId }),
@@ -65,6 +98,7 @@ final class StoryRunEngine {
             }
             visitedNodeIds.append(currentNodeId)
             currentNodeId = target
+            persistOrClearSnapshot()
 
         case .ending:
             return
@@ -79,6 +113,33 @@ final class StoryRunEngine {
         }
 
         currentNodeId = previous
+        persistOrClearSnapshot()
+    }
+
+    /// Resets to a fresh run at `StoryTree.root` if the current run has ended; a no-op otherwise
+    /// (mid-run, "Start Story"/"Resume Story" tapped again should do nothing to the live run).
+    ///
+    /// User-confirmed bug, 2026-08-01: this app reuses one `StoryRunEngine` instance for its
+    /// entire lifetime (`RootView`'s `@State`), so nothing previously reset `currentNodeId` once
+    /// a run reached `.ending` — tapping "Start Story" from Home re-presented the same finished
+    /// run instead of a fresh one. AD-3 keeps the engine the sole mutator of its own state, so
+    /// this is a real engine method, not `RootView` reaching into `currentNodeId` directly (which
+    /// has no public setter). This is a narrowly-scoped fix for that one break, not the general
+    /// `startNewRun()`/`exitToHome()`/`restartRun()` intent surface AD-3 anticipates — restarting
+    /// or exiting *mid-run* remains Story 2.7/Epic 3's job.
+    ///
+    /// No `persistOrClearSnapshot()` call here: reaching `.ending` already cleared any snapshot
+    /// (AC #5), so there's nothing to clear, and a freshly reset run shouldn't persist until its
+    /// first mutating intent completes — same as any other fresh run (AC #1's own scope).
+    func startFreshRunIfCurrentRunHasEnded() {
+        guard case .ending = StoryTree.node(for: currentNodeId) else {
+            return
+        }
+
+        currentNodeId = StoryTree.root
+        choiceHistory = []
+        alignmentScore = 0
+        visitedNodeIds = []
     }
 
     // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both
@@ -87,11 +148,37 @@ final class StoryRunEngine {
     private static func option(withId id: ChoiceOptionID, in options: [ChoiceOption]) -> ChoiceOption? {
         options.first(where: { $0.id == id })
     }
+
+    // AD-4: called at the end of every mutating intent's state-changing path (never on a no-op
+    // guard-return path, since nothing changed). Writes synchronously and immediately — no Task,
+    // no debounce — because iOS can jetsam a backgrounded app before a debounced write fires
+    // (architecture adversarial review, Finding 3). Reaching an .ending node clears the snapshot
+    // instead of writing one (AC #5) — a finished run has nothing to resume (Finding 6).
+    private func persistOrClearSnapshot() {
+        if case .ending = StoryTree.node(for: currentNodeId) {
+            defaults.removeObject(forKey: RunSnapshotPresence.runSnapshotKey)
+            return
+        }
+
+        let snapshot = RunSnapshot(
+            currentNodeId: currentNodeId,
+            choiceHistory: choiceHistory,
+            alignmentScore: alignmentScore,
+            tutorialSeen: false
+        )
+
+        guard let data = try? JSONEncoder().encode(snapshot) else {
+            defaults.removeObject(forKey: RunSnapshotPresence.runSnapshotKey)
+            return
+        }
+
+        defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)
+    }
 }
 
-// AD-4 (Story 2.4 shape preview): choiceHistory as ID pairs, never frozen prose — Memory
-// re-resolves display text from the current String Catalog by id at render time.
-struct ChoiceRecord: Hashable {
+// AD-4: choiceHistory as ID pairs, never frozen prose — Memory re-resolves display text from the
+// current String Catalog by id at render time. Codable added Story 2.4 for RunSnapshot encoding.
+struct ChoiceRecord: Hashable, Codable {
     let nodeId: NodeID
     let chosenOptionId: ChoiceOptionID
 }

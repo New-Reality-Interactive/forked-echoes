@@ -20,7 +20,7 @@ struct EndingPayload: Hashable, Sendable {
 // AD-1: Content node/choice IDs are Swift enum cases — referencing a case that doesn't exist is a
 // compile error, not a runtime lookup failure. Mirrors NodeID.swift's flat-enum pattern; a
 // String-typed option id would silently no-op on a typo instead of failing to compile.
-enum ChoiceOptionID: Hashable, Sendable, CaseIterable {
+enum ChoiceOptionID: Hashable, Sendable, CaseIterable, Codable {
     case boat
     case shore
 }

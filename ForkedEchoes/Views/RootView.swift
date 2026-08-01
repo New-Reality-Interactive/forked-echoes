@@ -13,8 +13,15 @@ enum HomeDestination: Hashable {
 
 struct RootView: View {
     // AD-3: single StoryRunEngine instance, owned here and injected via @Environment for every
-    // screen below Home in the navigation stack.
-    @State private var engine = StoryRunEngine()
+    // screen below Home in the navigation stack. Story 2.4: cold launch attempts to resume a
+    // persisted RunSnapshot, falling back to a fresh run at StoryTree.root on any decode failure.
+    @State private var engine = StoryRunEngine.resumingFromSnapshot()
+
+    // Code review, 2026-08-01: a single shared instance injected via `@Environment`, same pattern
+    // as `engine` above (AD-3) — Home and Tutorial previously each held their own independent
+    // `RunProgressObserver`, which worked but was an inconsistent DRY violation against the one
+    // other piece of shared observable state this app has.
+    @State private var runProgress = RunProgressObserver()
 
     // AD-5: the Story session is a full-screen modal presentation, not a NavigationStack push --
     // see the enum comment above. Its only sanctioned dismissal is a deliberate action (Memory's
@@ -40,12 +47,31 @@ struct RootView: View {
                     }
                 }
         }
+        .environment(runProgress)
         .fullScreenCover(isPresented: $isPresentingStorySession) {
             StoryChoiceView(onExitToHome: {
                 navigationPath = NavigationPath()
                 isPresentingStorySession = false
             })
             .environment(engine)
+        }
+        // User-confirmed bug, 2026-08-01: HomeView/TutorialView's own `.onAppear` refresh does
+        // NOT reliably fire when this fullScreenCover dismisses back to them (confirmed: it does
+        // fire on NavigationStack push/pop between Home and Tutorial, but not on cover dismissal)
+        // — contradicting the assumption the earlier RunProgressObserver fix relied on. RootView
+        // owns `isPresentingStorySession` directly and knows the exact moment the session ends,
+        // so this is the deterministic fix: refresh whenever it flips to false, regardless of
+        // which button/path caused the dismissal.
+        //
+        // User-confirmed bug, 2026-08-01 (same session): tapping "Start Story" after a run ended
+        // re-presented the same finished run — `engine.startFreshRunIfCurrentRunHasEnded()` is a
+        // no-op mid-run, so this only resets when the label actually read "Start Story."
+        .onChange(of: isPresentingStorySession) { _, isPresenting in
+            if isPresenting {
+                engine.startFreshRunIfCurrentRunHasEnded()
+            } else {
+                runProgress.refresh()
+            }
         }
     }
 }

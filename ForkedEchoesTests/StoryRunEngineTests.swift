@@ -134,4 +134,25 @@ struct StoryRunEngineTests {
 
         #expect(engine.currentNodeId == .firstChoice)
     }
+
+    @Test func navigationFromTheResultingNodeAfterAChoiceIsResolved() {
+        // Code review, 2026-08-01: AC #5 asks for a test proving forward navigation "proceeds
+        // normally from the next reading node" once a choice resolves. Story 2.1's placeholder
+        // tree (StoryTree.swift) resolves every firstChoice option directly to an .ending node,
+        // never to a .reading node — Epic 4 authors a real tree with reading nodes past the
+        // first choice. Until then, there is no "next reading node" to advance into, so this
+        // pins down the closest honest equivalent against today's tree: from the actual
+        // resulting node, goBack() correctly returns to the decided choice node, and
+        // advancePage() correctly no-ops there too (Ending isn't .reading — same guard as
+        // everywhere else, nothing choice-resolution-specific about it).
+        let engine = StoryRunEngine(startingAt: .firstChoice)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .endingHomeward)
+
+        engine.advancePage()
+        #expect(engine.currentNodeId == .endingHomeward)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .firstChoice)
+    }
 }

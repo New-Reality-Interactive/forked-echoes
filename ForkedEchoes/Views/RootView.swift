@@ -18,13 +18,20 @@ struct RootView: View {
 
     // AD-5: the Story session is a full-screen modal presentation, not a NavigationStack push --
     // see the enum comment above. Its only sanctioned dismissal is a deliberate action (Memory's
-    // "Return Home", or a mid-run "Exit to Home" via Story 2.7's run-options sheet), never an
-    // incidental system gesture -- neither of which exists yet, so this stays true for the
-    // duration of this story.
+    // "Return Home", or a mid-run "Exit to Home" via Story 2.7's run-options sheet) -- for now,
+    // code review's temporary "Exit to Home" button (StoryChoiceView.swift).
     @State private var isPresentingStorySession = false
 
+    // Code review, 2026-08-01: the Story session can be launched from Home *or* Tutorial (both
+    // sit under this one NavigationStack), so its temporary exit button needs to be able to pop
+    // back to Home regardless of which one it was launched from -- not just dismiss the
+    // fullScreenCover and reveal whatever the stack happened to be showing underneath. Owning
+    // the path here, rather than each screen managing its own dismissal, is what lets one
+    // closure (below) reset both the modal and the stack together.
+    @State private var navigationPath = NavigationPath()
+
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             HomeView(isPresentingStorySession: $isPresentingStorySession)
                 .navigationDestination(for: HomeDestination.self) { destination in
                     switch destination {
@@ -34,8 +41,11 @@ struct RootView: View {
                 }
         }
         .fullScreenCover(isPresented: $isPresentingStorySession) {
-            StoryChoiceView()
-                .environment(engine)
+            StoryChoiceView(onExitToHome: {
+                navigationPath = NavigationPath()
+                isPresentingStorySession = false
+            })
+            .environment(engine)
         }
     }
 }

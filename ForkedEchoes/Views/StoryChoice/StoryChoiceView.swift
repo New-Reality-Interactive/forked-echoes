@@ -20,18 +20,47 @@ import SwiftUI
 struct StoryChoiceView: View {
     @Environment(StoryRunEngine.self) private var engine
 
+    // Code review, 2026-08-01: the .fullScreenCover presentation (AD-5) has no system back
+    // button or swipe-to-dismiss by construction, and nothing else in the app can dismiss it
+    // yet — a player who taps "Start Story" had no way back out. This is a temporary interim
+    // exit control, not a designed feature; Story 2.7's run-options sheet (or Memory's "Return
+    // Home") replaces it with the real, deliberate exit path.
+    //
+    // A plain @Environment(\.dismiss) only closes this fullScreenCover, revealing whatever sits
+    // underneath in RootView's NavigationStack — Home if the session was launched from Home, but
+    // Tutorial if it was launched from there (user-caught in Simulator testing, 2026-08-01: the
+    // button is labeled "Exit to Home," and it must actually go there regardless of launch
+    // point). RootView owns both the fullScreenCover and the NavigationStack's path, so it's the
+    // only place that can reset both together — this closure is that capability, injected rather
+    // than reached for via environment.
+    let onExitToHome: () -> Void
+
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .contentShape(Rectangle())
             .gesture(pageTurnGesture)
             .background(pageTapZones)
+            .overlay(alignment: .topTrailing) {
+                exitButton
+            }
             .accessibilityAction(named: Text("storyChoice.pager.nextPage")) {
                 engine.advancePage()
             }
             .accessibilityAction(named: Text("storyChoice.pager.previousPage")) {
                 engine.goBack()
             }
+    }
+
+    private var exitButton: some View {
+        Button {
+            onExitToHome()
+        } label: {
+            Text("storyChoice.action.exitToHome")
+                .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
+        }
+        .buttonStyle(.secondaryAction)
+        .padding(Spacing.small)
     }
 
     @ViewBuilder
@@ -104,6 +133,11 @@ struct StoryChoiceView: View {
                     .contentShape(Rectangle())
                     .onTapGesture { engine.goBack() }
 
+                // Deliberately no explicit .frame here, unlike its two siblings — HStack's
+                // implicit flex-sizing gives it whatever width the two fixed-width side zones
+                // don't claim (code review, 2026-08-01: pinning this down so a future edit
+                // doesn't "helpfully" add an explicit frame and silently break the intended
+                // roughly-33/34/33 split the side zones' math assumes).
                 Color.clear
                     .allowsHitTesting(false)
 
@@ -117,16 +151,16 @@ struct StoryChoiceView: View {
 }
 
 #Preview("Reading node") {
-    StoryChoiceView()
+    StoryChoiceView(onExitToHome: {})
         .environment(StoryRunEngine(startingAt: .intro))
 }
 
 #Preview("Choice node") {
-    StoryChoiceView()
+    StoryChoiceView(onExitToHome: {})
         .environment(StoryRunEngine(startingAt: .firstChoice))
 }
 
 #Preview("Ending node") {
-    StoryChoiceView()
+    StoryChoiceView(onExitToHome: {})
         .environment(StoryRunEngine(startingAt: .endingHomeward))
 }

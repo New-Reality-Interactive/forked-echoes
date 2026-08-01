@@ -121,6 +121,18 @@
         }
       }
     },
+    "storyChoice.action.exitToHome" : {
+      "comment" : "Story/Choice screen: temporary interim exit control (code review, 2026-08-01) — the .fullScreenCover Story session has no system back button or swipe-to-dismiss, and nothing else in the app can dismiss it yet. Replace with Story 2.7's real run-options sheet / Memory's \"Return Home\" when either lands.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit to Home"
+          }
+        }
+      }
+    },
     "storyChoice.pager.nextPage" : {
       "comment" : "Story/Choice screen: VoiceOver custom rotor action, advances to the next page (same effect as swiping left or tapping the right third)",
       "extractionState" : "manual",

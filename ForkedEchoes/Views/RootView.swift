@@ -13,8 +13,9 @@ enum HomeDestination: Hashable {
 
 struct RootView: View {
     // AD-3: single StoryRunEngine instance, owned here and injected via @Environment for every
-    // screen below Home in the navigation stack.
-    @State private var engine = StoryRunEngine()
+    // screen below Home in the navigation stack. Story 2.4: cold launch attempts to resume a
+    // persisted RunSnapshot, falling back to a fresh run at StoryTree.root on any decode failure.
+    @State private var engine = StoryRunEngine.resumingFromSnapshot()
 
     // AD-5: the Story session is a full-screen modal presentation, not a NavigationStack push --
     // see the enum comment above. Its only sanctioned dismissal is a deliberate action (Memory's

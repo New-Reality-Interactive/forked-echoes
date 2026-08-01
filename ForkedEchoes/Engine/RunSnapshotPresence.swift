@@ -1,11 +1,11 @@
 import Foundation
 
-// Story 2.4 owns the real Codable RunSnapshot and must reuse `runSnapshotKey` when it lands,
-// upgrading `hasInProgressRun` from a presence check to a decode-success check.
 enum RunSnapshotPresence {
     static let runSnapshotKey = "com.forkedechoes.runSnapshot"
 
+    // AC #4: Home's Resume/Start label is driven by decode *success*, not mere key presence — a
+    // corrupted snapshot must fall back to "Start Story," never "Resume Story" into a fresh run.
     static func hasInProgressRun(in defaults: UserDefaults = .standard) -> Bool {
-        defaults.object(forKey: runSnapshotKey) != nil
+        RunSnapshot.loadValid(from: defaults) != nil
     }
 }

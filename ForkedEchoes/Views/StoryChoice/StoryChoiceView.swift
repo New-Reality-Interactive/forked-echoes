@@ -20,6 +20,10 @@ import SwiftUI
 struct StoryChoiceView: View {
     @Environment(StoryRunEngine.self) private var engine
 
+    // Story 2.3: shared across sibling ChoiceCardViews so only one card can be mid-charge/
+    // mid-undo-window at a time (AC #1) — a card's own local @State can't see its siblings.
+    @State private var activeChoiceOptionID: ChoiceOptionID?
+
     // Code review, 2026-08-01: the .fullScreenCover presentation (AD-5) has no system back
     // button or swipe-to-dismiss by construction, and nothing else in the app can dismiss it
     // yet — a player who taps "Start Story" had no way back out. This is a temporary interim
@@ -50,6 +54,13 @@ struct StoryChoiceView: View {
             .accessibilityAction(named: Text("storyChoice.pager.previousPage")) {
                 engine.goBack()
             }
+            .onChange(of: engine.currentNodeId) { _, _ in
+                // Code-review finding, 2026-08-01: ChoiceOptionID is shared across all choice
+                // nodes (StoryNode.swift), not scoped per-node — without this reset, a stale
+                // activeChoiceOptionID left over from a previous choice page could misattribute
+                // "currently active" state to an unrelated card on a newly-arrived-at node.
+                activeChoiceOptionID = nil
+            }
     }
 
     private var exitButton: some View {
@@ -75,11 +86,28 @@ struct StoryChoiceView: View {
             Text(LocalizedStringKey(bodyKey))
 
         case .choice(let promptKey, let options):
+            // Story 2.3: engine.choiceHistory is the sole source of truth for whether this page
+            // is decided — StoryChoiceView has no persisted "was mid-interaction" state to
+            // restore (correctly, per AC #6), so a fresh revisit and the live page both derive
+            // "decided" the same way. Because ChoiceCardView.onFinalize only fires at true
+            // finalization (RESOLVED CONFLICT in the story file), choiceHistory never contains an
+            // entry while a charge/undo window is still in flight, so no special-casing is needed
+            // here for "decided but still reconsiderable."
+            let decidedRecord = engine.choiceHistory.first(where: { $0.nodeId == engine.currentNodeId })
+
             VStack(alignment: .leading, spacing: Spacing.medium) {
                 Text(LocalizedStringKey(promptKey))
 
                 ForEach(options, id: \.id) { option in
-                    Text(LocalizedStringKey(option.labelKey))
+                    ChoiceCardView(
+                        option: option,
+                        isDecided: decidedRecord != nil,
+                        isSelected: decidedRecord?.chosenOptionId == option.id,
+                        activeOptionID: $activeChoiceOptionID,
+                        onFinalize: { optionID in
+                            engine.selectChoice(optionID)
+                        }
+                    )
                 }
             }
 

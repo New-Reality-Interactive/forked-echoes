@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-08-01 (2-2-page-navigation moved review -> done via code-review)
+last_updated: 2026-08-01 (2-3-choice-presentation-selection-and-permanence done; code review complete, 8 patches applied)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -67,7 +67,7 @@ development_status:
   epic-2: in-progress
   2-1-minimal-story-content-and-engine-foundation: done
   2-2-page-navigation: done
-  2-3-choice-presentation-selection-and-permanence: backlog
+  2-3-choice-presentation-selection-and-permanence: done
   2-4-run-persistence-runsnapshot: backlog
   2-5-narrative-callback-choice-echo: backlog
   2-6-branch-arrival-interstitial-and-illustrations: backlog

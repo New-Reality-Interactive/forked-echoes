@@ -44,6 +44,34 @@ enum LayoutMetrics {
     /// gesture (Story 2.2). Tunable by feel, like Story 2.3's charge/undo timings — not a locked
     /// spec.
     static let pageSwipeThreshold: CGFloat = 50
+
+    /// DESIGN.md `{components.choice-card.charge-duration}` = 3000ms. Press-and-hold duration
+    /// before a choice card commits (Story 2.3). Tunable by feel per DESIGN.md's own note — not a
+    /// locked spec; update the token here and in DESIGN.md together if adjusted.
+    static let choiceChargeDuration: Duration = .seconds(3)
+
+    /// DESIGN.md `{components.choice-card.tap-undo-window}` = 1500ms. Grace period after a quick
+    /// tap during which a second tap on the same card fully cancels the commit (Story 2.3).
+    /// Tunable by feel, same caveat as `choiceChargeDuration`.
+    static let choiceUndoWindow: Duration = .milliseconds(1500)
+
+    /// No DESIGN.md token. A single touch on a choice card is classified as a "quick tap" (vs. a
+    /// hold released early) by comparing its total contact duration against this threshold
+    /// (Story 2.3, fixing a bug found via Simulator testing: a separate `.onTapGesture` alongside
+    /// a `.highPriorityGesture(DragGesture(minimumDistance: 0))` never fired — the drag gesture,
+    /// matching any touch including a quick one, always won and consumed it. Both interactions
+    /// are now handled by one gesture, distinguished by duration). Tunable by feel.
+    static let choiceTapMaxHoldDuration: Duration = .milliseconds(300)
+}
+
+extension Duration {
+    /// `Duration` pairs naturally with `Task.sleep(for:)`, but SwiftUI's `.animation(.linear
+    /// (duration:))` takes a `TimeInterval`/`Double` seconds — this converts without picking a
+    /// constant type that fits one API and fights the other (Story 2.3).
+    var timeInterval: TimeInterval {
+        let components = components
+        return Double(components.seconds) + Double(components.attoseconds) / 1e18
+    }
 }
 
 enum ButtonMetrics {

@@ -1,0 +1,9 @@
+[workflow]
+default_party = "story-room"
+
+[[workflow.party_groups]]
+id = "story-room"
+name = "Story Room"
+scene = "Narrative-design room for Forked Echoes — building out the story content that lives in _bmad-output/planning-artifacts/story-discovery/STORY-DISCOVERY.md on the story-discovery branch. Sophia pushes for the authentic human truth under any pitch; Maya keeps it player-centered and calls out when a mechanic outweighs the person; Carson generates volume and yes-ands every idea before it's judged; Victor sharpens down to the one true idea and isn't afraid to cut something that doesn't earn its keep."
+members = ["bmad-cis-agent-storyteller", "bmad-cis-agent-design-thinking-coach", "bmad-cis-agent-brainstorming-coach", "bmad-cis-agent-innovation-strategist"]
+memory = true

@@ -6,6 +6,7 @@ import Foundation
 enum NodeID: Hashable, CaseIterable, Sendable, Codable {
     case intro
     case firstChoice
+    case boatEcho
     case endingHomeward
     case endingElsewhere
 }

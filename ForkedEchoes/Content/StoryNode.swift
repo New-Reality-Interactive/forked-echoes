@@ -4,7 +4,12 @@ import Foundation
 // runtime-loaded — an unterminated branch or dangling reference is a compile error. Every case
 // here resolves to a choice or an ending; there is no representable dead end.
 indirect enum StoryNode: Sendable {
-    case reading(bodyKey: String, next: NodeID)
+    // Story 2.5: `echoBodyKey` is a defaulted third associated value (Swift supports default
+    // associated-value parameters), so `.intro`'s existing 2-argument construction keeps
+    // compiling unchanged — only an echo-wired node passes a non-nil third value. Non-nil marks
+    // this node as an authored callback to an earlier choice (AD-1: tree-shape-fixed, not a
+    // runtime `choiceHistory` lookup) — see StoryRunEngine.isEchoActive.
+    case reading(bodyKey: String, next: NodeID, echoBodyKey: String? = nil)
     case choice(promptKey: String, options: [ChoiceOption])
     case ending(EndingPayload)
 }

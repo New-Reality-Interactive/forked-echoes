@@ -1,9 +1,11 @@
 import Foundation
 
 // Story 2.1: minimal placeholder tree (1 reading node -> 1 choice node w/ 2 options -> 2 terminal
-// ending nodes) to exercise StoryRunEngine/UI. The tree never reconverges: firstChoice's two
-// options each target a distinct ending node. Full v1 authoring is Epic 4's job (epics.md Epic 2
-// Content note) — this tree is expected to be replaced wholesale, not extended in place.
+// ending nodes) to exercise StoryRunEngine/UI. Story 2.5 added one echo-wired reading node on the
+// .boat path. The tree never reconverges: firstChoice's two options each lead to a distinct
+// ending node (.boat via the new echo node, .shore directly). Full v1 authoring is Epic 4's job
+// (epics.md Epic 2 Content note) — this tree is expected to be replaced wholesale, not extended
+// in place.
 //
 // Prose keys follow ARCHITECTURE-SPINE.md's `story.<nodeId>.body` / `story.<nodeId>.choice.<n>`
 // convention, referenced as plain dot-path String keys (project-context.md Localization section —
@@ -48,7 +50,7 @@ enum StoryTree {
                         id: .boat,
                         labelKey: "story.firstChoice.choice.1",
                         alignmentDelta: 1,
-                        target: .endingHomeward
+                        target: .boatEcho
                     ),
                     ChoiceOption(
                         id: .shore,
@@ -58,6 +60,12 @@ enum StoryTree {
                     ),
                 ]
             )
+
+        // Story 2.5: echo-wired node reached only via .boat (AD-1 — the tree's shape fixes this
+        // at author-time, no runtime choiceHistory lookup decides it). The tree still never
+        // reconverges: .boat now flows through this one extra node before .endingHomeward.
+        case .boatEcho:
+            return .reading(bodyKey: "story.boatEcho.body", next: .endingHomeward, echoBodyKey: "story.boatEcho.echo")
 
         case .endingHomeward, .endingElsewhere:
             return .ending(EndingPayload(nodeId: id))

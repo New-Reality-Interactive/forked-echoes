@@ -76,6 +76,30 @@
         }
       }
     },
+    "story.boatEcho.body" : {
+      "comment" : "Story 2.5 echo-wired content tree: boatEcho node's ordinary body text, reached only via firstChoice's boat option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The oars are cold, but they fit your hands the way they did before."
+          }
+        }
+      }
+    },
+    "story.boatEcho.echo" : {
+      "comment" : "Story 2.5 echo-wired content tree: boatEcho node's Echo callback prose, explicitly naming the earlier boat choice — rendered inline within the node's body inside the \"The story remembers\" callback block",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You chose the boat back at the dock. It's waiting for you now, exactly where you left it."
+          }
+        }
+      }
+    },
     "story.firstChoice.body" : {
       "comment" : "Story 2.1 placeholder content tree: firstChoice node's prompt text, shown above the two choice options",
       "extractionState" : "manual",
@@ -156,6 +180,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activate again to cancel this choice."
+          }
+        }
+      }
+    },
+    "storyChoice.echo.tag" : {
+      "comment" : "Story 2.5: shared tag label prefacing every Echo callback block (UX-DR5, FR-6) — the same phrase Tutorial's tutorial.mechanic.echo already previews.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The story remembers"
           }
         }
       }

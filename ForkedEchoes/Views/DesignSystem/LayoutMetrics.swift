@@ -62,6 +62,19 @@ enum LayoutMetrics {
     /// matching any touch including a quick one, always won and consumed it. Both interactions
     /// are now handled by one gesture, distinguished by duration). Tunable by feel.
     static let choiceTapMaxHoldDuration: Duration = .milliseconds(300)
+
+    /// DESIGN.md `{components.frame.corner-via-diameter}` = 7pt. The circuit Frame's dormant
+    /// corner-mark via diameter (Story 2.5).
+    static let frameCornerViaDiameter: CGFloat = 7
+
+    /// DESIGN.md `{components.frame.corner-via-diameter-active}` = 9pt. The circuit Frame's
+    /// active/echo corner-mark via diameter — grows from the dormant size as a shape cue
+    /// redundant with the color/fill change (UX-DR1), not decoration (Story 2.5).
+    static let frameCornerViaDiameterActive: CGFloat = 9
+
+    /// DESIGN.md `{components.frame.corner-pad-diameter}` = 5pt. The circuit Frame's corner-mark
+    /// pad diameter, unchanged between dormant (hollow) and active (filled) states (Story 2.5).
+    static let frameCornerPadDiameter: CGFloat = 5
 }
 
 extension Duration {

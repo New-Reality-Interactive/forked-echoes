@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-08-01 (2-4-run-persistence-runsnapshot: 2nd code-review pass + 2 user-confirmed post-review bug fixes, all verified in Xcode/Simulator, status done)
+last_updated: 2026-08-01 (2-5-narrative-callback-choice-echo: dev-story complete, user-verified in Simulator, status review)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -69,7 +69,7 @@ development_status:
   2-2-page-navigation: done
   2-3-choice-presentation-selection-and-permanence: done
   2-4-run-persistence-runsnapshot: done
-  2-5-narrative-callback-choice-echo: backlog
+  2-5-narrative-callback-choice-echo: review
   2-6-branch-arrival-interstitial-and-illustrations: backlog
   2-7-run-options-action-sheet: backlog
   2-8-reading-surface-visual-identity-dynamic-type-and-reduce-motion: backlog

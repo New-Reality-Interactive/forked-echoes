@@ -45,6 +45,13 @@ struct StoryChoiceView: View {
             .contentShape(Rectangle())
             .gesture(pageTurnGesture)
             .background(pageTapZones)
+            // Story 2.5, AC #4: the circuit Frame is reserved for Story/Choice reading content
+            // only — never Home, Tutorial, or the Epic 2 Ending placeholder. Wrapping it here,
+            // around this view's own content, keeps that reservation structural rather than a
+            // rule someone has to remember to honor elsewhere.
+            .overlay {
+                FrameView(isActive: engine.isEchoActive)
+            }
             .overlay(alignment: .topTrailing) {
                 exitButton
             }
@@ -77,13 +84,31 @@ struct StoryChoiceView: View {
     @ViewBuilder
     private var content: some View {
         switch StoryTree.node(for: engine.currentNodeId) {
-        case .reading(let bodyKey, _):
+        case .reading(let bodyKey, _, let echoBodyKey):
             // Content's keys are plain String (Content has zero dependency on SwiftUI, per
             // ARCHITECTURE-SPINE.md's layering) — must be explicitly boxed as LocalizedStringKey
             // here, or Text(_:) silently picks its verbatim StringProtocol overload instead of
             // looking the key up in Localizable.xcstrings (the same overload-resolution pitfall
             // project-context.md's Localization section documents for ternary-selected keys).
-            Text(LocalizedStringKey(bodyKey))
+            VStack(alignment: .leading, spacing: Spacing.medium) {
+                Text(LocalizedStringKey(bodyKey))
+
+                // Story 2.5, AC #1/#3 (UX-DR5, FR-6): the Echo callback — inset within the
+                // normal prose flow, not a separate screen/modal — only when this node is
+                // authored with a non-nil echo key (AD-1: tree-shape-fixed, mirrors
+                // engine.isEchoActive's own derivation).
+                if let echoBodyKey {
+                    VStack(alignment: .leading, spacing: Spacing.small) {
+                        Text(LocalizedStringKey("storyChoice.echo.tag"))
+                            .fontWeight(.bold)
+                        Text(LocalizedStringKey(echoBodyKey))
+                    }
+                    .padding(Spacing.medium)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.inkPrimary)
+                    .foregroundStyle(Color.surfaceBase)
+                }
+            }
 
         case .choice(let promptKey, let options):
             // Story 2.3: engine.choiceHistory is the sole source of truth for whether this page
@@ -181,6 +206,11 @@ struct StoryChoiceView: View {
 #Preview("Reading node") {
     StoryChoiceView(onExitToHome: {})
         .environment(StoryRunEngine(startingAt: .intro))
+}
+
+#Preview("Echo node") {
+    StoryChoiceView(onExitToHome: {})
+        .environment(StoryRunEngine(startingAt: .boatEcho))
 }
 
 #Preview("Choice node") {

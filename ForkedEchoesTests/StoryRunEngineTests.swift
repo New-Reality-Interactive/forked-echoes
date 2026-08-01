@@ -42,7 +42,9 @@ struct StoryRunEngineTests {
 
         engine.selectChoice(.boat)
 
-        #expect(engine.currentNodeId == .endingHomeward)
+        // Story 2.5: .boat's target is now the echo-wired .boatEcho reading node, not
+        // .endingHomeward directly (that node moved one hop further out).
+        #expect(engine.currentNodeId == .boatEcho)
         #expect(engine.choiceHistory == [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)])
         #expect(engine.alignmentScore == 1)
     }
@@ -102,7 +104,7 @@ struct StoryRunEngineTests {
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
         engine.selectChoice(.boat)
-        #expect(engine.currentNodeId == .endingHomeward)
+        #expect(engine.currentNodeId == .boatEcho)
 
         engine.goBack()
 
@@ -158,30 +160,30 @@ struct StoryRunEngineTests {
 
         engine.advancePage()
 
-        #expect(engine.currentNodeId == .endingHomeward)
+        // Story 2.5: .boat's decided target is now .boatEcho (a reading node), one hop before
+        // .endingHomeward — this test's job is only to prove advancePage() honors the decided
+        // choice's recorded target, whatever that target is.
+        #expect(engine.currentNodeId == .boatEcho)
     }
 
     @Test func navigationFromTheResultingNodeAfterAChoiceIsResolved() {
         // Code review, 2026-08-01: AC #5 asks for a test proving forward navigation "proceeds
         // normally from the next reading node" once a choice resolves. Story 2.1's placeholder
-        // tree (StoryTree.swift) resolves every firstChoice option directly to an .ending node,
-        // never to a .reading node — Epic 4 authors a real tree with reading nodes past the
-        // first choice. Until then, there is no "next reading node" to advance into, so this
-        // pins down the closest honest equivalent against today's tree: from the actual
-        // resulting node, goBack() correctly returns to the decided choice node, and
-        // advancePage() correctly no-ops there too (Ending isn't .reading — same guard as
-        // everywhere else, nothing choice-resolution-specific about it).
+        // tree (StoryTree.swift) originally resolved every firstChoice option directly to an
+        // .ending node; Story 2.5 gave .boat a real "next reading node" (.boatEcho) to advance
+        // into, which this test now exercises directly — from the resulting node, advancePage()
+        // proceeds to .endingHomeward, and goBack() steps back one node at a time.
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
         engine.selectChoice(.boat)
-        #expect(engine.currentNodeId == .endingHomeward)
+        #expect(engine.currentNodeId == .boatEcho)
 
         engine.advancePage()
         #expect(engine.currentNodeId == .endingHomeward)
 
         engine.goBack()
-        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.currentNodeId == .boatEcho)
     }
 
     // Story 2.4 (AD-4): persistence is a side effect of a completed mutating intent. Each test
@@ -246,7 +248,8 @@ struct StoryRunEngineTests {
 
         engine.advancePage()
 
-        #expect(engine.currentNodeId == .endingHomeward)
+        // Story 2.5: .boat's decided target is now .boatEcho, not .endingHomeward directly.
+        #expect(engine.currentNodeId == .boatEcho)
     }
 
     @Test func startFreshRunIfCurrentRunHasEndedResetsAFinishedRunToRoot() {
@@ -255,9 +258,12 @@ struct StoryRunEngineTests {
         // session is about to be presented.
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
+        // .shore reaches an ending directly (unlike .boat, which now passes through the
+        // echo-wired .boatEcho reading node first, Story 2.5) — this test only needs a run that
+        // has already ended, not either specific path.
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
-        engine.selectChoice(.boat)
-        #expect(engine.currentNodeId == .endingHomeward)
+        engine.selectChoice(.shore)
+        #expect(engine.currentNodeId == .endingElsewhere)
 
         engine.startFreshRunIfCurrentRunHasEnded()
 
@@ -279,11 +285,13 @@ struct StoryRunEngineTests {
     @Test func reachingAnEndingNodeClearsTheStoredSnapshot() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
+        // .shore reaches an ending directly (unlike .boat, which now passes through the
+        // echo-wired .boatEcho reading node first, Story 2.5).
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
 
-        engine.selectChoice(.boat)
+        engine.selectChoice(.shore)
 
-        #expect(engine.currentNodeId == .endingHomeward)
+        #expect(engine.currentNodeId == .endingElsewhere)
         #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
     }
 
@@ -336,5 +344,70 @@ struct StoryRunEngineTests {
         #expect(engine.currentNodeId == StoryTree.root)
         #expect(engine.choiceHistory.isEmpty)
         #expect(engine.alignmentScore == 0)
+    }
+
+    // Story 2.5 (AC #5, AD-7): echo-callback reachability as authored in the tree —
+    // isEchoActive derives purely from currentNodeId (AD-1/AD-5), never from a runtime
+    // choiceHistory scan.
+
+    @Test func reachingTheEchoNodeViaTheBoatChoiceSetsIsEchoActive() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .boatEcho)
+
+        #expect(engine.isEchoActive == true)
+    }
+
+    @Test func advancingPastTheEchoNodeClearsIsEchoActive() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .boatEcho)
+        #expect(engine.isEchoActive == true)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .endingHomeward)
+        #expect(engine.isEchoActive == false)
+    }
+
+    @Test func theShorePathNeverReportsIsEchoActiveTrueAnywhereAlongIt() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        #expect(engine.isEchoActive == false)
+
+        engine.selectChoice(.shore)
+
+        #expect(engine.currentNodeId == .endingElsewhere)
+        #expect(engine.isEchoActive == false)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .endingElsewhere)
+        #expect(engine.isEchoActive == false)
+    }
+
+    @Test func anEngineResumedOntoTheEchoNodeReportsIsEchoActiveImmediately() {
+        // Closes the same "restored vs. freshly-computed state" gap Story 2.4's 2nd review pass
+        // closed for choiceHistory — isEchoActive must be correct right after
+        // resumingFromSnapshot(defaults:), without any intervening mutating intent.
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .boatEcho,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
+            alignmentScore: 1,
+            tutorialSeen: false
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        #expect(engine.currentNodeId == .boatEcho)
+        #expect(engine.isEchoActive == true)
     }
 }

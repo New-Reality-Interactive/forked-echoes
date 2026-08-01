@@ -18,6 +18,19 @@ final class StoryRunEngine {
     private(set) var choiceHistory: [ChoiceRecord] = []
     private(set) var alignmentScore: Int = 0
 
+    /// Story 2.5: true only when `currentNodeId` is a `.reading` node with a non-nil echo
+    /// callback key — purely derived, no stored flag (AD-5's "phase derived, not stored" ethos).
+    /// Reverting to dormant on the next page turn is therefore a free consequence of
+    /// `currentNodeId` changing via `advancePage()`/`goBack()`/`selectChoice(_:)`, not separate
+    /// reset logic. Re-derives correctly immediately after `resumingFromSnapshot(defaults:)` too,
+    /// since it never reads anything but `currentNodeId`.
+    var isEchoActive: Bool {
+        if case .reading(_, _, let echoBodyKey) = StoryTree.node(for: currentNodeId) {
+            return echoBodyKey != nil
+        }
+        return false
+    }
+
     private var visitedNodeIds: [NodeID] = []
     private let defaults: UserDefaults
 
@@ -86,7 +99,7 @@ final class StoryRunEngine {
     /// swiping forward again from that revisit had nowhere to go. Corrected here.
     func advancePage() {
         switch StoryTree.node(for: currentNodeId) {
-        case .reading(_, let next):
+        case .reading(_, let next, _):
             visitedNodeIds.append(currentNodeId)
             currentNodeId = next
             persistOrClearSnapshot()

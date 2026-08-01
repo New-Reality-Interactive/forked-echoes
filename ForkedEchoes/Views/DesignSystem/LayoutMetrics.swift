@@ -75,6 +75,16 @@ enum LayoutMetrics {
     /// DESIGN.md `{components.frame.corner-pad-diameter}` = 5pt. The circuit Frame's corner-mark
     /// pad diameter, unchanged between dormant (hollow) and active (filled) states (Story 2.5).
     static let frameCornerPadDiameter: CGFloat = 5
+
+    /// DESIGN.md's frame inset rule: `{spacing.2}` + 1px in from the card edge (Story 2.5,
+    /// code review 2026-08-01). Corner marks are centered this far in from each edge so their
+    /// full diameter stays on-screen instead of clipping at the literal (0,0)/(width,height)
+    /// points.
+    static let frameCornerInset: CGFloat = Spacing.small + 1
+
+    /// DESIGN.md `{components.frame}`'s "1px inset rule" stroke width (Story 2.5, code review
+    /// 2026-08-01) — the dormant corner pad's hollow-square stroke.
+    static let frameStrokeWidth: CGFloat = 1
 }
 
 extension Duration {

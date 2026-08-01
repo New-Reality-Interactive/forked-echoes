@@ -48,9 +48,14 @@ struct StoryChoiceView: View {
             // Story 2.5, AC #4: the circuit Frame is reserved for Story/Choice reading content
             // only — never Home, Tutorial, or the Epic 2 Ending placeholder. Wrapping it here,
             // around this view's own content, keeps that reservation structural rather than a
-            // rule someone has to remember to honor elsewhere.
+            // rule someone has to remember to honor elsewhere — but `content`'s own `.ending`
+            // case renders inside this same view, so the overlay must explicitly skip it too
+            // (code review, 2026-08-01: an unconditional overlay let the dormant Frame render on
+            // the Ending placeholder as well).
             .overlay {
-                FrameView(isActive: engine.isEchoActive)
+                if isFrameEligibleNode {
+                    FrameView(isActive: engine.isEchoActive)
+                }
             }
             .overlay(alignment: .topTrailing) {
                 exitButton
@@ -68,6 +73,15 @@ struct StoryChoiceView: View {
                 // "currently active" state to an unrelated card on a newly-arrived-at node.
                 activeChoiceOptionID = nil
             }
+    }
+
+    // Story 2.5, AC #4 (code review, 2026-08-01): the Frame belongs on Story/Choice reading
+    // content, not the Ending placeholder — `.reading`/`.choice` are eligible, `.ending` is not.
+    private var isFrameEligibleNode: Bool {
+        switch StoryTree.node(for: engine.currentNodeId) {
+        case .reading, .choice: true
+        case .ending: false
+        }
     }
 
     private var exitButton: some View {
@@ -107,6 +121,9 @@ struct StoryChoiceView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(Color.inkPrimary)
                     .foregroundStyle(Color.surfaceBase)
+                    // Code review, 2026-08-01: without this, VoiceOver announces the tag and
+                    // the callback prose as two disconnected elements instead of one callback.
+                    .accessibilityElement(children: .combine)
                 }
             }
 

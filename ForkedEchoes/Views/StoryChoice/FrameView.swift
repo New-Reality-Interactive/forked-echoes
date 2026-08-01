@@ -25,6 +25,7 @@ struct FrameView: View {
             }
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 
     private var cornerMark: some View {
@@ -44,7 +45,7 @@ struct FrameView: View {
                     .frame(width: LayoutMetrics.frameCornerPadDiameter, height: LayoutMetrics.frameCornerPadDiameter)
             } else {
                 Rectangle()
-                    .stroke(color, lineWidth: 1)
+                    .stroke(color, lineWidth: LayoutMetrics.frameStrokeWidth)
                     .frame(width: LayoutMetrics.frameCornerPadDiameter, height: LayoutMetrics.frameCornerPadDiameter)
             }
         }
@@ -54,11 +55,12 @@ struct FrameView: View {
         case topLeading, topTrailing, bottomLeading, bottomTrailing
 
         func point(in size: CGSize) -> CGPoint {
-            switch self {
-            case .topLeading: CGPoint(x: 0, y: 0)
-            case .topTrailing: CGPoint(x: size.width, y: 0)
-            case .bottomLeading: CGPoint(x: 0, y: size.height)
-            case .bottomTrailing: CGPoint(x: size.width, y: size.height)
+            let inset = LayoutMetrics.frameCornerInset
+            return switch self {
+            case .topLeading: CGPoint(x: inset, y: inset)
+            case .topTrailing: CGPoint(x: size.width - inset, y: inset)
+            case .bottomLeading: CGPoint(x: inset, y: size.height - inset)
+            case .bottomTrailing: CGPoint(x: size.width - inset, y: size.height - inset)
             }
         }
     }

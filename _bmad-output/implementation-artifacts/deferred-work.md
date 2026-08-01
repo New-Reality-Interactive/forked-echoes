@@ -1,5 +1,11 @@
 # Deferred Work
 
+## Deferred from: code review of 2-5-narrative-callback-choice-echo (2026-08-01)
+
+- Story file's Dev Notes reference a force-unwrap (`echoBodyKey!`) that doesn't match the shipped `if let echoBodyKey` code in `StoryChoiceView.swift`. Cosmetic doc drift only — the shipped code is the safer form.
+- Only one node in the placeholder tree (`.boatEcho`) has a non-nil `echoBodyKey` — `isEchoActive`'s optional-check logic has no second data point (a nil-echo `.reading` node distinct from `.intro`/`.firstChoice`'s pre-existing 2-arg construction) to guard against a subtly-wrong check. Would require new content authoring, not a quick patch — revisit once Epic 4's real tree authoring lands.
+- Manual verification checklist (AC #7) recorded as a single generic confirmation sentence, not itemized against AC #7's explicit checklist — didn't specifically confirm Frame absence on the `.ending` placeholder screen, which is likely why the Frame-on-Ending bug (this review's high-severity finding) shipped unnoticed. Future stories with a visual-only Task 5 should confirm each AC #7 sub-item explicitly, not just "all good."
+
 ## Deferred from: story validation of 5-4-cold-launch-orientation-fix (2026-07-27)
 
 - **[DOCS DEBT — resolved 2026-07-27]** `project-context.md`'s "this devcontainer has no Xcode/Swift toolchain (`swiftc`/`xcodebuild` unavailable)" note was half-stale: a Linux Swift toolchain (`swiftc`) was added to the devcontainer in commit `4991bce` ("Added Swift Toolchain to Devcontainer"), so `swiftc -parse` now works for real parser-level syntax checks. `xcodebuild`/Apple SDKs (`UIKit`, `SwiftUI`) are still unavailable (confirmed: `swiftc -typecheck` fails with `no such module 'UIKit'`), so full compilation and Simulator verification remain impossible here. `project-context.md`'s Environment section has been updated to state both facts precisely.

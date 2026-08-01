@@ -4,7 +4,7 @@ baseline_commit: 328d72e
 
 # Story 2.5: Narrative Callback (Choice Echo)
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -179,3 +179,17 @@ Claude Sonnet 5 (claude-sonnet-5)
 
 - 2026-08-01: Implemented Tasks 1-4 (echo-wired content node, `isEchoActive`, Echo callback block + circuit Frame, Swift Testing coverage — 38/38 tests passing). Task 5 (manual Xcode/Simulator verification, AC #7) requested from the user, pending confirmation before this story can move to "review".
 - 2026-08-01: User confirmed Xcode build, `swift test`, and Simulator manual verification (AC #7) all pass. All 5 tasks complete — story moved to "review".
+
+### Review Findings
+
+- [x] [Review][Patch] `FrameView` overlay renders (dormant) on the `.ending` placeholder screen, contradicting AC #4 [ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift:52]
+- [x] [Review][Patch] Corner marks positioned at exact GeometryReader corner points clip outside bounds and skip DESIGN.md's frame-inset spec [ForkedEchoes/Views/StoryChoice/FrameView.swift:24]
+- [x] [Review][Patch] Decorative corner-mark shapes not marked `.accessibilityHidden(true)`, so VoiceOver may focus on them [ForkedEchoes/Views/StoryChoice/FrameView.swift:20]
+- [x] [Review][Patch] Echo callback tag + prose lack `.accessibilityElement(children: .combine)`, likely announced as disconnected by VoiceOver [ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift:101]
+- [x] [Review][Patch] `Rectangle().stroke(color, lineWidth: 1)` hardcodes a literal instead of a named `LayoutMetrics` constant [ForkedEchoes/Views/StoryChoice/FrameView.swift:47]
+- [x] [Review][Patch] No test proves `isEchoActive` is `false` immediately after `resumingFromSnapshot` onto a non-echo node [ForkedEchoesTests/StoryRunEngineTests.swift]
+- [x] [Review][Defer] Dev Notes reference a force-unwrap (`echoBodyKey!`) that doesn't match the shipped `if let` code [_bmad-output/implementation-artifacts/2-5-narrative-callback-choice-echo.md] — deferred, pre-existing doc drift, cosmetic only
+- [x] [Review][Defer] Only one tree node has a non-nil `echoBodyKey` — `isEchoActive` logic has no second data point protecting it [ForkedEchoes/Content/StoryTree.swift] — deferred, would require new content-authoring beyond a quick patch
+- [x] [Review][Defer] Manual verification checklist (AC #7) doesn't specifically confirm Frame absence on the Ending screen [ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift] — deferred, process gap noted for future verification passes
+
+- 2026-08-01: User's real Xcode build caught a compile error the devcontainer's `swiftc -parse`/`swift test` couldn't: `FrameView.Corner.point(in:)` gained a `let inset = ...` line ahead of its `switch self { ... }` during the corner-inset patch above, which broke the single-expression-body implicit return the original code relied on ("Missing return in instance method expected to return 'CGPoint'"). Fixed by making the return explicit (`return switch self { ... }`) — confirmed against a minimal repro on the local Swift 6.3.3 toolchain and re-ran `swift test` (39/39 passing, one unrelated pre-existing flake in `RunSnapshotPresenceTests.observerRefreshPicksUpASnapshotClearedAfterConstruction` on the first run, clean on rerun). Awaiting user's Xcode/Simulator re-confirmation.

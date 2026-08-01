@@ -410,4 +410,23 @@ struct StoryRunEngineTests {
         #expect(engine.currentNodeId == .boatEcho)
         #expect(engine.isEchoActive == true)
     }
+
+    @Test func anEngineResumedOntoANonEchoNodeReportsIsEchoActiveFalseImmediately() {
+        // Code review, 2026-08-01: the companion negative case to the test above — proves the
+        // resumed-state re-derivation isn't accidentally always true.
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .firstChoice,
+            choiceHistory: [],
+            alignmentScore: 0,
+            tutorialSeen: false
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.isEchoActive == false)
+    }
 }

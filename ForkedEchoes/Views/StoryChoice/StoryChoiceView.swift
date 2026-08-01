@@ -54,6 +54,13 @@ struct StoryChoiceView: View {
             .accessibilityAction(named: Text("storyChoice.pager.previousPage")) {
                 engine.goBack()
             }
+            .onChange(of: engine.currentNodeId) { _, _ in
+                // Code-review finding, 2026-08-01: ChoiceOptionID is shared across all choice
+                // nodes (StoryNode.swift), not scoped per-node — without this reset, a stale
+                // activeChoiceOptionID left over from a previous choice page could misattribute
+                // "currently active" state to an unrelated card on a newly-arrived-at node.
+                activeChoiceOptionID = nil
+            }
     }
 
     private var exitButton: some View {

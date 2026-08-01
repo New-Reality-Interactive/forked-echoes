@@ -29,14 +29,28 @@ struct ChoiceCardView: View {
     @State private var pendingTask: Task<Void, Never>?
     @State private var touchDownDate: Date?
 
-    // Not decided elsewhere, not finalized locally, and no sibling card currently
-    // charging/awaiting-undo (AC #1: only one card can be mid-interaction at a time).
+    // Not decided elsewhere, not finalized locally. Deliberately does NOT check whether a
+    // sibling is currently active — AC #1 ("holding a second cancels the first") requires a
+    // touch on this card to reach touchDown() even while a sibling is charging/awaiting-undo,
+    // so it can reassign activeOptionID and trigger the sibling's own onChange(of:)-driven
+    // cancel below. Pre-blocking hit-testing here would make that reassignment unreachable
+    // (code-review finding, 2026-08-01: the original gate made AC #1 structurally impossible).
     private var isInteractive: Bool {
-        !isDecided && localState != .finalized && (activeOptionID == nil || activeOptionID == option.id)
+        !isDecided && localState != .finalized
     }
 
     private var showsCheckmark: Bool {
         isSelected || localState == .tapAwaitingUndo
+    }
+
+    private var accessibilityHint: LocalizedStringKey? {
+        if localState == .tapAwaitingUndo {
+            return "storyChoice.choiceCard.hint.undoWindow"
+        } else if isInteractive {
+            return "storyChoice.choiceCard.hint.tapOrHold"
+        } else {
+            return nil
+        }
     }
 
     var body: some View {
@@ -67,10 +81,25 @@ struct ChoiceCardView: View {
             .highPriorityGesture(chargeGesture)
             .accessibilityAddTraits(.isButton)
             .accessibilityAction(.default, handleAccessibilityActivate)
+            // .map(Text.init), not a closure, resolves Text's generic StringProtocol overload
+            // instead of the LocalizedStringKey one for a bare function reference — the same
+            // overload-resolution pitfall project-context.md's Localization section documents
+            // for ternary-selected keys elsewhere in this file's sibling view.
+            .accessibilityHint(accessibilityHint.map { Text($0) } ?? Text(""))
             .onChange(of: activeOptionID) { _, newValue in
-                if newValue != option.id {
+                // localState != .finalized guard: finalize() below clears activeOptionID as
+                // part of committing, which would otherwise trigger this same onChange and
+                // stomp the just-set .finalized state back to .idle.
+                if newValue != option.id && localState != .finalized {
                     resetToIdle()
                 }
+            }
+            .onDisappear {
+                // Code-review finding, 2026-08-01: an in-flight charge/undo-window Task is not
+                // structured concurrency tied to this view's lifetime — without an explicit
+                // cancel here it survives navigating away mid-interaction and can later call
+                // onFinalize() against whatever choice node happens to be current by then.
+                pendingTask?.cancel()
             }
     }
 
@@ -86,7 +115,7 @@ struct ChoiceCardView: View {
     private var chargeGesture: some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { _ in touchDown() }
-            .onEnded { _ in touchUp() }
+            .onEnded { value in touchUp(translation: value.translation) }
     }
 
     private func touchDown() {
@@ -118,21 +147,29 @@ struct ChoiceCardView: View {
         }
     }
 
-    private func touchUp() {
+    private func touchUp(translation: CGSize) {
         // Fires on every touch-up. A completed charge has already moved localState to .finalized
         // by the time this runs (the Task-based timer, not this gesture callback, drives that) —
         // only a still-.charging state here means the touch is actually ending mid-interaction.
         guard localState == .charging else { return }
 
         let heldDuration = Date().timeIntervalSince(touchDownDate ?? .now)
+        // Code-review finding, 2026-08-01: classifying purely by duration let a fast swipe
+        // starting on this card (this view's .highPriorityGesture wins any touch that starts
+        // here, so StoryChoiceView's own page-turn gesture never sees it) get misread as a
+        // "quick tap" and lock/commit a choice the player meant as a page turn. Reuses
+        // LayoutMetrics.pageSwipeThreshold, the same distance StoryChoiceView's pageTurnGesture
+        // treats as "this was a swipe, not a tap."
+        let travelDistance = max(abs(translation.width), abs(translation.height))
         pendingTask?.cancel()
         pendingTask = nil
         withAnimation { chargeProgress = 0 }
 
-        if heldDuration < LayoutMetrics.choiceTapMaxHoldDuration.timeInterval {
+        if heldDuration < LayoutMetrics.choiceTapMaxHoldDuration.timeInterval
+            && travelDistance < LayoutMetrics.pageSwipeThreshold {
             lockAndStartUndoWindow()
         } else {
-            // Held past the tap threshold but released before the full charge duration: cancel.
+            // Held past the tap threshold, or moved too far to be a tap: cancel.
             localState = .idle
             if activeOptionID == option.id {
                 activeOptionID = nil
@@ -182,6 +219,13 @@ struct ChoiceCardView: View {
     private func finalize() {
         pendingTask = nil
         localState = .finalized
+        // Code-review finding, 2026-08-01: leaving activeOptionID pointing at this option after
+        // finalization let a *future* choice node reusing the same ChoiceOptionID inherit this
+        // stale claim, since ChoiceOptionID is shared across all choice nodes (StoryNode.swift),
+        // not scoped per-node.
+        if activeOptionID == option.id {
+            activeOptionID = nil
+        }
         onFinalize(option.id)
     }
 }

@@ -3,8 +3,9 @@ import Observation
 // AD-3: the sole owner and mutator of run state. Views never write currentNodeId/choiceHistory/
 // alignmentScore directly — every mutation goes through one of the intent methods below.
 //
-// This story (2.1) is a skeleton only: persistence (RunSnapshot/UserDefaults) is Story 2.4's job,
-// and full pager-gating (forward blocked on an unresolved choice) is Story 2.2's job. A committed
+// This story (2.1) is a skeleton only: persistence (RunSnapshot/UserDefaults) is Story 2.4's job.
+// Pager-gating (forward blocked on an *unresolved* choice, permeable once decided) is Story 2.2/
+// 2.3's job — see advancePage()'s own doc comment for the corrected AD-5 semantics. A committed
 // choice is irrevocable (AD-3, FR-5) in both directions: `goBack()` only moves `currentNodeId`
 // back along `visitedNodeIds` — it never removes a `choiceHistory` entry or reverses
 // `alignmentScore` — and `selectChoice(_:)` refuses to fire again on a node that already has a
@@ -29,7 +30,7 @@ final class StoryRunEngine {
     func selectChoice(_ optionId: ChoiceOptionID) {
         guard case .choice(_, let options) = StoryTree.node(for: currentNodeId),
               !choiceHistory.contains(where: { $0.nodeId == currentNodeId }),
-              let option = options.first(where: { $0.id == optionId }) else {
+              let option = Self.option(withId: optionId, in: options) else {
             return
         }
 
@@ -59,7 +60,7 @@ final class StoryRunEngine {
 
         case .choice(_, let options):
             guard let decision = choiceHistory.first(where: { $0.nodeId == currentNodeId }),
-                  let target = options.first(where: { $0.id == decision.chosenOptionId })?.target else {
+                  let target = Self.option(withId: decision.chosenOptionId, in: options)?.target else {
                 return
             }
             visitedNodeIds.append(currentNodeId)
@@ -78,6 +79,13 @@ final class StoryRunEngine {
         }
 
         currentNodeId = previous
+    }
+
+    // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both
+    // independently resolved "what does this option id target" — a single shared lookup avoids
+    // the two drifting apart if either is ever changed on its own.
+    private static func option(withId id: ChoiceOptionID, in options: [ChoiceOption]) -> ChoiceOption? {
+        options.first(where: { $0.id == id })
     }
 }
 

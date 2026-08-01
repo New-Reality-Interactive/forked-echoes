@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "" : {
+
+    },
     "home.action.resumeStory" : {
       "comment" : "Home screen: primary action label when a run is already in progress",
       "extractionState" : "manual",
@@ -129,6 +132,30 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exit to Home"
+          }
+        }
+      }
+    },
+    "storyChoice.choiceCard.hint.tapOrHold" : {
+      "comment" : "Choice card accessibility hint (Story 2.3): read by VoiceOver alongside the card label, describing the two commit paths since VoiceOver users only get the double-tap/activate path, not the visual press-and-hold charge animation.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double tap to select. A short grace period follows before your choice locks in."
+          }
+        }
+      }
+    },
+    "storyChoice.choiceCard.hint.undoWindow" : {
+      "comment" : "Choice card accessibility hint (Story 2.3): read while the card is in its post-tap undo window, telling VoiceOver users a second activation cancels (mirrors the visual checkmark/fill state sighted users see during this window).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate again to cancel this choice."
           }
         }
       }

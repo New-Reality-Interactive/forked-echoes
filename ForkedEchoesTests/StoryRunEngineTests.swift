@@ -100,4 +100,59 @@ struct StoryRunEngineTests {
 
         #expect(engine.currentNodeId == .intro)
     }
+
+    // Story 2.2 (pager-gating, FR-3/AD-5/AD-7): the tests below give this story's own AC #4/#5
+    // dedicated traceability. The underlying guard already existed from Story 2.1's skeleton
+    // (advancePage() no-ops on any non-.reading node) — these don't change engine behavior, they
+    // pin down the pager-gating contract explicitly rather than leaving it implied by a
+    // more generic node-kind test.
+
+    @Test func advancePageIsBlockedOnAnUnresolvedChoiceNode() {
+        let engine = StoryRunEngine(startingAt: .firstChoice)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.choiceHistory.isEmpty)
+    }
+
+    @Test func advancePageRemainsBlockedOnAChoiceNodeEvenAfterItHasBeenResolved() {
+        // Forward-blocking is keyed on the current node's *type* (any non-.reading node),
+        // not on whether a choice there has been resolved (AD-5). Resolving a choice moves
+        // currentNodeId away via selectChoice(_:) itself — there is no scenario where
+        // advancePage() is the thing that unblocks at the *same* choice node. Revisiting a
+        // decided choice via goBack() must still block advancePage() there, matching AD-5's
+        // "back-navigation shows a decided choice locked" contract from the navigation side
+        // (the locked *display* itself is Story 2.3's job).
+        let engine = StoryRunEngine(startingAt: .firstChoice)
+        engine.selectChoice(.boat)
+        engine.goBack()
+        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.choiceHistory == [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)])
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .firstChoice)
+    }
+
+    @Test func navigationFromTheResultingNodeAfterAChoiceIsResolved() {
+        // Code review, 2026-08-01: AC #5 asks for a test proving forward navigation "proceeds
+        // normally from the next reading node" once a choice resolves. Story 2.1's placeholder
+        // tree (StoryTree.swift) resolves every firstChoice option directly to an .ending node,
+        // never to a .reading node — Epic 4 authors a real tree with reading nodes past the
+        // first choice. Until then, there is no "next reading node" to advance into, so this
+        // pins down the closest honest equivalent against today's tree: from the actual
+        // resulting node, goBack() correctly returns to the decided choice node, and
+        // advancePage() correctly no-ops there too (Ending isn't .reading — same guard as
+        // everywhere else, nothing choice-resolution-specific about it).
+        let engine = StoryRunEngine(startingAt: .firstChoice)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .endingHomeward)
+
+        engine.advancePage()
+        #expect(engine.currentNodeId == .endingHomeward)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .firstChoice)
+    }
 }

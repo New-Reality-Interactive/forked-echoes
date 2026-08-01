@@ -67,3 +67,4 @@ fastlane/test_output
 # don't regenerate and would otherwise be silently lost on a rebuild.
 _bmad/*
 !_bmad/custom/
+/screenshots

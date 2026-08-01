@@ -4,6 +4,12 @@ Living notes from an ongoing party-mode session (Sophia, Maya, Carson, Victor) d
 
 Maintained by the orchestrator across the session; updated after each round the room settles something. Not a transcript — a running record of what's decided and what's still open.
 
+## Resume Here
+
+To pick this back up: work happens on the `story-discovery` git branch (based off `main`); check out for a fresh session if not already on it. Run party mode with the same four voices — Sophia (Master Storyteller), Maya (Design Thinking Maestro), Carson (Brainstorming Specialist), Victor (Disruptive Innovation Oracle) — see below for making that a one-word invocation instead of naming all four again.
+
+**Next thread to pull:** open thread #1 under the player-character sketch (a non-thematic, page-one human detail for her) — it's the natural next step since it unlocks how the story's opening page actually reads. After that: Victor's still-unanswered "one true wrongness" framing question, then the branch-reality catalog (10-15 illustration budget, nothing populated yet).
+
 ## Status
 
 The AI-generated "boat/dock/shoreline" content currently in the app (`StoryTree.swift`) is a **throwaway placeholder** used only to prove out engine mechanics (Stories 2.1–2.5). It is not canon, not a starting point, and not meant to survive into Epic 4's real authoring pass.

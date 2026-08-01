@@ -39,15 +39,35 @@ final class StoryRunEngine {
         currentNodeId = option.target
     }
 
-    /// Moves forward along a reading node's `next` link. No-op if the current node isn't a reading
-    /// node (e.g. an unresolved choice node) — full forward-blocking semantics land in Story 2.2.
+    /// Moves forward. From a reading node, follows its `next` link. From a *decided* choice node
+    /// (one with a `choiceHistory` entry), follows the recorded option's `target` — AD-5 blocks
+    /// forward only on an *unresolved* choice; once resolved, a choice node behaves like a reading
+    /// node for navigation purposes (the "locked, no alternate-choice control" contract, FR-5, is a
+    /// display concern, Story 2.3's job, independent of whether forward navigation is gated). No-op
+    /// on an unresolved choice node or an ending node.
+    ///
+    /// Story 2.2 originally shipped this as a no-op on *any* non-reading node, including a decided
+    /// choice — its own test asserted the block was permanent. That contradicted AD-5's documented
+    /// "blocks forward on an unresolved choice" wording and only surfaced once Story 2.3's real
+    /// choice-selection UI made revisiting a decided page (via goBack()) an actual player action:
+    /// swiping forward again from that revisit had nowhere to go. Corrected here.
     func advancePage() {
-        guard case .reading(_, let next) = StoryTree.node(for: currentNodeId) else {
+        switch StoryTree.node(for: currentNodeId) {
+        case .reading(_, let next):
+            visitedNodeIds.append(currentNodeId)
+            currentNodeId = next
+
+        case .choice(_, let options):
+            guard let decision = choiceHistory.first(where: { $0.nodeId == currentNodeId }),
+                  let target = options.first(where: { $0.id == decision.chosenOptionId })?.target else {
+                return
+            }
+            visitedNodeIds.append(currentNodeId)
+            currentNodeId = target
+
+        case .ending:
             return
         }
-
-        visitedNodeIds.append(currentNodeId)
-        currentNodeId = next
     }
 
     /// Moves back to the previously visited node, if any. Never mutates `choiceHistory` or

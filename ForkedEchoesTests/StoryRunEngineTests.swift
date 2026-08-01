@@ -116,14 +116,14 @@ struct StoryRunEngineTests {
         #expect(engine.choiceHistory.isEmpty)
     }
 
-    @Test func advancePageRemainsBlockedOnAChoiceNodeEvenAfterItHasBeenResolved() {
-        // Forward-blocking is keyed on the current node's *type* (any non-.reading node),
-        // not on whether a choice there has been resolved (AD-5). Resolving a choice moves
-        // currentNodeId away via selectChoice(_:) itself — there is no scenario where
-        // advancePage() is the thing that unblocks at the *same* choice node. Revisiting a
-        // decided choice via goBack() must still block advancePage() there, matching AD-5's
-        // "back-navigation shows a decided choice locked" contract from the navigation side
-        // (the locked *display* itself is Story 2.3's job).
+    @Test func advancePageProceedsFromADecidedChoiceNodeToItsRecordedTarget() {
+        // Story 2.3, correcting a Story 2.2 defect: AD-5 blocks forward only on an *unresolved*
+        // choice ("blocks forward on an unresolved choice" — the "locked display" clause is a
+        // separate, display-only concern, Story 2.3's job). The original Story 2.2 test here
+        // asserted the opposite — a permanent block regardless of resolution — which contradicted
+        // AD-5's own wording and only surfaced once real choice-selection UI (this story) made
+        // revisiting a decided page via goBack() an actual player action: swiping forward again
+        // from that revisit had nowhere to go, confirmed via user Simulator testing, 2026-08-01.
         let engine = StoryRunEngine(startingAt: .firstChoice)
         engine.selectChoice(.boat)
         engine.goBack()
@@ -132,7 +132,7 @@ struct StoryRunEngineTests {
 
         engine.advancePage()
 
-        #expect(engine.currentNodeId == .firstChoice)
+        #expect(engine.currentNodeId == .endingHomeward)
     }
 
     @Test func navigationFromTheResultingNodeAfterAChoiceIsResolved() {

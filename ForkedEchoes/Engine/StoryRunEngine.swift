@@ -142,6 +142,7 @@ final class StoryRunEngine {
         )
 
         guard let data = try? JSONEncoder().encode(snapshot) else {
+            defaults.removeObject(forKey: RunSnapshotPresence.runSnapshotKey)
             return
         }
 

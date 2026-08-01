@@ -8,9 +8,13 @@ struct TutorialView: View {
     // .fullScreenCover(isPresented:) itself.
     @Binding var isPresentingStorySession: Bool
 
+    // Code review, 2026-08-01: refreshed via `.onAppear` below rather than read as a plain `let`
+    // in `body` — see RunProgressObserver's doc comment for why (UserDefaults isn't SwiftUI-
+    // observed, so a `let` here could go stale after returning from the Story session).
+    @State private var runProgress = RunProgressObserver()
+
     var body: some View {
-        let hasInProgressRun = RunSnapshotPresence.hasInProgressRun()
-        let primaryActionLabel: LocalizedStringKey = hasInProgressRun ? "home.action.resumeStory" : "tutorial.action.startStory"
+        let primaryActionLabel: LocalizedStringKey = runProgress.hasInProgressRun ? "home.action.resumeStory" : "tutorial.action.startStory"
 
         GeometryReader { proxy in
             ScrollView {
@@ -72,6 +76,7 @@ struct TutorialView: View {
             .background(Color.surfaceBase.ignoresSafeArea())
         }
         .correctColdLaunchOrientation()
+        .onAppear { runProgress.refresh() }
     }
 }
 

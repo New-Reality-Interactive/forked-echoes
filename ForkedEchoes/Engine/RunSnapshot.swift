@@ -23,9 +23,15 @@ extension RunSnapshot {
             return nil
         }
 
+        // A snapshot pointing at a now-.ending node has nothing to resume (AC #5's intent) —
+        // reject it so a stale post-content-edit snapshot can't resurrect a finished run.
+        if case .ending = StoryTree.node(for: snapshot.currentNodeId) {
+            return nil
+        }
+
         // NodeID/ChoiceOptionID are closed Swift enums (AD-1) — a decoded currentNodeId always
-        // resolves via StoryTree.node(for:); the reachable content-tree-drift failure is a
-        // choiceHistory entry recording an option id its node no longer offers.
+        // resolves via StoryTree.node(for:); the remaining reachable content-tree-drift failure
+        // is a choiceHistory entry recording an option id its node no longer offers.
         let choiceHistoryStillResolves = snapshot.choiceHistory.allSatisfy { record in
             guard case .choice(_, let options) = StoryTree.node(for: record.nodeId) else {
                 return false

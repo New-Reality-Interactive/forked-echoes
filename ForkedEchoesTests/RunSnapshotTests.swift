@@ -4,13 +4,6 @@ import Testing
 
 struct RunSnapshotTests {
 
-    private func freshDefaults() -> (defaults: UserDefaults, suiteName: String) {
-        let suiteName = "RunSnapshotTests.\(UUID().uuidString)"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        return (defaults, suiteName)
-    }
-
     @Test func encodeDecodeRoundTripPreservesAllFields() throws {
         let snapshot = RunSnapshot(
             currentNodeId: .firstChoice,
@@ -68,7 +61,7 @@ struct RunSnapshotTests {
         defer { defaults.removePersistentDomain(forName: suiteName) }
 
         let snapshot = RunSnapshot(
-            currentNodeId: .endingHomeward,
+            currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
             alignmentScore: 1,
             tutorialSeen: false
@@ -77,5 +70,24 @@ struct RunSnapshotTests {
         defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)
 
         #expect(RunSnapshot.loadValid(from: defaults) == snapshot)
+    }
+
+    // Code review, 2026-08-01: a snapshot pointing at a now-.ending node has nothing to resume
+    // (AC #5's intent) — this can happen if a content-tree edit reclassifies a node's kind after
+    // the snapshot was written. loadValid must reject it, not treat it as fully valid.
+    @Test func loadValidReturnsNilWhenCurrentNodeIdIsAnEndingNode() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let snapshot = RunSnapshot(
+            currentNodeId: .endingHomeward,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
+            alignmentScore: 1,
+            tutorialSeen: false
+        )
+        let data = try! JSONEncoder().encode(snapshot)
+        defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)
+
+        #expect(RunSnapshot.loadValid(from: defaults) == nil)
     }
 }

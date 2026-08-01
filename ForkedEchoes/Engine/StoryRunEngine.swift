@@ -116,6 +116,32 @@ final class StoryRunEngine {
         persistOrClearSnapshot()
     }
 
+    /// Resets to a fresh run at `StoryTree.root` if the current run has ended; a no-op otherwise
+    /// (mid-run, "Start Story"/"Resume Story" tapped again should do nothing to the live run).
+    ///
+    /// User-confirmed bug, 2026-08-01: this app reuses one `StoryRunEngine` instance for its
+    /// entire lifetime (`RootView`'s `@State`), so nothing previously reset `currentNodeId` once
+    /// a run reached `.ending` — tapping "Start Story" from Home re-presented the same finished
+    /// run instead of a fresh one. AD-3 keeps the engine the sole mutator of its own state, so
+    /// this is a real engine method, not `RootView` reaching into `currentNodeId` directly (which
+    /// has no public setter). This is a narrowly-scoped fix for that one break, not the general
+    /// `startNewRun()`/`exitToHome()`/`restartRun()` intent surface AD-3 anticipates — restarting
+    /// or exiting *mid-run* remains Story 2.7/Epic 3's job.
+    ///
+    /// No `persistOrClearSnapshot()` call here: reaching `.ending` already cleared any snapshot
+    /// (AC #5), so there's nothing to clear, and a freshly reset run shouldn't persist until its
+    /// first mutating intent completes — same as any other fresh run (AC #1's own scope).
+    func startFreshRunIfCurrentRunHasEnded() {
+        guard case .ending = StoryTree.node(for: currentNodeId) else {
+            return
+        }
+
+        currentNodeId = StoryTree.root
+        choiceHistory = []
+        alignmentScore = 0
+        visitedNodeIds = []
+    }
+
     // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both
     // independently resolved "what does this option id target" — a single shared lookup avoids
     // the two drifting apart if either is ever changed on its own.

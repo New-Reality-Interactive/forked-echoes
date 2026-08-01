@@ -8,10 +8,12 @@ struct TutorialView: View {
     // .fullScreenCover(isPresented:) itself.
     @Binding var isPresentingStorySession: Bool
 
-    // Code review, 2026-08-01: refreshed via `.onAppear` below rather than read as a plain `let`
-    // in `body` — see RunProgressObserver's doc comment for why (UserDefaults isn't SwiftUI-
-    // observed, so a `let` here could go stale after returning from the Story session).
-    @State private var runProgress = RunProgressObserver()
+    // Code review, 2026-08-01: shared with HomeView via RootView's `.environment(_:)` (AD-3
+    // pattern) rather than each view owning its own instance. Refreshed via `.onAppear` below
+    // rather than read as a plain `let` in `body` — see RunProgressObserver's doc comment for why
+    // (UserDefaults isn't SwiftUI-observed, so a `let` here could go stale after returning from
+    // the Story session).
+    @Environment(RunProgressObserver.self) private var runProgress
 
     var body: some View {
         let primaryActionLabel: LocalizedStringKey = runProgress.hasInProgressRun ? "home.action.resumeStory" : "tutorial.action.startStory"
@@ -90,4 +92,5 @@ struct TutorialView: View {
                 }
             }
     }
+    .environment(RunProgressObserver())
 }

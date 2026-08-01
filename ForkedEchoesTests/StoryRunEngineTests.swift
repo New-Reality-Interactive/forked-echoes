@@ -206,7 +206,11 @@ struct StoryRunEngineTests {
 
         let data = try #require(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey))
         let snapshot = try JSONDecoder().decode(RunSnapshot.self, from: data)
-        #expect(snapshot.currentNodeId == .firstChoice)
+        #expect(snapshot.currentNodeId == engine.currentNodeId)
+        #expect(snapshot.choiceHistory == engine.choiceHistory)
+        #expect(snapshot.alignmentScore == engine.alignmentScore)
+        // AD-4/Completion Notes: tutorialSeen has no producer yet — always written false.
+        #expect(snapshot.tutorialSeen == false)
     }
 
     @Test func goBackWritesASnapshotMatchingEngineState() throws {
@@ -219,7 +223,57 @@ struct StoryRunEngineTests {
 
         let data = try #require(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey))
         let snapshot = try JSONDecoder().decode(RunSnapshot.self, from: data)
-        #expect(snapshot.currentNodeId == .intro)
+        #expect(snapshot.currentNodeId == engine.currentNodeId)
+        #expect(snapshot.choiceHistory == engine.choiceHistory)
+        #expect(snapshot.alignmentScore == engine.alignmentScore)
+    }
+
+    @Test func resumedEngineWithADecidedChoiceAdvancesUsingTheRestoredHistory() {
+        // Code review, 2026-08-01: Task 3 (resume) and advancePage()'s pre-existing .choice
+        // branch had no test proving they compose — a resumed engine's restored choiceHistory,
+        // not a freshly-computed one, is what advancePage() must consult to resolve where a
+        // decided choice node goes next.
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .firstChoice,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
+            alignmentScore: 1,
+            tutorialSeen: false
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .endingHomeward)
+    }
+
+    @Test func startFreshRunIfCurrentRunHasEndedResetsAFinishedRunToRoot() {
+        // User-confirmed bug, 2026-08-01: tapping "Start Story" after a run ended re-presented
+        // the same finished run — this engine method is RootView's fix, called when the Story
+        // session is about to be presented.
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .endingHomeward)
+
+        engine.startFreshRunIfCurrentRunHasEnded()
+
+        #expect(engine.currentNodeId == StoryTree.root)
+        #expect(engine.choiceHistory.isEmpty)
+        #expect(engine.alignmentScore == 0)
+    }
+
+    @Test func startFreshRunIfCurrentRunHasEndedIsNoOpMidRun() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.startFreshRunIfCurrentRunHasEnded()
+
+        #expect(engine.currentNodeId == .firstChoice)
     }
 
     @Test func reachingAnEndingNodeClearsTheStoredSnapshot() {

@@ -389,13 +389,9 @@ struct StoryRunEngineTests {
         #expect(engine.currentNodeId == .shoreArrival)
         #expect(engine.isEchoActive == false)
 
-        // Story 2.6: .shoreArrival is now interstitial-wired — the first advancePage() only
-        // dismisses the interstitial (Continue), it doesn't move currentNodeId yet.
-        engine.advancePage()
-
-        #expect(engine.currentNodeId == .shoreArrival)
-        #expect(engine.isEchoActive == false)
-
+        // Story 2.9: Continue past the interstitial advances just like an ordinary page turn —
+        // one advancePage() call reaches .endingElsewhere directly (see
+        // advancePageWhileInterstitialDismissesAndAdvancesToTheNextNode for the dedicated test).
         engine.advancePage()
 
         #expect(engine.currentNodeId == .endingElsewhere)
@@ -454,7 +450,13 @@ struct StoryRunEngineTests {
         #expect(engine.phase == .interstitial)
     }
 
-    @Test func advancePageWhileInterstitialDismissesToReadingAtTheSameNode() {
+    // Story 2.9 (user-clarified 2026-08-02, after Simulator testing surfaced the original
+    // reading of this behavior as a real usability bug): Continue performs the SAME forward move
+    // an ordinary reading page's advancePage() does — it leaves the arrival node entirely,
+    // following its `next` link, rather than merely unlocking the same node in place. The
+    // illustration+caption stays this node's permanent content for any LATER visit (revisit via
+    // goBack() or relaunch), but the first-ever Continue tap advances past it.
+    @Test func advancePageWhileInterstitialDismissesAndAdvancesToTheNextNode() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
@@ -463,8 +465,25 @@ struct StoryRunEngineTests {
 
         engine.advancePage()
 
-        #expect(engine.phase == .reading)
+        #expect(engine.currentNodeId == .endingElsewhere)
+    }
+
+    // Story 2.9: once dismissed, revisiting the arrival node (backing up to it) and advancing
+    // again behaves exactly like an ordinary reading page — swipe forward reaches the same real
+    // target, no gate involved the second time.
+    @Test func advancingFromARevisitedDismissedArrivalNodeReachesTheSameNextTargetAgain() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        engine.advancePage() // Continue: dismiss + advance to .endingElsewhere
+        engine.goBack() // back to .shoreArrival, now ungated
         #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .reading)
+
+        engine.advancePage() // ordinary forward swipe, no gate this time
+
+        #expect(engine.currentNodeId == .endingElsewhere)
     }
 
     @Test func goBackWhileInterstitialIsANoOp() {
@@ -478,20 +497,6 @@ struct StoryRunEngineTests {
 
         #expect(engine.currentNodeId == .shoreArrival)
         #expect(engine.phase == .interstitial)
-    }
-
-    @Test func advancePageAfterInterstitialDismissalMovesOnToTheRealNextTarget() {
-        let (defaults, suiteName) = freshDefaults()
-        defer { defaults.removePersistentDomain(forName: suiteName) }
-        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
-        engine.selectChoice(.shore)
-        engine.advancePage()
-        #expect(engine.currentNodeId == .shoreArrival)
-        #expect(engine.phase == .reading)
-
-        engine.advancePage()
-
-        #expect(engine.currentNodeId == .endingElsewhere)
     }
 
     @Test func theBoatPathNeverReportsInterstitialPhaseAnywhereAlongIt() {
@@ -514,29 +519,34 @@ struct StoryRunEngineTests {
     // Code-review finding, 2026-08-02: interstitialDismissed used to be a single flag reset on
     // every currentNodeId change, so backing up over a decided choice and paging forward again
     // re-showed an already-dismissed interstitial. Regression test for the fix (dismissal now
-    // tracked per-node).
+    // tracked per-node) — updated for Story 2.9's corrected semantics (Continue actually advances
+    // past the node now, so reaching it a second time requires backing up twice: once off the
+    // node Continue advanced to, once more off the arrival node itself, back to the choice page).
     @Test func dismissedInterstitialDoesNotReplayAfterBackingUpAndPagingForwardAgain() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
         engine.selectChoice(.shore)
-        engine.advancePage()
-        #expect(engine.currentNodeId == .shoreArrival)
-        #expect(engine.phase == .reading)
+        engine.advancePage() // Continue: dismiss + advance to .endingElsewhere
+        #expect(engine.currentNodeId == .endingElsewhere)
 
-        engine.goBack()
+        engine.goBack() // -> .shoreArrival (dismissed, ungated)
+        engine.goBack() // -> .firstChoice (the decided choice node)
         #expect(engine.currentNodeId == .firstChoice)
 
-        engine.advancePage()
+        engine.advancePage() // forward again via the already-decided choice
 
         #expect(engine.currentNodeId == .shoreArrival)
         #expect(engine.phase == .reading)
     }
 
-    @Test func anEngineResumedOntoShoreArrivalReportsReadingPhaseNotInterstitial() {
-        // AD-5's "relaunch doesn't re-show the arrival announcement" guarantee: phase is never
-        // persisted, so a resumed run never re-shows the interstitial even if it resumes onto an
-        // arrival node — it goes straight to that node's ordinary reading content.
+    // Story 2.9 (AD-5, amended 2026-08-02): a snapshot resuming directly onto .shoreArrival with
+    // no record of the interstitial having been dismissed represents a truly-first-ever visit
+    // that was still mid-gate when the app was killed — it must re-gate on relaunch, not skip
+    // straight to reading. This replaces Story 2.6's original expectation (any resume onto the
+    // arrival node skipped the gate unconditionally), which would have let a player who always
+    // force-quits mid-interstitial never see the illustration at all.
+    @Test func anEngineResumedOntoShoreArrivalWithoutDismissalStillReportsInterstitialPhase() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let snapshot = RunSnapshot(
@@ -550,6 +560,53 @@ struct StoryRunEngineTests {
         let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
 
         #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .interstitial)
+    }
+
+    // Story 2.9 (AC #4): the actual regression test for the bug this story fixes. In the real
+    // app, dismissing the interstitial (Continue) DOES move currentNodeId onward (it behaves
+    // like an ordinary forward advance) — but a player can then back up to the dismissed arrival
+    // node again, at which point currentNodeId == .shoreArrival while .shoreArrival is already
+    // present in visitedArrivalNodeIds. If the app is killed right there and relaunched, a
+    // *freshly constructed* engine (not the same instance that dismissed it) must read that
+    // persisted signal and report .reading, not .interstitial — this is the case Story 2.6's
+    // in-memory-only dismissedInterstitialNodeIds could never satisfy across a real process
+    // restart.
+    @Test func aFreshlyConstructedEngineResumedOntoADismissedArrivalNodeReportsReadingPhase() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .shoreArrival,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
+            alignmentScore: -1,
+            tutorialSeen: false,
+            visitedArrivalNodeIds: [.shoreArrival]
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        #expect(engine.currentNodeId == .shoreArrival)
         #expect(engine.phase == .reading)
+    }
+
+    // Story 2.9 (Task 4): startFreshRunIfCurrentRunHasEnded() must clear the persisted-visited
+    // signal too, not just the in-memory set — otherwise a brand new run's own first visit to
+    // .shoreArrival would incorrectly skip the gate, inheriting the previous run's dismissal.
+    @Test func startingAFreshRunAfterEndingClearsPersistedArrivalVisitationOnNextSnapshotWrite() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        engine.advancePage() // Continue: dismiss + advance to .endingElsewhere, clears the snapshot (AC #5)
+        #expect(engine.currentNodeId == .endingElsewhere)
+
+        engine.startFreshRunIfCurrentRunHasEnded()
+        engine.advancePage() // .intro (StoryTree.root) -> .firstChoice, the fresh run's own start
+        engine.selectChoice(.shore) // re-arrive at .shoreArrival on the new run, writes a snapshot
+
+        let reloaded = RunSnapshot.loadValid(from: defaults)
+        #expect(reloaded?.visitedArrivalNodeIds.isEmpty == true)
+        #expect(engine.phase == .interstitial)
     }
 }

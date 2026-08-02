@@ -44,21 +44,39 @@ struct StoryChoiceView: View {
             if engine.phase == .interstitial, case .reading(_, _, _, let arrival?) = StoryTree.node(for: engine.currentNodeId) {
                 // Story 2.6, AC #2/#5: this branch fully replaces the ordinary composition below
                 // — no page-turn gesture, no tap zones, no exit/run-options button attached at
-                // all while the interstitial shows, not merely visually hidden. advancePage()
-                // itself performs the Continue/dismiss behavior whenever phase == .interstitial
-                // (StoryRunEngine.swift), so leaving the swipe gesture/tap zones attached would
-                // let an ordinary swipe silently dismiss the interstitial early — only the
-                // dedicated Continue button may call it while this phase holds.
+                // all while gated (true first-visit-ever, Story 2.9/AD-5), not merely visually
+                // hidden. advancePage() itself performs the Continue/dismiss behavior whenever
+                // phase == .interstitial (StoryRunEngine.swift), so leaving the swipe gesture/tap
+                // zones attached would let an ordinary swipe silently dismiss the interstitial
+                // early — only the dedicated Continue button may call it while this phase holds.
                 BranchArrivalInterstitialView(arrival: arrival) {
                     engine.advancePage()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
+                // Story 2.9 (AC #2): a node with arrival data that ISN'T gated (already visited —
+                // phase derived .reading, not .interstitial) still shows the identical
+                // illustration+caption as its permanent content, but through the ordinary
+                // composition below: page-turn gestures, tap zones, and the exit button all
+                // attach normally, and `content`'s `.reading` case (not this branch) renders
+                // BranchArrivalInterstitialView with onContinue: nil — see that switch.
                 readingComposition
             }
         }
     }
 
+    // Story 2.9 code review (user-reported, 2026-08-02 Simulator playtest, two rounds): a
+    // revisited arrival node's content used to be `BranchArrivalInterstitialView` wrapped in a
+    // `ScrollView` at every Dynamic Type size, which raced the outer swipe/tap-zone recognizers
+    // (a `ScrollView`'s `UIScrollView`-backed gesture doesn't reliably cede to SwiftUI's own
+    // `.gesture`/`.highPriorityGesture` arbitration — confirmed empirically, since neither
+    // `.background`→`.overlay` nor `.gesture`→`.highPriorityGesture` on this side fully resolved
+    // the flakiness). Fixed at the actual source instead (`BranchArrivalInterstitialView.swift`):
+    // that view no longer uses a `ScrollView` at ordinary Dynamic Type sizes at all — only at
+    // accessibility sizes, where real content overflow is possible. With no competing `ScrollView`
+    // in the common case, arrival content is structurally identical to ordinary reading content
+    // for gesture purposes, so `readingComposition` needs no special-casing here anymore — plain
+    // `.gesture`/`.background`, same as every other node, unconditionally.
     private var readingComposition: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -99,8 +117,15 @@ struct StoryChoiceView: View {
 
     // Story 2.5, AC #4 (code review, 2026-08-01): the Frame belongs on Story/Choice reading
     // content, not the Ending placeholder — `.reading`/`.choice` are eligible, `.ending` is not.
+    // Story 2.9: a `.reading` node with non-nil `arrival` is excluded too, gated or not — DESIGN.md
+    // Components: "no circuit frame here" applies to the illustration+caption for its whole
+    // lifetime as this node's content, not just while the gate is active (the gated case was
+    // already excluded by construction, since `body`'s interstitial branch never reaches this
+    // modifier chain at all — this extends the same exclusion to the ungated-revisit case, which
+    // DOES render through `readingComposition` and therefore this overlay).
     private var isFrameEligibleNode: Bool {
         switch StoryTree.node(for: engine.currentNodeId) {
+        case .reading(_, _, _, .some): false
         case .reading, .choice: true
         case .ending: false
         }
@@ -120,6 +145,16 @@ struct StoryChoiceView: View {
     @ViewBuilder
     private var content: some View {
         switch StoryTree.node(for: engine.currentNodeId) {
+        // Story 2.9 (AC #2): an arrival node that's already been visited (not gated — this
+        // switch only ever runs when phase != .interstitial, so reaching this arm with non-nil
+        // arrival means exactly that) shows the identical illustration+caption as its permanent
+        // content, not `bodyKey` prose — `story.shoreArrival.body`-style keys go unused for
+        // arrival nodes as of this story. `onContinue: nil` renders no Continue button (Story 2.9
+        // Dev Notes' resolved design question) — readingComposition's ordinary gestures are the
+        // only way to advance from here, exactly like any other reading page.
+        case .reading(_, _, _, let arrival?):
+            BranchArrivalInterstitialView(arrival: arrival, onContinue: nil)
+
         case .reading(let bodyKey, _, let echoBodyKey, _):
             // Content's keys are plain String (Content has zero dependency on SwiftUI, per
             // ARCHITECTURE-SPINE.md's layering) — must be explicitly boxed as LocalizedStringKey
@@ -260,4 +295,18 @@ struct StoryChoiceView: View {
 #Preview("Ending node") {
     StoryChoiceView(onExitToHome: {})
         .environment(StoryRunEngine(startingAt: .endingHomeward))
+}
+
+#Preview("Branch arrival, gated first visit") {
+    StoryChoiceView(onExitToHome: {})
+        .environment(StoryRunEngine(startingAt: .shoreArrival))
+}
+
+#Preview("Branch arrival, ungated revisit") {
+    // Story 2.9: one advancePage() call while gated dismisses the interstitial without moving
+    // currentNodeId (StoryRunEngine.swift) — the same state a genuine revisit derives to.
+    let engine = StoryRunEngine(startingAt: .shoreArrival)
+    engine.advancePage()
+    return StoryChoiceView(onExitToHome: {})
+        .environment(engine)
 }

@@ -9,13 +9,33 @@ struct RunSnapshotTests {
             currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .intro, chosenOptionId: .boat)],
             alignmentScore: 3,
-            tutorialSeen: false
+            tutorialSeen: false,
+            visitedArrivalNodeIds: [.shoreArrival]
         )
 
         let data = try JSONEncoder().encode(snapshot)
         let decoded = try JSONDecoder().decode(RunSnapshot.self, from: data)
 
         #expect(decoded == snapshot)
+    }
+
+    // Story 2.9 (Task 1): a snapshot written by a pre-2.9 build has no `visitedArrivalNodeIds`
+    // key at all. This must decode cleanly with an empty set, not fail — a missing key isn't a
+    // malformed snapshot (NFR4's "no crash, fresh Home fallback" contract, Story 2.4 AC #3 — a
+    // decode failure here would incorrectly discard an otherwise-valid in-progress run).
+    @Test func decodingASnapshotWithoutTheVisitedArrivalNodeIdsKeyDefaultsToEmpty() throws {
+        let legacyJSON = """
+        {
+            "currentNodeId": {"firstChoice": {}},
+            "choiceHistory": [],
+            "alignmentScore": 0,
+            "tutorialSeen": false
+        }
+        """
+        let decoded = try JSONDecoder().decode(RunSnapshot.self, from: Data(legacyJSON.utf8))
+
+        #expect(decoded.currentNodeId == .firstChoice)
+        #expect(decoded.visitedArrivalNodeIds.isEmpty)
     }
 
     @Test func loadValidReturnsNilWhenKeyIsMissing() {

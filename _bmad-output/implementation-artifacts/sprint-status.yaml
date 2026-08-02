@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-08-02 (2-6-branch-arrival-interstitial-and-illustrations: code review found and fixed interstitial-replay bug + 3 minor patches, all confirmed in Xcode/Simulator, status done)
+last_updated: 2026-08-02 (2-9-branch-arrival-interstitial-first-visit-only-gate: code review complete, all patches applied, status done; 2-10-persist-back-navigation-across-app-relaunch: added to backlog, deferred follow-up from Story 2.9 Simulator testing)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -73,7 +73,8 @@ development_status:
   2-6-branch-arrival-interstitial-and-illustrations: done
   2-7-run-options-action-sheet: backlog
   2-8-reading-surface-visual-identity-dynamic-type-and-reduce-motion: backlog
-  2-9-branch-arrival-interstitial-first-visit-only-gate: backlog
+  2-9-branch-arrival-interstitial-first-visit-only-gate: done
+  2-10-persist-back-navigation-across-app-relaunch: backlog
   epic-2-retrospective: optional
 
   epic-3: backlog
@@ -113,4 +114,8 @@ action_items:
   - epic: 5
     action: "Any work done outside create-story/dev-story gets a story file and sprint-status entry in the same session it happens, not retroactively"
     owner: "whichever agent performs the out-of-band work"
+    status: done
+  - epic: 2
+    action: "goBack() cannot navigate backward at all immediately after an app relaunch, on any page, because visitedNodeIds (the back-navigation stack) is never part of RunSnapshot (AD-4's original 4 fields, pre-dating Story 2.9) - user-confirmed via Story 2.9 Simulator testing 2026-08-02 (forward swipe worked post-relaunch, backward did not). User explicitly approved deferring the fix to a future 2.x story rather than blocking Story 2.9 on it. Formalized as Story 2.10 (added to epics.md and sprint-status.yaml, 2026-08-02) - see that story for full AC."
+    owner: "Winston (Architect) / Amelia (Dev)"
     status: done

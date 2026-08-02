@@ -32,20 +32,24 @@ final class StoryRunEngine {
     }
 
     /// Story 2.6: `Reading --> Interstitial --> Reading` per the run-phase state diagram
-    /// (ARCHITECTURE-SPINE.md), purely derived from `currentNodeId` + the ephemeral
-    /// `interstitialDismissed` flag below — same "phase derived, not stored" ethos as
-    /// `isEchoActive` (AD-5). `.memory` isn't reachable yet (Epic 3) — omitted for now.
+    /// (ARCHITECTURE-SPINE.md), purely derived from `currentNodeId` + `dismissedInterstitialNodeIds`
+    /// below — `phase` itself is still never stored (AD-5's "phase derived, not stored" ethos,
+    /// same as `isEchoActive`), even though `dismissedInterstitialNodeIds`'s *contents* are now
+    /// persisted as of Story 2.9 (`RunSnapshot.visitedArrivalNodeIds`) so the derivation survives
+    /// relaunch. `.memory` isn't reachable yet (Epic 3) — omitted for now.
     enum Phase: Equatable {
         case reading
         case interstitial
         case ending
     }
 
-    /// Never persisted (AD-5): a relaunch mid-interstitial resumes straight into the node's
-    /// reading content without re-showing the arrival announcement. Keyed by node, not reset on
-    /// navigation — code-review finding, 2026-08-02: a single ephemeral flag reset on every
-    /// `currentNodeId` change let the interstitial replay after backing up over a decided choice
-    /// and paging forward again onto a node already dismissed this session.
+    /// Story 2.9: persisted via `RunSnapshot.visitedArrivalNodeIds` (AD-4/AD-5, amended
+    /// 2026-08-02) — a node inserted here stays gate-free across an app relaunch, not just within
+    /// the current process. Keyed by node, not reset on navigation — code-review finding,
+    /// 2026-08-02 (Story 2.6): a single ephemeral flag reset on every `currentNodeId` change let
+    /// the interstitial replay after backing up over a decided choice and paging forward again
+    /// onto a node already dismissed this session. That per-node fix is preserved here; Story 2.9
+    /// only changes how this set survives process restart, not how it's read within one process.
     private var dismissedInterstitialNodeIds: Set<NodeID> = []
 
     var phase: Phase {
@@ -73,10 +77,11 @@ final class StoryRunEngine {
     /// Cold-launch construction (RootView's call site): attempts to resume from a validated
     /// `RunSnapshot`; falls back to a fresh run at `StoryTree.root` on any decode/validation
     /// failure (AC #2, #3) — identical fallback logic to `RunSnapshotPresence.hasInProgressRun`.
-    /// `visitedNodeIds` is not part of `RunSnapshot` (AD-4's four fields are exhaustive), so a
+    /// `visitedNodeIds` (the back-navigation stack, distinct from `RunSnapshot.visitedArrivalNodeIds`
+    /// added Story 2.9 — see that field's doc comment) is still not part of `RunSnapshot`, so a
     /// resumed run starts with an empty back-navigation stack — `goBack()` is a no-op until the
     /// player advances forward again this session. This is an accepted, deliberate consequence of
-    /// AD-4's fixed shape, not a bug.
+    /// `RunSnapshot`'s shape, not a bug.
     ///
     /// Deliberately a distinctly-named factory rather than a third `init` overload: an earlier
     /// version of this made a bare `StoryRunEngine()` call resolve here instead of the plain init
@@ -92,10 +97,16 @@ final class StoryRunEngine {
         let engine = StoryRunEngine(startingAt: snapshot.currentNodeId, defaults: defaults)
         engine.choiceHistory = snapshot.choiceHistory
         engine.alignmentScore = snapshot.alignmentScore
-        // Story 2.6, AD-5: phase is never persisted, so a resumed run never re-shows the
-        // branch-arrival interstitial even if it resumes onto an arrival node — relaunch goes
-        // straight to that node's ordinary reading content.
-        engine.dismissedInterstitialNodeIds.insert(snapshot.currentNodeId)
+        // Story 2.9, AD-5 (amended 2026-08-02): seed from the persisted set of arrival nodes
+        // actually dismissed, not an unconditional insert of currentNodeId. A truly-first-ever
+        // visit that's still mid-interstitial when the app is killed correctly re-gates on
+        // relaunch (it was never dismissed, so it isn't in visitedArrivalNodeIds) — only a node
+        // whose Continue was actually tapped skips the gate on resume. This intentionally departs
+        // from Story 2.6's original "any resume onto the node skips the gate" behavior, which
+        // would otherwise let a player who always force-quits mid-interstitial never see the
+        // illustration at all — that was a latent bug relative to AD-5's "first-visit-ever" intent,
+        // not a case worth preserving.
+        engine.dismissedInterstitialNodeIds = snapshot.visitedArrivalNodeIds
         return engine
     }
 
@@ -130,12 +141,23 @@ final class StoryRunEngine {
     /// choice-selection UI made revisiting a decided page (via goBack()) an actual player action:
     /// swiping forward again from that revisit had nowhere to go. Corrected here.
     func advancePage() {
-        // Story 2.6: "Continue" past the branch-arrival interstitial (AD-3) — dismisses the
-        // interstitial without following the node's `next` link, without touching
-        // `visitedNodeIds`, and without persisting anything (AD-5: phase is non-persisted).
+        // Story 2.9 (AD-3, AD-5 — user-clarified 2026-08-02): "Continue" past the branch-arrival
+        // interstitial performs the SAME forward move an ordinary reading page's advancePage()
+        // does (follows the node's `next` link) — it does not just unlock the current page in
+        // place. AD-3 already documented advancePage() as serving "Continue past the branch-
+        // arrival interstitial" with "the same 'move forward past the current blocking beat'
+        // intent as ordinary paging" — an earlier pass at this story read that as "unlock without
+        // moving," which the user corrected after Simulator testing: the illustration+caption is
+        // this node's permanent content for any LATER visit (revisiting via goBack() or a
+        // relaunch shows it exactly this way, ungated), but the first-ever visit's Continue tap
+        // leaves the node entirely, continuing into whatever comes next — the same one-tap
+        // "acknowledge and proceed" a player expects from a full-bleed interstitial.
+        //
+        // Marking the node dismissed here, before the shared `.reading` branch below runs, is
+        // what makes a later revisit ungated (AD-5's persisted `visitedArrivalNodeIds` — see
+        // `dismissedInterstitialNodeIds`'s doc comment above `phase`).
         if phase == .interstitial {
             dismissedInterstitialNodeIds.insert(currentNodeId)
-            return
         }
 
         switch StoryTree.node(for: currentNodeId) {
@@ -224,7 +246,8 @@ final class StoryRunEngine {
             currentNodeId: currentNodeId,
             choiceHistory: choiceHistory,
             alignmentScore: alignmentScore,
-            tutorialSeen: false
+            tutorialSeen: false,
+            visitedArrivalNodeIds: dismissedInterstitialNodeIds
         )
 
         guard let data = try? JSONEncoder().encode(snapshot) else {

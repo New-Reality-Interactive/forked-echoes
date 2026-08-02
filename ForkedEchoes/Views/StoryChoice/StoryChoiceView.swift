@@ -24,6 +24,19 @@ struct StoryChoiceView: View {
     // mid-undo-window at a time (AC #1) — a card's own local @State can't see its siblings.
     @State private var activeChoiceOptionID: ChoiceOptionID?
 
+    // Story 2.8, AC #3: gates the interstitial's entrance/exit transition below. Read here
+    // (rather than duplicated inside BranchArrivalInterstitialView) since this is the one call
+    // site that drives the animated phase-branch swap.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // Story 2.8, AC #2: readingComposition only reaches for ScrollView at accessibility Dynamic
+    // Type sizes, mirroring BranchArrivalInterstitialView's own precedent (Story 2.9) for the same
+    // ScrollView-vs-outer-swipe-gesture race — a ScrollView's UIScrollView-backed gesture doesn't
+    // reliably cede to this view's own DragGesture, confirmed empirically there. At ordinary sizes
+    // there's no overflow risk to justify the race, so content renders exactly as it did before
+    // this story.
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     // Code review, 2026-08-01: the .fullScreenCover presentation (AD-5) has no system back
     // button or swipe-to-dismiss by construction — this closure is the Story session's real,
     // deliberate exit path, invoked from RunOptionsButton's "Exit to Home" action (Story 2.7).
@@ -58,6 +71,7 @@ struct StoryChoiceView: View {
                 }
                 .id(engine.currentNodeId)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.opacity)
             } else {
                 // Story 2.9 (AC #2): a node with arrival data that ISN'T gated (already visited —
                 // phase derived .reading, not .interstitial) still shows the identical
@@ -68,6 +82,10 @@ struct StoryChoiceView: View {
                 readingComposition
             }
         }
+        // Story 2.8, AC #3: animates the interstitial's entrance/exit (the `.transition(.opacity)`
+        // above) whenever engine.phase changes, unless Reduce Motion is on — instant cut then,
+        // same gating shape as FrameView's power-up transition.
+        .animation(reduceMotion ? nil : .easeInOut, value: engine.phase)
     }
 
     // Story 2.9 code review (user-reported, 2026-08-02 Simulator playtest, two rounds): a
@@ -78,15 +96,35 @@ struct StoryChoiceView: View {
     // `.background`→`.overlay` nor `.gesture`→`.highPriorityGesture` on this side fully resolved
     // the flakiness). Fixed at the actual source instead (`BranchArrivalInterstitialView.swift`):
     // that view no longer uses a `ScrollView` at ordinary Dynamic Type sizes at all — only at
-    // accessibility sizes, where real content overflow is possible. With no competing `ScrollView`
-    // in the common case, arrival content is structurally identical to ordinary reading content
-    // for gesture purposes, so `readingComposition` needs no special-casing here anymore — plain
-    // `.gesture`/`.background`, same as every other node, unconditionally.
+    // accessibility sizes, where real content overflow is possible.
+    //
+    // Story 2.8, AC #2: this same accessibility-size-conditional pattern now applies here too —
+    // `readingComposition` needs a real `ScrollView` for accessibility-size headroom (this story's
+    // new requirement), but only at accessibility sizes, to avoid reintroducing the identical
+    // gesture race at ordinary sizes that Story 2.9 fixed for the interstitial.
     private var readingComposition: some View {
-        content
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .contentShape(Rectangle())
-            .gesture(pageTurnGesture)
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                // AC #2: content scrolls inside the fixed frame at accessibility sizes — the
+                // frame itself (FrameView's overlay below) never resizes; only this scroll
+                // wrapper's headroom does, sized for the largest accessibility category via
+                // proxy.size.height. Same GeometryReader+ScrollView pattern project-context.md's
+                // Centering Pattern section documents for Home/Tutorial.
+                GeometryReader { proxy in
+                    ScrollView {
+                        content
+                            .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
+                            .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)
+                    }
+                }
+            } else {
+                content
+                    .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            }
+        }
+        .contentShape(Rectangle())
+        .gesture(pageTurnGesture)
             .background(pageTapZones)
             // Story 2.5, AC #4: the circuit Frame is reserved for Story/Choice reading content
             // only — never Home, Tutorial, or the Epic 2 Ending placeholder. Wrapping it here,
@@ -165,6 +203,7 @@ struct StoryChoiceView: View {
             // project-context.md's Localization section documents for ternary-selected keys).
             VStack(alignment: .leading, spacing: Spacing.medium) {
                 Text(LocalizedStringKey(bodyKey))
+                    .bodyStyle()
 
                 // Story 2.5, AC #1/#3 (UX-DR5, FR-6): the Echo callback — inset within the
                 // normal prose flow, not a separate screen/modal — only when this node is
@@ -172,14 +211,19 @@ struct StoryChoiceView: View {
                 // engine.isEchoActive's own derivation).
                 if let echoBodyKey {
                     VStack(alignment: .leading, spacing: Spacing.small) {
+                        // DESIGN.md echo-callback token: the tag uses accent-ember-text, not
+                        // accent-ember — accent-ember fails AA contrast at this text size on
+                        // surface-inverse (DESIGN.md.components.echo-callback.note).
                         Text(LocalizedStringKey("storyChoice.echo.tag"))
                             .fontWeight(.bold)
+                            .foregroundStyle(Color.accentEmberText)
                         Text(LocalizedStringKey(echoBodyKey))
+                            .echoCallbackStyle()
                     }
                     .padding(Spacing.medium)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color.inkPrimary)
-                    .foregroundStyle(Color.surfaceBase)
+                    .background(Color.surfaceInverse)
+                    .foregroundStyle(Color.inkOnInverse)
                     // Code review, 2026-08-01: without this, VoiceOver announces the tag and
                     // the callback prose as two disconnected elements instead of one callback.
                     .accessibilityElement(children: .combine)
@@ -198,17 +242,23 @@ struct StoryChoiceView: View {
 
             VStack(alignment: .leading, spacing: Spacing.medium) {
                 Text(LocalizedStringKey(promptKey))
+                    .bodyStyle()
 
-                ForEach(options, id: \.id) { option in
-                    ChoiceCardView(
-                        option: option,
-                        isDecided: decidedRecord != nil,
-                        isSelected: decidedRecord?.chosenOptionId == option.id,
-                        activeOptionID: $activeChoiceOptionID,
-                        onFinalize: { optionID in
-                            engine.selectChoice(optionID)
-                        }
-                    )
+                // DESIGN.md Layout & Spacing: gaps between stacked choice cards use `{spacing.3}`
+                // — distinct from the prompt-to-choices gap above, which keeps the generic
+                // `Spacing.medium` this VStack already used.
+                VStack(alignment: .leading, spacing: Spacing.choiceCardGap) {
+                    ForEach(options, id: \.id) { option in
+                        ChoiceCardView(
+                            option: option,
+                            isDecided: decidedRecord != nil,
+                            isSelected: decidedRecord?.chosenOptionId == option.id,
+                            activeOptionID: $activeChoiceOptionID,
+                            onFinalize: { optionID in
+                                engine.selectChoice(optionID)
+                            }
+                        )
+                    }
                 }
             }
 

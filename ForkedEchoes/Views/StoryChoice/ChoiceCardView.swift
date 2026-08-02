@@ -29,6 +29,14 @@ struct ChoiceCardView: View {
     @State private var pendingTask: Task<Void, Never>?
     @State private var touchDownDate: Date?
 
+    // Story 2.8, AC #3: Reduce Motion routes a touch-down through the same tap-undo path
+    // handleAccessibilityActivate() already uses for VoiceOver, instead of starting the animated
+    // 3s charge — this keeps "the tap path is never less forgiving than holding" (this file's own
+    // header comment) true under Reduce Motion too: an accidental touch still gets the existing
+    // undo window, it just never sees an animated charge. Read per-view (AD-3: StoryRunEngine
+    // never touches rendering/animation), not stored in or gated by the engine.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     // Not decided elsewhere, not finalized locally. Deliberately does NOT check whether a
     // sibling is currently active — AC #1 ("holding a second cancels the first") requires a
     // touch on this card to reach touchDown() even while a sibling is charging/awaiting-undo,
@@ -55,6 +63,7 @@ struct ChoiceCardView: View {
 
     var body: some View {
         Text(LocalizedStringKey(option.labelKey))
+            .choiceLabelStyle()
             .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget, alignment: .leading)
             .padding(.horizontal, Spacing.medium)
             .overlay(alignment: .trailing) {
@@ -63,18 +72,20 @@ struct ChoiceCardView: View {
                         .padding(.trailing, Spacing.medium)
                 }
             }
-            // Minimum-viable committed/charging feedback reusing Color.selectedFill
-            // (already used by PrimaryActionButtonStyle for its own, unrelated filled-button
-            // look — intentional asset reuse, not a collision; DESIGN.md's full choice-card
-            // token set — surface-raised/ink-primary border/trace-brass charge fill — needs new
-            // Color Set assets that don't exist yet and is Story 2.8's scope).
+            // DESIGN.md `components.choice-card.charge-fill-color` = trace-brass, mid-charge; the
+            // selected/checkmark state keeps Color.selectedFill (already correct — leave as-is).
             .background(alignment: .leading) {
                 GeometryReader { proxy in
-                    Color.selectedFill
+                    (showsCheckmark ? Color.selectedFill : Color.traceBrass)
                         .opacity(showsCheckmark ? 1 : 0.6)
                         .frame(width: proxy.size.width * (showsCheckmark ? 1 : chargeProgress))
                 }
             }
+            // DESIGN.md `components.choice-card`: surface-raised base background, behind the
+            // charge-fill/selected-fill layer above.
+            .background(Color.surfaceRaised)
+            // DESIGN.md `components.choice-card.border-width` = 3pt, ink-primary.
+            .overlay(Rectangle().stroke(Color.inkPrimary, lineWidth: LayoutMetrics.choiceCardBorderWidth))
             .contentShape(Rectangle())
             .opacity(isDecided && !isSelected ? ButtonMetrics.disabledOpacity : 1)
             .allowsHitTesting(isInteractive)
@@ -123,6 +134,15 @@ struct ChoiceCardView: View {
 
         switch localState {
         case .idle:
+            // Story 2.8, AC #3: under Reduce Motion, a touch-down skips the animated 3s charge
+            // entirely and routes through the same tap-undo path VoiceOver's
+            // handleAccessibilityActivate() already uses — never straight to finalize(), which
+            // would make Reduce Motion strictly less forgiving than every other interaction path.
+            guard !reduceMotion else {
+                lockAndStartUndoWindow()
+                return
+            }
+
             activeOptionID = option.id
             localState = .charging
             touchDownDate = Date()

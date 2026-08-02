@@ -30,6 +30,23 @@ private struct HeadlineTextStyle: ViewModifier {
 }
 
 extension View {
+    /// DESIGN.md `typography.choice-label`: headline, weight 800 (rounded to `.heavy`, SwiftUI's
+    /// closest built-in weight — same rounding `HeadlineTextStyle`/`EyebrowTextStyle` already do
+    /// for 900/800). No tracking token for this role, so no `@ScaledMetric` needed here.
+    func choiceLabelStyle() -> some View {
+        self
+            .font(.headline.weight(.heavy))
+            .foregroundStyle(Color.inkPrimary)
+    }
+
+    /// DESIGN.md `typography.echo-callback`: body, weight 600/semibold. No hardcoded foreground —
+    /// the echo-callback component token's `text-color` is applied at the call site (Story 2.8),
+    /// not baked into this typography role.
+    func echoCallbackStyle() -> some View {
+        self
+            .font(.body.weight(.semibold))
+    }
+
     /// DESIGN.md `typography.eyebrow`: caption2, weight 800/heavy, tracking 0.1em, uppercase.
     func eyebrowStyle() -> some View {
         modifier(EyebrowTextStyle())

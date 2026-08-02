@@ -148,6 +148,42 @@
         }
       }
     },
+    "story.shoreArrival.body" : {
+      "comment" : "Story 2.6: shoreArrival reading node's ordinary body prose, shown after the branch-arrival interstitial is dismissed via Continue.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The shore is quieter than you expected, and nothing here looks like the place you left."
+          }
+        }
+      }
+    },
+    "story.shoreArrival.caption" : {
+      "comment" : "Story 2.6: branch-arrival interstitial's flavor caption for the shoreArrival node (UX-DR6) — distinct from the node's ordinary body prose, evokes the new branch reality.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new shore. A new reality."
+          }
+        }
+      }
+    },
+    "story.shoreArrival.illustration.accessibilityLabel" : {
+      "comment" : "Story 2.6: VoiceOver accessibility label for the shoreArrival branch-illustration (EXPERIENCE.md Accessibility Floor) — describes the illustration's specific visual content, not a restatement of the interstitial's caption.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Illustration of a fog-lit shoreline at dusk, waves lapping against unfamiliar rocks."
+          }
+        }
+      }
+    },
     "storyChoice.action.exitToHome" : {
       "comment" : "Story/Choice screen: temporary interim exit control (code review, 2026-08-01) — the .fullScreenCover Story session has no system back button or swipe-to-dismiss, and nothing else in the app can dismiss it yet. Replace with Story 2.7's real run-options sheet / Memory's \"Return Home\" when either lands.",
       "extractionState" : "manual",
@@ -192,6 +228,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The story remembers"
+          }
+        }
+      }
+    },
+    "storyChoice.interstitial.continue" : {
+      "comment" : "Story 2.6: branch-arrival interstitial's Continue button label — dismisses the interstitial, revealing the node's ordinary reading prose.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
           }
         }
       }

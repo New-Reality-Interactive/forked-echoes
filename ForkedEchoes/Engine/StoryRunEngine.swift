@@ -25,10 +25,38 @@ final class StoryRunEngine {
     /// reset logic. Re-derives correctly immediately after `resumingFromSnapshot(defaults:)` too,
     /// since it never reads anything but `currentNodeId`.
     var isEchoActive: Bool {
-        if case .reading(_, _, let echoBodyKey) = StoryTree.node(for: currentNodeId) {
+        if case .reading(_, _, let echoBodyKey, _) = StoryTree.node(for: currentNodeId) {
             return echoBodyKey != nil
         }
         return false
+    }
+
+    /// Story 2.6: `Reading --> Interstitial --> Reading` per the run-phase state diagram
+    /// (ARCHITECTURE-SPINE.md), purely derived from `currentNodeId` + the ephemeral
+    /// `interstitialDismissed` flag below — same "phase derived, not stored" ethos as
+    /// `isEchoActive` (AD-5). `.memory` isn't reachable yet (Epic 3) — omitted for now.
+    enum Phase: Equatable {
+        case reading
+        case interstitial
+        case ending
+    }
+
+    /// Never persisted (AD-5): a relaunch mid-interstitial resumes straight into the node's
+    /// reading content without re-showing the arrival announcement. Keyed by node, not reset on
+    /// navigation — code-review finding, 2026-08-02: a single ephemeral flag reset on every
+    /// `currentNodeId` change let the interstitial replay after backing up over a decided choice
+    /// and paging forward again onto a node already dismissed this session.
+    private var dismissedInterstitialNodeIds: Set<NodeID> = []
+
+    var phase: Phase {
+        switch StoryTree.node(for: currentNodeId) {
+        case .reading(_, _, _, let arrival):
+            return (arrival != nil && !dismissedInterstitialNodeIds.contains(currentNodeId)) ? .interstitial : .reading
+        case .choice:
+            return .reading
+        case .ending:
+            return .ending
+        }
     }
 
     private var visitedNodeIds: [NodeID] = []
@@ -64,6 +92,10 @@ final class StoryRunEngine {
         let engine = StoryRunEngine(startingAt: snapshot.currentNodeId, defaults: defaults)
         engine.choiceHistory = snapshot.choiceHistory
         engine.alignmentScore = snapshot.alignmentScore
+        // Story 2.6, AD-5: phase is never persisted, so a resumed run never re-shows the
+        // branch-arrival interstitial even if it resumes onto an arrival node — relaunch goes
+        // straight to that node's ordinary reading content.
+        engine.dismissedInterstitialNodeIds.insert(snapshot.currentNodeId)
         return engine
     }
 
@@ -98,8 +130,16 @@ final class StoryRunEngine {
     /// choice-selection UI made revisiting a decided page (via goBack()) an actual player action:
     /// swiping forward again from that revisit had nowhere to go. Corrected here.
     func advancePage() {
+        // Story 2.6: "Continue" past the branch-arrival interstitial (AD-3) — dismisses the
+        // interstitial without following the node's `next` link, without touching
+        // `visitedNodeIds`, and without persisting anything (AD-5: phase is non-persisted).
+        if phase == .interstitial {
+            dismissedInterstitialNodeIds.insert(currentNodeId)
+            return
+        }
+
         switch StoryTree.node(for: currentNodeId) {
-        case .reading(_, let next, _):
+        case .reading(_, let next, _, _):
             visitedNodeIds.append(currentNodeId)
             currentNodeId = next
             persistOrClearSnapshot()
@@ -121,6 +161,12 @@ final class StoryRunEngine {
     /// Moves back to the previously visited node, if any. Never mutates `choiceHistory` or
     /// `alignmentScore` — a committed choice stays committed (AD-3, FR-5).
     func goBack() {
+        // Story 2.6 (AD-5 amendment): blocks backward navigation unconditionally while the
+        // interstitial shows — releases only via its own Continue affordance.
+        if phase == .interstitial {
+            return
+        }
+
         guard let previous = visitedNodeIds.popLast() else {
             return
         }
@@ -153,6 +199,7 @@ final class StoryRunEngine {
         choiceHistory = []
         alignmentScore = 0
         visitedNodeIds = []
+        dismissedInterstitialNodeIds = []
     }
 
     // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both

@@ -1,7 +1,7 @@
 ---
 name: Forked Echoes — Experience Spine
 status: final
-updated: 2026-07-26
+updated: 2026-08-02
 sources:
   - _bmad-output/planning-artifacts/prds/prd-game-2026-07-25/prd.md
   - _bmad-output/brainstorming/brainstorm-ios-app-concept-2026-07-25/brainstorm-intent.md
@@ -57,7 +57,7 @@ Behavioral. Visual specs live in `DESIGN.md.Components`.
 | Choice card | Story/Choice page | Press-and-hold ~3s commits (FR-4); releasing before completion cancels back to idle at any point. A quick tap (or VoiceOver double-tap) also commits — instantly, then holds in a ~1.5s undo window (tap again to cancel) before finalizing, so the tap path is never *less* forgiving than holding. The tap path *is* the standard accessible equivalent, not a hidden fallback. Holding a second card while one is charging cancels the first (only one active charge at a time). Once finalized (charge completes, or the undo window elapses / the player pages forward), locks per FR-5 — revisiting shows the made choice, no re-selection control. |
 | Story page | Story/Choice | Swipe left advances, swipe right returns (FR-3); a tap on the right/left third of the reading card (`DESIGN.md.components.page-tap-zones`) does the same, and VoiceOver exposes explicit "Next Page"/"Previous Page" custom actions — page-turning is never reachable only by swipe (FR-11). Forward navigation blocked while an unresolved choice is on-page. Backward always available once ≥1 page read. When prose + choices exceed the visible card height (long scenes, 3-choice decision points, or accessibility Dynamic Type sizes), the content scrolls inside the frame — the frame itself (rule + corners) never scrolls or resizes. |
 | Echo callback block | Story page (state variant) | Appears inline within normal page flow, 2-3 times per run per choice per FR-6. Frame powers up (brass → ember, plus the via-grow/pad-fill shape cue, per `DESIGN.md.components.frame`) for the duration this block is on-screen; returns to dormant on the next page turn. |
-| Branch-arrival interstitial | Mid-story, on entering a new branch reality | Full-bleed, blocks page-turn gestures until dismissed via its own Continue affordance (tap). Not paged like story content — a distinct beat, not a page. |
+| Branch-arrival interstitial | Mid-story, on entering a new branch reality | Full-bleed illustration + caption — the arrival node's permanent content (no separate ordinary-prose reveal). On first arrival only, blocks page-turn gestures (swipe and tap-zone alike) until dismissed via its own Continue affordance (tap). On any later visit to the same node, it behaves like an ordinary page — swipe/tap work normally, no gate. |
 | Ending screen | Run terminus | One shared template (FR-9); only copy/illustration differ across home/stay/limbo/hard-fail. Hard-fail reaches this screen directly from a gotcha choice, bypassing normal page-turn flow — same destination, different route in. Tap anywhere to advance to Memory — no auto-advance, matching the "Tap to see your run →" affordance shown on-screen. |
 | Memory / Recap list | Immediately follows Ending (via tap), every run | Read-only list: choice → what it caused, ending with alignment score/tier. No editing, no re-litigating choices. Always two exits: Return Home, Start New Run. |
 | Home actions | Home | "Start Story" / "Start Tutorial" (relabels to "Resume Story" when a run is in progress), each independently tappable — home screen has no gesture-only affordances (FR-1). |
@@ -78,7 +78,7 @@ Behavioral. Visual specs live in `DESIGN.md.Components`.
 | Choice page revisited (decided) | Choice page, via back-nav | Shows the made choice in its committed styling; no alternate-choice control rendered at all (not just disabled). |
 | Alignment running total | Never surfaced during a run | FR-7: the alignment score is summed silently and is never rendered, announced, or otherwise exposed while a run is in progress — it first appears on Memory. |
 | Echo active | Story page | Echo callback block + powered-up frame, exactly for that page's duration. |
-| Interstitial active | Branch-arrival interstitial | Full-bleed art + caption, blocking page-turn (swipe and tap-zone alike) until the Continue affordance is tapped — symmetric to Echo active as a distinct, transient, blocking beat. |
+| Interstitial active | Branch-arrival interstitial | Full-bleed art + caption, blocking page-turn (swipe and tap-zone alike) until the Continue affordance is tapped — symmetric to Echo active as a distinct, transient, blocking beat (first visit to this node only — later visits render the same content without gating). |
 | Ending — home / stay / limbo | Ending | Shared template; tone shifts by copy only (see Voice and Tone). |
 | Ending — hard-fail | Ending | Same shared template, reached abruptly; recap still follows in full (FR-10 — no exception for hard-fail). |
 | Tutorial skipped | Home → Story | Tutorial is optional and only reachable from Home (FR-2) — skipping it has no different in-story state; the story doesn't know whether the tutorial was seen. |

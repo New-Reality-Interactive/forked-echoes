@@ -518,6 +518,8 @@ So the shift feels distinct and grounded.
 **When** rendered
 **Then** its text is sourced from `Localizable.xcstrings` by stable key, matching the same convention as story body prose (AD-2)
 
+*Note: gating/permanence behavior amended by Story 2.9 — see that story for current behavior.*
+
 ### Story 2.7: Run Options Action Sheet
 
 As a player mid-run,
@@ -573,6 +575,28 @@ So the core experience is accessible end-to-end.
 **Given** VoiceOver is active on a Story/Choice page
 **When** focus traversal occurs
 **Then** order follows eyebrow → prose → choices → pager, with run-options last (UX-DR12)
+
+### Story 2.9: Branch-Arrival Interstitial — First-Visit-Only Gate
+
+As a player,
+I want the branch-arrival illustration to stay part of the story when I revisit that point,
+So re-reading doesn't lose the moment or force me through an artificial gate again.
+
+*(Amendment to Story 2.6, raised via Sprint Change Proposal 2026-08-02 after Simulator playtesting — see `sprint-change-proposal-2026-08-02.md` and `ARCHITECTURE-SPINE.md`#AD-5's 2026-08-02 amendment.)*
+
+**Acceptance Criteria:**
+
+**Given** a branch-arrival node visited for the true first time (not yet in `visitedNodeIds`)
+**When** the player arrives
+**Then** phase derives to `.interstitial`: full-bleed illustration + caption renders as the node's permanent content (no separate ordinary-prose reveal), swipe/tap-zone do nothing, only Continue advances
+
+**Given** a branch-arrival node already present in `visitedNodeIds`
+**When** the player arrives there again (backing up to it, or after an app relaunch)
+**Then** the identical illustration + caption renders, but swipe/tap-zone/back all behave like an ordinary page — no Continue-only gate
+
+**Given** Story 2.6 shipped the original one-shot/prose-swap behavior
+**When** this story lands
+**Then** `ARCHITECTURE-SPINE.md` AD-5 and `EXPERIENCE.md`'s interstitial rows (already updated per the Sprint Change Proposal) match the shipped behavior, and Story 2.6's Swift Testing coverage is revised: no test may still assert the node reverts to ordinary body prose after dismissal
 
 ## Epic 3: Alignment Scoring, Ending & Memory Recap
 

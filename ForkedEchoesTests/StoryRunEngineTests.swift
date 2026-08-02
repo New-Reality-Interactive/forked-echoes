@@ -511,6 +511,28 @@ struct StoryRunEngineTests {
         #expect(engine.phase != .interstitial)
     }
 
+    // Code-review finding, 2026-08-02: interstitialDismissed used to be a single flag reset on
+    // every currentNodeId change, so backing up over a decided choice and paging forward again
+    // re-showed an already-dismissed interstitial. Regression test for the fix (dismissal now
+    // tracked per-node).
+    @Test func dismissedInterstitialDoesNotReplayAfterBackingUpAndPagingForwardAgain() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        engine.advancePage()
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .reading)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .firstChoice)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .reading)
+    }
+
     @Test func anEngineResumedOntoShoreArrivalReportsReadingPhaseNotInterstitial() {
         // AD-5's "relaunch doesn't re-show the arrival announcement" guarantee: phase is never
         // persisted, so a resumed run never re-shows the interstitial even if it resumes onto an

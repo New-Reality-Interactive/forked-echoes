@@ -16,31 +16,43 @@ struct BranchArrivalInterstitialView: View {
     let arrival: BranchArrival
     let onContinue: () -> Void
 
+    // Code-review finding, 2026-08-02: guards against a rapid double-tap on Continue invoking
+    // onContinue twice before SwiftUI re-renders the phase change away — the second call would
+    // otherwise fire against the now-.reading phase and skip past the node's prose entirely.
+    @State private var isDismissing = false
+
     var body: some View {
-        VStack(spacing: Spacing.large) {
-            Image(arrival.illustration.imageResource)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .accessibilityLabel(Text(LocalizedStringKey(arrival.illustration.accessibilityLabelKey)))
+        ScrollView {
+            VStack(spacing: Spacing.large) {
+                Image(arrival.illustration.assets.imageResource)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .accessibilityLabel(Text(LocalizedStringKey(arrival.illustration.assets.accessibilityLabelKey)))
 
-            // AC #1/#6: the interstitial's one flavor caption, styled as an oversized headline
-            // (DESIGN.md `components.interstitial.headline-color` = selected-fill) — this stands
-            // in for the node's ordinary body prose, which stays hidden until Continue.
-            Text(LocalizedStringKey(arrival.captionKey))
-                .font(.largeTitle)
-                .fontWeight(.heavy)
-                .foregroundStyle(Color.selectedFill)
-                .multilineTextAlignment(.center)
+                // AC #1/#6: the interstitial's one flavor caption, styled as an oversized headline
+                // (DESIGN.md `components.interstitial.headline-color` = selected-fill) — this stands
+                // in for the node's ordinary body prose, which stays hidden until Continue.
+                Text(LocalizedStringKey(arrival.captionKey))
+                    .font(.largeTitle)
+                    .fontWeight(.heavy)
+                    .foregroundStyle(Color.selectedFill)
+                    .multilineTextAlignment(.center)
 
-            Button(action: onContinue) {
-                Text(LocalizedStringKey("storyChoice.interstitial.continue"))
-                    .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
+                Button(action: {
+                    guard !isDismissing else { return }
+                    isDismissing = true
+                    onContinue()
+                }) {
+                    Text(LocalizedStringKey("storyChoice.interstitial.continue"))
+                        .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
+                }
+                .buttonStyle(.primaryAction)
+                .disabled(isDismissing)
             }
-            .buttonStyle(.primaryAction)
+            .padding(Spacing.large)
+            .frame(maxWidth: .infinity, minHeight: UIScreen.main.bounds.height)
         }
-        .padding(Spacing.large)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.inkPrimary)
     }
 }
@@ -48,16 +60,16 @@ struct BranchArrivalInterstitialView: View {
 // AD-1: exhaustive switch over BranchIllustration's cases — adding a future flavor without
 // adding its mapping arm here is a compile error. Views-layer only, keeps Content SwiftUI-free
 // (StoryChoiceView.swift's bodyKey/LocalizedStringKey boxing precedent for the same layering rule).
+//
+// Code-review finding, 2026-08-02: imageResource and accessibilityLabelKey used to be two
+// independent exhaustive switches — the compiler enforced completeness within each but not
+// consistency across them, so a future case could satisfy one and silently miss the other.
+// Collapsed into one switch returning both.
 private extension BranchIllustration {
-    var imageResource: ImageResource {
+    var assets: (imageResource: ImageResource, accessibilityLabelKey: String) {
         switch self {
-        case .shoreArrival: .shoreArrivalPlaceholder
-        }
-    }
-
-    var accessibilityLabelKey: String {
-        switch self {
-        case .shoreArrival: "story.shoreArrival.illustration.accessibilityLabel"
+        case .shoreArrival:
+            (.shoreArrivalPlaceholder, "story.shoreArrival.illustration.accessibilityLabel")
         }
     }
 }

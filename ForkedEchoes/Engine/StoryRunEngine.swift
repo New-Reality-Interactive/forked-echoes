@@ -42,15 +42,16 @@ final class StoryRunEngine {
     }
 
     /// Never persisted (AD-5): a relaunch mid-interstitial resumes straight into the node's
-    /// reading content without re-showing the arrival announcement. Reset unconditionally
-    /// whenever `currentNodeId` is about to change, so a newly arrived node's own arrival (if
-    /// any) always starts undismissed.
-    private var interstitialDismissed = false
+    /// reading content without re-showing the arrival announcement. Keyed by node, not reset on
+    /// navigation — code-review finding, 2026-08-02: a single ephemeral flag reset on every
+    /// `currentNodeId` change let the interstitial replay after backing up over a decided choice
+    /// and paging forward again onto a node already dismissed this session.
+    private var dismissedInterstitialNodeIds: Set<NodeID> = []
 
     var phase: Phase {
         switch StoryTree.node(for: currentNodeId) {
         case .reading(_, _, _, let arrival):
-            return (arrival != nil && !interstitialDismissed) ? .interstitial : .reading
+            return (arrival != nil && !dismissedInterstitialNodeIds.contains(currentNodeId)) ? .interstitial : .reading
         case .choice:
             return .reading
         case .ending:
@@ -94,7 +95,7 @@ final class StoryRunEngine {
         // Story 2.6, AD-5: phase is never persisted, so a resumed run never re-shows the
         // branch-arrival interstitial even if it resumes onto an arrival node — relaunch goes
         // straight to that node's ordinary reading content.
-        engine.interstitialDismissed = true
+        engine.dismissedInterstitialNodeIds.insert(snapshot.currentNodeId)
         return engine
     }
 
@@ -113,7 +114,6 @@ final class StoryRunEngine {
         alignmentScore += option.alignmentDelta
         visitedNodeIds.append(currentNodeId)
         currentNodeId = option.target
-        interstitialDismissed = false
         persistOrClearSnapshot()
     }
 
@@ -134,7 +134,7 @@ final class StoryRunEngine {
         // interstitial without following the node's `next` link, without touching
         // `visitedNodeIds`, and without persisting anything (AD-5: phase is non-persisted).
         if phase == .interstitial {
-            interstitialDismissed = true
+            dismissedInterstitialNodeIds.insert(currentNodeId)
             return
         }
 
@@ -142,7 +142,6 @@ final class StoryRunEngine {
         case .reading(_, let next, _, _):
             visitedNodeIds.append(currentNodeId)
             currentNodeId = next
-            interstitialDismissed = false
             persistOrClearSnapshot()
 
         case .choice(_, let options):
@@ -152,7 +151,6 @@ final class StoryRunEngine {
             }
             visitedNodeIds.append(currentNodeId)
             currentNodeId = target
-            interstitialDismissed = false
             persistOrClearSnapshot()
 
         case .ending:
@@ -174,7 +172,6 @@ final class StoryRunEngine {
         }
 
         currentNodeId = previous
-        interstitialDismissed = false
         persistOrClearSnapshot()
     }
 
@@ -202,7 +199,7 @@ final class StoryRunEngine {
         choiceHistory = []
         alignmentScore = 0
         visitedNodeIds = []
-        interstitialDismissed = false
+        dismissedInterstitialNodeIds = []
     }
 
     // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both

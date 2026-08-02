@@ -9,7 +9,9 @@ indirect enum StoryNode: Sendable {
     // compiling unchanged — only an echo-wired node passes a non-nil third value. Non-nil marks
     // this node as an authored callback to an earlier choice (AD-1: tree-shape-fixed, not a
     // runtime `choiceHistory` lookup) — see StoryRunEngine.isEchoActive.
-    case reading(bodyKey: String, next: NodeID, echoBodyKey: String? = nil)
+    // Story 2.6: `arrival` is a defaulted fourth associated value, same pattern — non-nil marks
+    // this node as a branch-reality arrival (AD-1: tree-shape-fixed) — see StoryRunEngine.phase.
+    case reading(bodyKey: String, next: NodeID, echoBodyKey: String? = nil, arrival: BranchArrival? = nil)
     case choice(promptKey: String, options: [ChoiceOption])
     case ending(EndingPayload)
 }
@@ -37,4 +39,17 @@ struct ChoiceOption: Hashable, Sendable {
     let labelKey: String
     let alignmentDelta: Int
     let target: NodeID
+}
+
+struct BranchArrival: Hashable, Sendable {
+    let illustration: BranchIllustration
+    let captionKey: String
+}
+
+// AD-1: one case per authored branch-reality flavor, a compile-time-checked identifier —
+// never a raw asset-name string. The Views layer (not Content) maps each case to its
+// generated ImageResource, keeping Content SwiftUI-free (see StoryChoiceView.swift's
+// existing bodyKey/LocalizedStringKey boxing precedent for the same layering rule).
+enum BranchIllustration: Sendable {
+    case shoreArrival
 }

@@ -85,6 +85,24 @@ enum LayoutMetrics {
     /// DESIGN.md `{components.frame}`'s "1px inset rule" stroke width (Story 2.5, code review
     /// 2026-08-01) — the dormant corner pad's hollow-square stroke.
     static let frameStrokeWidth: CGFloat = 1
+
+    /// No DESIGN.md token. Caps `BranchArrivalInterstitialView`'s illustration to this fraction
+    /// of the available height (Story 2.9, user-reported Simulator bug 2026-08-02): the image's
+    /// prior `.frame(maxHeight: .infinity)` had no actual ceiling inside a `ScrollView` (which
+    /// offers its content effectively unbounded height for layout purposes), so the illustration
+    /// alone consumed the full screen and pushed the caption/Continue button off-screen — with
+    /// scrolling disabled at ordinary Dynamic Type sizes (the fix for a separate, unreliable-
+    /// swipe bug), the button became completely unreachable. Tunable by feel, like this file's
+    /// other fraction-based constants.
+    static let interstitialIllustrationMaxHeightFraction: CGFloat = 0.5
+
+    /// Story 2.9 code review, 2026-08-02: `interstitialIllustrationMaxHeightFraction` alone isn't
+    /// enough in a compact-height (landscape) layout — the same off-screen-button risk it was
+    /// added to fix, just at ordinary Dynamic Type instead of only accessibility sizes, since
+    /// `BranchArrivalInterstitialView` deliberately keeps `ScrollView` disabled there to preserve
+    /// swipe-gesture reliability (no scroll-to-reach fallback). A smaller fraction in compact
+    /// height leaves more guaranteed room for the caption+button without reintroducing ScrollView.
+    static let interstitialIllustrationMaxHeightFractionCompact: CGFloat = 0.35
 }
 
 extension Duration {

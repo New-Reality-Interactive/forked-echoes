@@ -518,6 +518,8 @@ So the shift feels distinct and grounded.
 **When** rendered
 **Then** its text is sourced from `Localizable.xcstrings` by stable key, matching the same convention as story body prose (AD-2)
 
+*Note: gating/permanence behavior amended by Story 2.9 — see that story for current behavior.*
+
 ### Story 2.7: Run Options Action Sheet
 
 As a player mid-run,
@@ -573,6 +575,54 @@ So the core experience is accessible end-to-end.
 **Given** VoiceOver is active on a Story/Choice page
 **When** focus traversal occurs
 **Then** order follows eyebrow → prose → choices → pager, with run-options last (UX-DR12)
+
+### Story 2.9: Branch-Arrival Interstitial — First-Visit-Only Gate
+
+As a player,
+I want the branch-arrival illustration to stay part of the story when I revisit that point,
+So re-reading doesn't lose the moment or force me through an artificial gate again.
+
+*(Amendment to Story 2.6, raised via Sprint Change Proposal 2026-08-02 after Simulator playtesting — see `sprint-change-proposal-2026-08-02.md` and `ARCHITECTURE-SPINE.md`#AD-5's 2026-08-02 amendment.)*
+
+**Acceptance Criteria:**
+
+**Given** a branch-arrival node visited for the true first time (not yet in `visitedNodeIds`)
+**When** the player arrives
+**Then** phase derives to `.interstitial`: full-bleed illustration + caption renders as the node's permanent content (no separate ordinary-prose reveal), swipe/tap-zone do nothing, only Continue advances
+
+**Given** a branch-arrival node already present in `visitedNodeIds`
+**When** the player arrives there again (backing up to it, or after an app relaunch)
+**Then** the identical illustration + caption renders, but swipe/tap-zone/back all behave like an ordinary page — no Continue-only gate
+
+**Given** Story 2.6 shipped the original one-shot/prose-swap behavior
+**When** this story lands
+**Then** `ARCHITECTURE-SPINE.md` AD-5 and `EXPERIENCE.md`'s interstitial rows (already updated per the Sprint Change Proposal) match the shipped behavior, and Story 2.6's Swift Testing coverage is revised: no test may still assert the node reverts to ordinary body prose after dismissal
+
+### Story 2.10: Persist Back-Navigation Across App Relaunch
+
+As a player,
+I want to swipe back through pages I've already read even after force-quitting and relaunching the app,
+So that resuming a run doesn't strand me on a forward-only path.
+
+*(Follow-up gap surfaced during Story 2.9 Simulator testing, 2026-08-02 — deferred by explicit user decision rather than blocking Story 2.9. Pre-existing since Story 2.4: `StoryRunEngine.visitedNodeIds`, the back-navigation stack `goBack()` pops, has never been part of `RunSnapshot` — `resumingFromSnapshot(defaults:)`'s own doc comment documents an empty post-resume back-stack as "an accepted, deliberate consequence" of `RunSnapshot`'s original four-field shape. In practice this means `goBack()` is silently a no-op immediately after any relaunch, on every page in the app, until the player advances forward at least once in the new session — not specific to the branch-arrival interstitial, just first surfaced there. See `sprint-status.yaml`'s `epic: 2` action item for the same gap, recorded 2026-08-02.)*
+
+**Acceptance Criteria:**
+
+**Given** a mid-run `RunSnapshot` persisted before the app terminates, at a node reached via one or more forward page-turns from earlier in the run
+**When** the app relaunches and resumes from that snapshot
+**Then** `goBack()` can navigate backward through those same previously-visited pages exactly as it could before the relaunch — not silently a no-op until the player advances forward again first
+
+**Given** `RunSnapshot`'s schema
+**When** extended to carry whatever backward-navigation history this story needs
+**Then** it decodes gracefully (a sensible default, not a rejected/corrupted snapshot) for any snapshot written before this story ships, which has no such field — mirroring Story 2.9's `visitedArrivalNodeIds` precedent for extending the snapshot schema
+
+**Given** the branch-arrival interstitial (Story 2.9)
+**When** its own dismissal-persistence and revisit-rendering behavior is exercised together with this story's fix
+**Then** nothing regresses: a dismissed arrival node still renders ungated on any revisit, including a relaunch-then-`goBack()`-into-it path this story newly makes reachable
+
+**And** a Swift Testing case verifies: a snapshot capturing a multi-step-forward run position, when resumed via `resumingFromSnapshot(defaults:)` on a freshly-constructed engine, supports `goBack()` navigating backward through that history correctly — not just forward (AD-7, NFR3)
+
+**And** a manual-verification AC: in Xcode/Simulator, advance forward through at least two pages, force-quit, relaunch, tap "Resume Story," and confirm swiping/tapping backward now works through the pages visited before the relaunch, not just forward. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
 ## Epic 3: Alignment Scoring, Ending & Memory Recap
 

@@ -43,6 +43,13 @@ struct BranchArrivalInterstitialView: View {
     // overflow risk this view's `ScrollView` was added for (Story 2.6 code review) is real.
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
+    // Story 2.9 code review, 2026-08-02: the fixed illustration-height fraction alone left no
+    // room guarantee in a compact-height (landscape) layout at ordinary Dynamic Type, where
+    // ScrollView stays deliberately disabled (see above) — reintroducing the same off-screen-
+    // button risk this story fixed, just via a different trigger. A smaller fraction in compact
+    // height keeps the caption+button reachable without reintroducing ScrollView's gesture race.
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+
     var body: some View {
         // Story 2.9 (user-reported Simulator bug, 2026-08-02): the illustration's prior
         // `.frame(maxHeight: .infinity)` had no real ceiling inside a `ScrollView` (which offers
@@ -71,7 +78,7 @@ struct BranchArrivalInterstitialView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(maxWidth: .infinity)
-                .frame(maxHeight: availableHeight * LayoutMetrics.interstitialIllustrationMaxHeightFraction)
+                .frame(maxHeight: availableHeight * illustrationMaxHeightFraction)
                 .accessibilityLabel(Text(LocalizedStringKey(arrival.illustration.assets.accessibilityLabelKey)))
 
             // AC #1/#6: the interstitial's one flavor caption, styled as an oversized headline
@@ -100,6 +107,12 @@ struct BranchArrivalInterstitialView: View {
         }
         .padding(Spacing.large)
         .frame(maxWidth: .infinity, minHeight: availableHeight)
+    }
+
+    private var illustrationMaxHeightFraction: CGFloat {
+        verticalSizeClass == .compact
+            ? LayoutMetrics.interstitialIllustrationMaxHeightFractionCompact
+            : LayoutMetrics.interstitialIllustrationMaxHeightFraction
     }
 }
 

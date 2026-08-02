@@ -95,6 +95,14 @@ enum LayoutMetrics {
     /// swipe bug), the button became completely unreachable. Tunable by feel, like this file's
     /// other fraction-based constants.
     static let interstitialIllustrationMaxHeightFraction: CGFloat = 0.5
+
+    /// Story 2.9 code review, 2026-08-02: `interstitialIllustrationMaxHeightFraction` alone isn't
+    /// enough in a compact-height (landscape) layout — the same off-screen-button risk it was
+    /// added to fix, just at ordinary Dynamic Type instead of only accessibility sizes, since
+    /// `BranchArrivalInterstitialView` deliberately keeps `ScrollView` disabled there to preserve
+    /// swipe-gesture reliability (no scroll-to-reach fallback). A smaller fraction in compact
+    /// height leaves more guaranteed room for the caption+button without reintroducing ScrollView.
+    static let interstitialIllustrationMaxHeightFractionCompact: CGFloat = 0.35
 }
 
 extension Duration {

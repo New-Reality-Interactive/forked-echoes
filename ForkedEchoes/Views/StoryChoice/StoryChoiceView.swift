@@ -49,9 +49,16 @@ struct StoryChoiceView: View {
                 // phase == .interstitial (StoryRunEngine.swift), so leaving the swipe gesture/tap
                 // zones attached would let an ordinary swipe silently dismiss the interstitial
                 // early — only the dedicated Continue button may call it while this phase holds.
+                // Story 2.9 code review, 2026-08-02: .id(engine.currentNodeId) forces a fresh
+                // BranchArrivalInterstitialView (and its @State isDismissing) if advancePage()
+                // ever lands directly on a second, not-yet-dismissed arrival node — not reachable
+                // with the current single-arrival-node tree, but without this, SwiftUI would
+                // reuse the same instance/isDismissing across the transition and permanently
+                // disable the second node's Continue button.
                 BranchArrivalInterstitialView(arrival: arrival) {
                     engine.advancePage()
                 }
+                .id(engine.currentNodeId)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 // Story 2.9 (AC #2): a node with arrival data that ISN'T gated (already visited —
@@ -303,10 +310,15 @@ struct StoryChoiceView: View {
 }
 
 #Preview("Branch arrival, ungated revisit") {
-    // Story 2.9: one advancePage() call while gated dismisses the interstitial without moving
-    // currentNodeId (StoryRunEngine.swift) — the same state a genuine revisit derives to.
+    // Story 2.9 code review, 2026-08-02: advancePage() now follows `next` past a dismissed
+    // arrival node (the "User correction" rework), so a single advancePage() call no longer
+    // stays on .shoreArrival — it reaches .endingElsewhere. goBack() afterward returns to the
+    // now-dismissed, ungated .shoreArrival, the same state a genuine revisit derives to (see
+    // advancingFromARevisitedDismissedArrivalNodeReachesTheSameNextTargetAgain in
+    // StoryRunEngineTests.swift).
     let engine = StoryRunEngine(startingAt: .shoreArrival)
     engine.advancePage()
+    engine.goBack()
     return StoryChoiceView(onExitToHome: {})
         .environment(engine)
 }

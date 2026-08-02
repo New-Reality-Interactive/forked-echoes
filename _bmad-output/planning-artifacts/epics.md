@@ -102,7 +102,7 @@ UX-DR8: Memory/Recap screen — read-only list of choice → consequence rows, a
 
 UX-DR9: Home screen — title, story title, "Start Story"/"Start Tutorial" actions (relabels to "Resume Story" when a run is in progress per snapshot presence); no circuit frame; simpler/more spacious layout than reading surfaces.
 
-UX-DR10: Tutorial screen — explains page-turn (swipe/tap-zone) and choice (hold/tap) mechanics in words before the player reaches a real choice; Back Home / Start Story actions, tap only.
+UX-DR10: Tutorial screen — explains page-turn (swipe/tap-zone) and choice (hold/tap) mechanics in words before the player reaches a real choice; "Start Story" is a fixed, always-visible primary action (pinned outside scrolling content, both orientations); leaving Tutorial uses standard iOS back navigation (nav-bar button/edge-swipe), no separate "Back Home" button. *(Amended 2026-08-02 — see Story 2.11 and `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md`; originally specified "Back Home / Start Story actions, tap only" as implemented by Story 1.3.)*
 
 UX-DR11: Run-options action sheet — ellipsis-circle icon, top-right of the reading card content area, present on every Story/Choice and Tutorial page (absent from interstitial and Home); opens platform-native action sheet with Exit to Home (non-destructive, preserves snapshot), Restart This Run (destructive-styled, requires a second explicit confirmation, clears progress and score), Cancel.
 
@@ -623,6 +623,30 @@ So that resuming a run doesn't strand me on a forward-only path.
 **And** a Swift Testing case verifies: a snapshot capturing a multi-step-forward run position, when resumed via `resumingFromSnapshot(defaults:)` on a freshly-constructed engine, supports `goBack()` navigating backward through that history correctly — not just forward (AD-7, NFR3)
 
 **And** a manual-verification AC: in Xcode/Simulator, advance forward through at least two pages, force-quit, relaunch, tap "Resume Story," and confirm swiping/tapping backward now works through the pages visited before the relaunch, not just forward. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+### Story 2.11: Tutorial Navigation & Fixed-Actions Layout
+
+As a player,
+I want a single, obvious way back to Home from Tutorial and the "Start Story" button always reachable without scrolling,
+So the screen isn't cluttered with two overlapping exits and I'm never stuck scrolling past the mechanics copy just to start the story.
+
+*(UX design pass with Sally, 2026-08-02, prompted by user observation on this branch — see `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md` for the full discussion and rationale. Amends UX-DR10 and Story 1.3's shipped ("done") implementation; Story 1.3 itself is left historically intact per the Story 2.6→2.9 precedent.)*
+
+**Acceptance Criteria:**
+
+**Given** the Tutorial screen as it ships today (Story 1.3/1.4)
+**When** this story lands
+**Then** the in-content "Back Home" button is removed; leaving Tutorial is via the standard `NavigationStack` back button (top-left nav bar) and its default edge-swipe gesture — no `.navigationBarBackButtonHidden` suppression, no replacement in-content exit control
+
+**Given** the Tutorial screen's "Start Story" / "Resume Story" action
+**When** rendered in either portrait or landscape, and regardless of Dynamic Type category
+**Then** the button is pinned outside the scrollable region (fixed position, always visible without scrolling) — only the mechanic-explanation copy scrolls, using a restructure of the shared `GeometryReader`/`ScrollView` centering pattern (project-context.md's "Never use `Spacer()` inside this pattern" rule still applies to whatever internal layout replaces it)
+
+**Given** this is a Tutorial-only change
+**When** implemented
+**Then** `HomeView.swift` and its `GeometryReader`/`ScrollView` centering pattern are untouched — Home is not in scope for this story
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm (1) tapping the nav-bar back chevron and (2) an edge-swipe-back gesture both return to Home from Tutorial; (3) "Start Story"/"Resume Story" is reachable with zero scrolling in landscape at both default and an accessibility Dynamic Type size; (4) the mechanic-explanation text still scrolls independently when it overflows. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
 ## Epic 3: Alignment Scoring, Ending & Memory Recap
 

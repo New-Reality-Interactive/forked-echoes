@@ -90,6 +90,12 @@ struct TutorialView: View {
                     dismiss()
                 },
                 onRestartRun: {
+                    // Code review, 2026-08-02: Tutorial can be reached with no run in progress at
+                    // all (fresh install, never tapped "Start Story"), where "Restart This Run"
+                    // has nothing real to restart — without this guard, confirming it silently
+                    // manufactures a fresh RunSnapshot behind a "can't be undone" dialog that's
+                    // describing progress that never existed.
+                    guard runProgress.hasInProgressRun else { return }
                     engine.restartRun()
                     // Story 2.7: restarting from a fresh install's Tutorial page (no prior run)
                     // writes a RunSnapshot for the first time, flipping hasInProgressRun false ->

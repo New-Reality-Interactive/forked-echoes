@@ -32,25 +32,30 @@ struct RunOptionsButton: View {
         // DESIGN.md palette pass for every Epic 2 reading-surface component at once.
         .foregroundStyle(Color.inkPrimary)
         .padding(Spacing.small)
-        .accessibilityLabel(Text("storyChoice.runOptions.accessibilityLabel"))
-        .confirmationDialog("storyChoice.runOptions.accessibilityLabel", isPresented: $isPresentingOptions, titleVisibility: .hidden) {
-            Button("storyChoice.runOptions.exitToHome") {
+        .accessibilityLabel(Text("runOptions.accessibilityLabel"))
+        // Code review, 2026-08-02 (UX-DR12): VoiceOver's default traversal order follows visual
+        // layout, and this button sits top-trailing — first in reading order, not last. A negative
+        // sort priority (default is 0 for every other element in this composition) pushes it to
+        // the end of the traversal, after eyebrow -> prose -> choices -> pager, per UX-DR12.
+        .accessibilitySortPriority(-1)
+        .confirmationDialog("runOptions.accessibilityLabel", isPresented: $isPresentingOptions, titleVisibility: .hidden) {
+            Button("runOptions.exitToHome") {
                 onExitToHome()
             }
-            Button("storyChoice.runOptions.restartRun", role: .destructive) {
+            Button("runOptions.restartRun", role: .destructive) {
                 isPresentingRestartConfirmation = true
             }
-            Button("storyChoice.runOptions.cancel", role: .cancel) {}
+            Button("runOptions.cancel", role: .cancel) {}
         }
         .confirmationDialog(
-            "storyChoice.runOptions.restartConfirmation.title",
+            "runOptions.restartConfirmation.title",
             isPresented: $isPresentingRestartConfirmation,
             titleVisibility: .visible
         ) {
-            Button("storyChoice.runOptions.restartRun", role: .destructive) {
+            Button("runOptions.restartRun", role: .destructive) {
                 onRestartRun()
             }
-            Button("storyChoice.runOptions.cancel", role: .cancel) {}
+            Button("runOptions.cancel", role: .cancel) {}
         }
     }
 }

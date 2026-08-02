@@ -76,6 +76,66 @@
         }
       }
     },
+    "runOptions.accessibilityLabel" : {
+      "comment" : "Story 2.7: explicit VoiceOver label for the run-options ellipsis.circle icon (UX-DR12) — overrides the SF Symbol's default name. Also doubles as the first confirmationDialog's hidden title.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run options"
+          }
+        }
+      }
+    },
+    "runOptions.cancel" : {
+      "comment" : "Story 2.7: run-options action sheet and its restart-confirmation dialog both use this Cancel label — shared by both, dismisses without changing anything.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "runOptions.exitToHome" : {
+      "comment" : "Story 2.7: run-options action sheet's non-destructive option — returns to Home, preserving the in-progress RunSnapshot.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit to Home"
+          }
+        }
+      }
+    },
+    "runOptions.restartConfirmation.title" : {
+      "comment" : "Story 2.7: explanatory title for the second, destructive-action confirmation dialog presented after selecting \"Restart This Run\" — only confirming this clears anything.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This clears your progress and score. This can't be undone."
+          }
+        }
+      }
+    },
+    "runOptions.restartRun" : {
+      "comment" : "Story 2.7: run-options action sheet's destructive option label, and also the second confirmation dialog's destructive confirm-button label (same text, both call sites).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart This Run"
+          }
+        }
+      }
+    },
     "story.boatEcho.body" : {
       "comment" : "Story 2.5 echo-wired content tree: boatEcho node's ordinary body text, reached only via firstChoice's boat option",
       "extractionState" : "manual",
@@ -180,18 +240,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Illustration of a fog-lit shoreline at dusk, waves lapping against unfamiliar rocks."
-          }
-        }
-      }
-    },
-    "storyChoice.action.exitToHome" : {
-      "comment" : "Story/Choice screen: temporary interim exit control (code review, 2026-08-01) — the .fullScreenCover Story session has no system back button or swipe-to-dismiss, and nothing else in the app can dismiss it yet. Replace with Story 2.7's real run-options sheet / Memory's \"Return Home\" when either lands.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exit to Home"
           }
         }
       }

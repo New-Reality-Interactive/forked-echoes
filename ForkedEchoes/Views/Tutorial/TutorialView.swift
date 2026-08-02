@@ -3,6 +3,12 @@ import SwiftUI
 struct TutorialView: View {
     @Environment(\.dismiss) private var dismiss
 
+    // Story 2.7: retrofits Tutorial with the run-options control it was missing (UX-DR11) — the
+    // first time this view has needed StoryRunEngine at all. Requires RootView's .environment(
+    // engine) to be broadened to cover the whole NavigationStack (Task 6), not just the
+    // fullScreenCover, or this crashes at runtime with no Observable object of this type found.
+    @Environment(StoryRunEngine.self) private var engine
+
     // AD-5: the Story session is a full-screen modal presented from RootView, not a
     // NavigationStack push -- this button just flips the shared binding, RootView owns the
     // .fullScreenCover(isPresented:) itself.
@@ -77,6 +83,23 @@ struct TutorialView: View {
             }
             .background(Color.surfaceBase.ignoresSafeArea())
         }
+        .overlay(alignment: .topTrailing) {
+            RunOptionsButton(
+                onExitToHome: {
+                    engine.exitToHome()
+                    dismiss()
+                },
+                onRestartRun: {
+                    engine.restartRun()
+                    // Story 2.7: restarting from a fresh install's Tutorial page (no prior run)
+                    // writes a RunSnapshot for the first time, flipping hasInProgressRun false ->
+                    // true — nothing dismisses this view to trigger RootView's existing refresh-
+                    // on-dismiss path, so the "Start Story"/"Resume Story" label needs an
+                    // explicit refresh here or it goes stale until some other navigation event.
+                    runProgress.refresh()
+                }
+            )
+        }
         .correctColdLaunchOrientation()
         .onAppear { runProgress.refresh() }
     }
@@ -93,4 +116,5 @@ struct TutorialView: View {
             }
     }
     .environment(RunProgressObserver())
+    .environment(StoryRunEngine())
 }

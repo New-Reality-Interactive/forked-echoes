@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-08-02 (2-9-branch-arrival-interstitial-first-visit-only-gate: code review complete, all patches applied, status done; 2-10-persist-back-navigation-across-app-relaunch: added to backlog, deferred follow-up from Story 2.9 Simulator testing)
+last_updated: 2026-08-02 (2-7-run-options-action-sheet: code review complete, all patches applied (Tutorial restart guard, UX-DR12 focus-traversal order, runOptions.* localization key rename), status done; 2-9-branch-arrival-interstitial-first-visit-only-gate: code review complete, all patches applied, status done; 2-10-persist-back-navigation-across-app-relaunch: added to backlog, deferred follow-up from Story 2.9 Simulator testing)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -71,7 +71,7 @@ development_status:
   2-4-run-persistence-runsnapshot: done
   2-5-narrative-callback-choice-echo: done
   2-6-branch-arrival-interstitial-and-illustrations: done
-  2-7-run-options-action-sheet: backlog
+  2-7-run-options-action-sheet: done
   2-8-reading-surface-visual-identity-dynamic-type-and-reduce-motion: backlog
   2-9-branch-arrival-interstitial-first-visit-only-gate: done
   2-10-persist-back-navigation-across-app-relaunch: backlog
@@ -119,3 +119,11 @@ action_items:
     action: "goBack() cannot navigate backward at all immediately after an app relaunch, on any page, because visitedNodeIds (the back-navigation stack) is never part of RunSnapshot (AD-4's original 4 fields, pre-dating Story 2.9) - user-confirmed via Story 2.9 Simulator testing 2026-08-02 (forward swipe worked post-relaunch, backward did not). User explicitly approved deferring the fix to a future 2.x story rather than blocking Story 2.9 on it. Formalized as Story 2.10 (added to epics.md and sprint-status.yaml, 2026-08-02) - see that story for full AC."
     owner: "Winston (Architect) / Amelia (Dev)"
     status: done
+  - epic: 2
+    action: "Design question: should the branch-arrival interstitial carry the run-options control too? Currently excluded per UX-DR11/DESIGN.md ('absent from interstitial... pure art moment'), confirmed working-as-spec during Story 2.7 manual verification, 2026-08-02. User's stated preference is that the run-options escape hatch should be available on every page outside Home, interstitial included, rather than carving it out as a no-escape zone. See deferred-work.md's '2-7-run-options-action-sheet' entry for full context. Needs a real UX decision (does this undercut the interstitial's 'pure art moment' intent?) before scoping as a story."
+    owner: "Sally (UX) / Winston (Architect)"
+    status: open
+  - epic: 2
+    action: "Design question: run-options sheet is missing a third option that both clears the run AND returns to Home in one action. Today's two options (Exit to Home = non-destructive, preserves snapshot, stays where left off; Restart This Run = destructive, resets to intro but stays in-session, does not go to Home) leave no single-tap way to fully clear progress and land back on a clean Home screen - only a two-step workaround (Restart, then Exit to Home). User-raised 2026-08-02 during Story 2.7 manual verification. See deferred-work.md's '2-7-run-options-action-sheet' entry for full context. Needs a UX decision on the sheet's option set/copy (also consider overlap with Memory's existing Return Home / Start New Run pair, FR10) before scoping as a story."
+    owner: "Sally (UX) / Winston (Architect)"
+    status: open

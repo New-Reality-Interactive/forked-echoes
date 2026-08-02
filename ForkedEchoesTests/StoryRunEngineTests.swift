@@ -609,4 +609,89 @@ struct StoryRunEngineTests {
         #expect(reloaded?.visitedArrivalNodeIds.isEmpty == true)
         #expect(engine.phase == .interstitial)
     }
+
+    // Story 2.7: exitToHome()/restartRun() complete AD-3's intent surface (only startNewRun(),
+    // Epic 3's job, remains). exitToHome() is intentionally a no-op — these tests prove that
+    // directly, including against the persisted snapshot, not just in-memory state.
+    @Test func exitToHomeDoesNotMutateEngineState() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+
+        engine.exitToHome()
+
+        #expect(engine.currentNodeId == .boatEcho)
+        #expect(engine.choiceHistory == [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)])
+        #expect(engine.alignmentScore == 1)
+    }
+
+    @Test func exitToHomeLeavesAnExistingPersistedSnapshotUntouched() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        let beforeSnapshot = RunSnapshot.loadValid(from: defaults)
+
+        engine.exitToHome()
+
+        let afterSnapshot = RunSnapshot.loadValid(from: defaults)
+        #expect(afterSnapshot == beforeSnapshot)
+    }
+
+    @Test func restartRunResetsAllRunStateMidRun() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .boatEcho)
+
+        engine.restartRun()
+
+        #expect(engine.currentNodeId == StoryTree.root)
+        #expect(engine.choiceHistory.isEmpty)
+        #expect(engine.alignmentScore == 0)
+
+        // Back-navigation stack cleared as part of the reset (Task 1's resetRunState()).
+        engine.goBack()
+        #expect(engine.currentNodeId == StoryTree.root)
+    }
+
+    // Story 2.9 precedent: restartRun() must clear dismissed-arrival-node state too, or a fresh
+    // run's own first-ever visit to .shoreArrival would incorrectly skip the gate.
+    @Test func restartRunClearsDismissedArrivalNodeState() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        engine.advancePage() // dismiss the interstitial, advances to .endingElsewhere
+        #expect(engine.currentNodeId == .endingElsewhere)
+
+        engine.restartRun()
+        engine.advancePage() // .intro -> .firstChoice
+        engine.selectChoice(.shore) // re-arrive at .shoreArrival on the restarted run
+
+        #expect(engine.phase == .interstitial)
+    }
+
+    // The regression this story exists to prevent: restartRun() must persist immediately, unlike
+    // startFreshRunIfCurrentRunHasEnded(), because a real snapshot of the pre-restart run is
+    // already on disk. Without an immediate persist, a force-quit right after confirming "Restart
+    // This Run" (simulated here by constructing a second, independent engine on the same
+    // UserDefaults suite) would resurrect the pre-restart run instead of the fresh one confirmed.
+    @Test func restartRunImmediatelyOverwritesTheStaleMidRunSnapshot() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .boatEcho)
+
+        engine.restartRun()
+
+        let relaunchedEngine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        #expect(relaunchedEngine.currentNodeId == StoryTree.root)
+        #expect(relaunchedEngine.choiceHistory.isEmpty)
+        #expect(relaunchedEngine.alignmentScore == 0)
+    }
 }

@@ -197,6 +197,29 @@ final class StoryRunEngine {
         persistOrClearSnapshot()
     }
 
+    /// Story 2.7 (AD-3): leaves the Story session for Home mid-run, preserving the in-progress
+    /// `RunSnapshot` untouched (non-destructive, per the run-options action sheet's "Exit to
+    /// Home"). Intentionally does nothing: `persistOrClearSnapshot()` already wrote the current
+    /// state synchronously as a side effect of whatever mutating intent last ran (AD-4), so there
+    /// is nothing left to change here. This method exists anyway, as a real named intent rather
+    /// than being skipped in favor of a bare View-layer action, purely so "Exit to Home" routes
+    /// through the engine's fixed intent surface (AD-3's explicit list names it) like every other
+    /// player action — don't "simplify" this away. The actual Home navigation is a View-layer
+    /// concern this engine has no state for (AD-5): `StoryChoiceView`'s `onExitToHome` closure and
+    /// `TutorialView`'s `@Environment(\.dismiss)` are what actually get the player back to Home.
+    func exitToHome() {}
+
+    /// Story 2.7 (AD-3): the run-options action sheet's destructive "Restart This Run," fired
+    /// mid-run after its own second confirmation. Resets to a fresh run at `StoryTree.root` and,
+    /// unlike `startFreshRunIfCurrentRunHasEnded()` below, immediately persists that reset state
+    /// (AD-4) — this fires while a real `RunSnapshot` of the *old* run is still on disk, so
+    /// skipping the persist here would let a force-quit immediately after confirming Restart
+    /// resurrect the pre-restart run on relaunch instead of the fresh one just confirmed.
+    func restartRun() {
+        resetRunState()
+        persistOrClearSnapshot()
+    }
+
     /// Resets to a fresh run at `StoryTree.root` if the current run has ended; a no-op otherwise
     /// (mid-run, "Start Story"/"Resume Story" tapped again should do nothing to the live run).
     ///
@@ -205,18 +228,25 @@ final class StoryRunEngine {
     /// a run reached `.ending` — tapping "Start Story" from Home re-presented the same finished
     /// run instead of a fresh one. AD-3 keeps the engine the sole mutator of its own state, so
     /// this is a real engine method, not `RootView` reaching into `currentNodeId` directly (which
-    /// has no public setter). This is a narrowly-scoped fix for that one break, not the general
-    /// `startNewRun()`/`exitToHome()`/`restartRun()` intent surface AD-3 anticipates — restarting
-    /// or exiting *mid-run* remains Story 2.7/Epic 3's job.
+    /// has no public setter).
     ///
     /// No `persistOrClearSnapshot()` call here: reaching `.ending` already cleared any snapshot
     /// (AC #5), so there's nothing to clear, and a freshly reset run shouldn't persist until its
-    /// first mutating intent completes — same as any other fresh run (AC #1's own scope).
+    /// first mutating intent completes — same as any other fresh run (AC #1's own scope). Contrast
+    /// with `restartRun()` above, which fires mid-run against a still-valid on-disk snapshot and
+    /// therefore must persist immediately.
     func startFreshRunIfCurrentRunHasEnded() {
         guard case .ending = StoryTree.node(for: currentNodeId) else {
             return
         }
 
+        resetRunState()
+    }
+
+    /// Shared reset shape for `startFreshRunIfCurrentRunHasEnded()` and `restartRun()` — the only
+    /// difference between the two callers is the guard condition and whether a snapshot write
+    /// follows, not which fields get reset.
+    private func resetRunState() {
         currentNodeId = StoryTree.root
         choiceHistory = []
         alignmentScore = 0

@@ -25,10 +25,8 @@ struct StoryChoiceView: View {
     @State private var activeChoiceOptionID: ChoiceOptionID?
 
     // Code review, 2026-08-01: the .fullScreenCover presentation (AD-5) has no system back
-    // button or swipe-to-dismiss by construction, and nothing else in the app can dismiss it
-    // yet — a player who taps "Start Story" had no way back out. This is a temporary interim
-    // exit control, not a designed feature; Story 2.7's run-options sheet (or Memory's "Return
-    // Home") replaces it with the real, deliberate exit path.
+    // button or swipe-to-dismiss by construction — this closure is the Story session's real,
+    // deliberate exit path, invoked from RunOptionsButton's "Exit to Home" action (Story 2.7).
     //
     // A plain @Environment(\.dismiss) only closes this fullScreenCover, revealing whatever sits
     // underneath in RootView's NavigationStack — Home if the session was launched from Home, but
@@ -105,7 +103,15 @@ struct StoryChoiceView: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                exitButton
+                RunOptionsButton(
+                    onExitToHome: {
+                        engine.exitToHome()
+                        onExitToHome()
+                    },
+                    onRestartRun: {
+                        engine.restartRun()
+                    }
+                )
             }
             .accessibilityAction(named: Text("storyChoice.pager.nextPage")) {
                 engine.advancePage()
@@ -136,17 +142,6 @@ struct StoryChoiceView: View {
         case .reading, .choice: true
         case .ending: false
         }
-    }
-
-    private var exitButton: some View {
-        Button {
-            onExitToHome()
-        } label: {
-            Text("storyChoice.action.exitToHome")
-                .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
-        }
-        .buttonStyle(.secondaryAction)
-        .padding(Spacing.small)
     }
 
     @ViewBuilder

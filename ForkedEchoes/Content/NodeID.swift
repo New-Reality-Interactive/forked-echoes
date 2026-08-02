@@ -7,6 +7,7 @@ enum NodeID: Hashable, CaseIterable, Sendable, Codable {
     case intro
     case firstChoice
     case boatEcho
+    case shoreArrival
     case endingHomeward
     case endingElsewhere
 }

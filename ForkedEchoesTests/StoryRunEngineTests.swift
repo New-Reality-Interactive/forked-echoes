@@ -258,12 +258,14 @@ struct StoryRunEngineTests {
         // session is about to be presented.
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
-        // .shore reaches an ending directly (unlike .boat, which now passes through the
-        // echo-wired .boatEcho reading node first, Story 2.5) — this test only needs a run that
-        // has already ended, not either specific path.
+        // .boat reaches an ending directly via .boatEcho, one advancePage() past the echo node
+        // (unlike .shore, which now passes through the interstitial-wired .shoreArrival reading
+        // node first, Story 2.6) — this test only needs a run that has already ended, not either
+        // specific path.
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
-        engine.selectChoice(.shore)
-        #expect(engine.currentNodeId == .endingElsewhere)
+        engine.selectChoice(.boat)
+        engine.advancePage()
+        #expect(engine.currentNodeId == .endingHomeward)
 
         engine.startFreshRunIfCurrentRunHasEnded()
 
@@ -285,13 +287,15 @@ struct StoryRunEngineTests {
     @Test func reachingAnEndingNodeClearsTheStoredSnapshot() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
-        // .shore reaches an ending directly (unlike .boat, which now passes through the
-        // echo-wired .boatEcho reading node first, Story 2.5).
+        // .boat reaches an ending directly via .boatEcho, one advancePage() past the echo node
+        // (unlike .shore, which now passes through the interstitial-wired .shoreArrival reading
+        // node first, Story 2.6).
         let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
 
-        engine.selectChoice(.shore)
+        engine.advancePage()
 
-        #expect(engine.currentNodeId == .endingElsewhere)
+        #expect(engine.currentNodeId == .endingHomeward)
         #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
     }
 
@@ -382,7 +386,14 @@ struct StoryRunEngineTests {
 
         engine.selectChoice(.shore)
 
-        #expect(engine.currentNodeId == .endingElsewhere)
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.isEchoActive == false)
+
+        // Story 2.6: .shoreArrival is now interstitial-wired — the first advancePage() only
+        // dismisses the interstitial (Continue), it doesn't move currentNodeId yet.
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .shoreArrival)
         #expect(engine.isEchoActive == false)
 
         engine.advancePage()
@@ -428,5 +439,95 @@ struct StoryRunEngineTests {
 
         #expect(engine.currentNodeId == .firstChoice)
         #expect(engine.isEchoActive == false)
+    }
+
+    // Story 2.6 (AC #7, AD-7): branch-arrival interstitial phase derivation and dismissal.
+
+    @Test func selectingShoreArrivesAtShoreArrivalWithInterstitialPhase() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.shore)
+
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .interstitial)
+    }
+
+    @Test func advancePageWhileInterstitialDismissesToReadingAtTheSameNode() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        #expect(engine.phase == .interstitial)
+
+        engine.advancePage()
+
+        #expect(engine.phase == .reading)
+        #expect(engine.currentNodeId == .shoreArrival)
+    }
+
+    @Test func goBackWhileInterstitialIsANoOp() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        #expect(engine.phase == .interstitial)
+
+        engine.goBack()
+
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .interstitial)
+    }
+
+    @Test func advancePageAfterInterstitialDismissalMovesOnToTheRealNextTarget() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        engine.advancePage()
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .reading)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .endingElsewhere)
+    }
+
+    @Test func theBoatPathNeverReportsInterstitialPhaseAnywhereAlongIt() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        #expect(engine.phase != .interstitial)
+
+        engine.selectChoice(.boat)
+
+        #expect(engine.currentNodeId == .boatEcho)
+        #expect(engine.phase != .interstitial)
+
+        engine.advancePage()
+
+        #expect(engine.currentNodeId == .endingHomeward)
+        #expect(engine.phase != .interstitial)
+    }
+
+    @Test func anEngineResumedOntoShoreArrivalReportsReadingPhaseNotInterstitial() {
+        // AD-5's "relaunch doesn't re-show the arrival announcement" guarantee: phase is never
+        // persisted, so a resumed run never re-shows the interstitial even if it resumes onto an
+        // arrival node — it goes straight to that node's ordinary reading content.
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .shoreArrival,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
+            alignmentScore: -1,
+            tutorialSeen: false
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .reading)
     }
 }

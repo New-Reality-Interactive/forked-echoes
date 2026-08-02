@@ -2,10 +2,10 @@ import Foundation
 
 // Story 2.1: minimal placeholder tree (1 reading node -> 1 choice node w/ 2 options -> 2 terminal
 // ending nodes) to exercise StoryRunEngine/UI. Story 2.5 added one echo-wired reading node on the
-// .boat path. The tree never reconverges: firstChoice's two options each lead to a distinct
-// ending node (.boat via the new echo node, .shore directly). Full v1 authoring is Epic 4's job
-// (epics.md Epic 2 Content note) — this tree is expected to be replaced wholesale, not extended
-// in place.
+// .boat path; Story 2.6 added one branch-arrival node on the .shore path. The tree never
+// reconverges: firstChoice's two options each lead to a distinct ending node (.boat via the echo
+// node, .shore via the arrival node). Full v1 authoring is Epic 4's job (epics.md Epic 2 Content
+// note) — this tree is expected to be replaced wholesale, not extended in place.
 //
 // Prose keys follow ARCHITECTURE-SPINE.md's `story.<nodeId>.body` / `story.<nodeId>.choice.<n>`
 // convention, referenced as plain dot-path String keys (project-context.md Localization section —
@@ -56,7 +56,7 @@ enum StoryTree {
                         id: .shore,
                         labelKey: "story.firstChoice.choice.2",
                         alignmentDelta: -1,
-                        target: .endingElsewhere
+                        target: .shoreArrival
                     ),
                 ]
             )
@@ -66,6 +66,16 @@ enum StoryTree {
         // reconverges: .boat now flows through this one extra node before .endingHomeward.
         case .boatEcho:
             return .reading(bodyKey: "story.boatEcho.body", next: .endingHomeward, echoBodyKey: "story.boatEcho.echo")
+
+        // Story 2.6: branch-arrival node reached only via .shore (AD-1 — tree-shape fixes this
+        // at author-time). The tree still never reconverges: .shore now flows through this one
+        // extra node before .endingElsewhere.
+        case .shoreArrival:
+            return .reading(
+                bodyKey: "story.shoreArrival.body",
+                next: .endingElsewhere,
+                arrival: BranchArrival(illustration: .shoreArrival, captionKey: "story.shoreArrival.caption")
+            )
 
         case .endingHomeward, .endingElsewhere:
             return .ending(EndingPayload(nodeId: id))

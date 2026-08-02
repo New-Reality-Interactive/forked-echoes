@@ -40,6 +40,26 @@ struct StoryChoiceView: View {
     let onExitToHome: () -> Void
 
     var body: some View {
+        Group {
+            if engine.phase == .interstitial, case .reading(_, _, _, let arrival?) = StoryTree.node(for: engine.currentNodeId) {
+                // Story 2.6, AC #2/#5: this branch fully replaces the ordinary composition below
+                // — no page-turn gesture, no tap zones, no exit/run-options button attached at
+                // all while the interstitial shows, not merely visually hidden. advancePage()
+                // itself performs the Continue/dismiss behavior whenever phase == .interstitial
+                // (StoryRunEngine.swift), so leaving the swipe gesture/tap zones attached would
+                // let an ordinary swipe silently dismiss the interstitial early — only the
+                // dedicated Continue button may call it while this phase holds.
+                BranchArrivalInterstitialView(arrival: arrival) {
+                    engine.advancePage()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                readingComposition
+            }
+        }
+    }
+
+    private var readingComposition: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .contentShape(Rectangle())
@@ -51,7 +71,9 @@ struct StoryChoiceView: View {
             // rule someone has to remember to honor elsewhere — but `content`'s own `.ending`
             // case renders inside this same view, so the overlay must explicitly skip it too
             // (code review, 2026-08-01: an unconditional overlay let the dormant Frame render on
-            // the Ending placeholder as well).
+            // the Ending placeholder as well). Story 2.6: the interstitial branch above never
+            // reaches this modifier chain at all, so it's excluded by construction too (DESIGN.md
+            // Components: "no circuit frame here").
             .overlay {
                 if isFrameEligibleNode {
                     FrameView(isActive: engine.isEchoActive)
@@ -98,7 +120,7 @@ struct StoryChoiceView: View {
     @ViewBuilder
     private var content: some View {
         switch StoryTree.node(for: engine.currentNodeId) {
-        case .reading(let bodyKey, _, let echoBodyKey):
+        case .reading(let bodyKey, _, let echoBodyKey, _):
             // Content's keys are plain String (Content has zero dependency on SwiftUI, per
             // ARCHITECTURE-SPINE.md's layering) — must be explicitly boxed as LocalizedStringKey
             // here, or Text(_:) silently picks its verbatim StringProtocol overload instead of

@@ -52,15 +52,10 @@ struct BranchArrivalInterstitialView: View {
     // after `.headlineStyle()` did NOT override the color `HeadlineTextStyle` bakes in
     // (`Color.inkPrimary`) — real Simulator rendering showed the caption invisible (inkPrimary
     // and surfaceInverse are the identical hex value in light mode, so the "wrong" color and the
-    // background matched exactly). The "later modifiers win" assumption this file's Dev Notes
-    // (and the story's Task 6) made about chaining a `.foregroundStyle` after a custom
-    // `ViewModifier` that already sets one internally does not hold in practice here. Fixed by not
-    // routing through `headlineStyle()` at all for this call site — this `@ScaledMetric` and the
-    // font/tracking below replicate DESIGN.md `typography.headline` directly, so the color can be
-    // set once, correctly, with no override-order ambiguity. Do not "fix" this by re-adding
-    // `.headlineStyle()` — see above.
-    @ScaledMetric(relativeTo: .largeTitle) private var captionTracking: CGFloat = -0.68
-
+    // background matched exactly). Code review, 2026-08-02: fixed at the source — `headlineStyle()`
+    // now takes a `color` parameter (`Typography.swift`) instead of hardcoding `inkPrimary`, so
+    // this call site sets the color once, correctly, with no override-order ambiguity, and no
+    // longer needs its own duplicated copy of `HeadlineTextStyle`'s tracking constant.
     var body: some View {
         // Story 2.9 (user-reported Simulator bug, 2026-08-02): the illustration's prior
         // `.frame(maxHeight: .infinity)` had no real ceiling inside a `ScrollView` (which offers
@@ -98,19 +93,21 @@ struct BranchArrivalInterstitialView: View {
                 .accessibilityLabel(Text(LocalizedStringKey(arrival.illustration.assets.accessibilityLabelKey)))
 
             // DESIGN.md `components.interstitial.caption-bar-accent` = accent-ember, a thin rule
-            // above the caption text — no other element for this, added here.
+            // above the caption text — no other element for this, added here. Purely decorative,
+            // like FrameView's corner marks — hidden so VoiceOver doesn't announce it as an
+            // unlabeled element.
             Rectangle()
                 .fill(Color.accentEmber)
                 .frame(width: Self.captionBarAccentWidth, height: Self.captionBarAccentHeight)
+                .accessibilityHidden(true)
 
             // AC #1/#6: the interstitial's one flavor caption, styled as an oversized headline
-            // (DESIGN.md `components.interstitial.headline-color` = selected-fill). Replicates
-            // `.headlineStyle()`'s font/tracking (DESIGN.md `typography.headline`) directly rather
-            // than calling it — see the `captionTracking` property's comment above for why.
+            // (DESIGN.md `components.interstitial.headline-color` = selected-fill), uppercased per
+            // `typography.headline.note` (Uppercase for every headline-role usage except Home/
+            // Tutorial's carved-out story-title exception, which doesn't apply here).
             Text(LocalizedStringKey(arrival.captionKey))
-                .font(.largeTitle.weight(.black))
-                .tracking(captionTracking)
-                .foregroundStyle(Color.selectedFill)
+                .headlineStyle(color: Color.selectedFill)
+                .textCase(.uppercase)
                 .multilineTextAlignment(.center)
 
             // Story 2.9 (AC #2): only rendered while gated. A revisited arrival node is an

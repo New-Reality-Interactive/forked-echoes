@@ -31,11 +31,31 @@ struct ChoiceCardView: View {
 
     // Story 2.8, AC #3: Reduce Motion routes a touch-down through the same tap-undo path
     // handleAccessibilityActivate() already uses for VoiceOver, instead of starting the animated
-    // 3s charge — this keeps "the tap path is never less forgiving than holding" (this file's own
-    // header comment) true under Reduce Motion too: an accidental touch still gets the existing
-    // undo window, it just never sees an animated charge. Read per-view (AD-3: StoryRunEngine
-    // never touches rendering/animation), not stored in or gated by the engine.
+    // 3s charge — this keeps holding functionally equivalent to tapping under Reduce Motion (both
+    // lock into the undo window immediately) rather than requiring a hold to complete a charge
+    // that no longer visibly exists. Read per-view (AD-3: StoryRunEngine never touches
+    // rendering/animation), not stored in or gated by the engine.
+    //
+    // Code review, 2026-08-02/03 — two rounds: (1) an early version called
+    // lockAndStartUndoWindow() from touchDown()'s .idle case with no re-entrancy guard — broke on
+    // the very next onChanged of the SAME continuous touch (chargeGesture's
+    // DragGesture(minimumDistance: 0) fires onChanged repeatedly, not once), which landed on the
+    // .tapAwaitingUndo case below (written for a genuinely new second touch) and canceled the
+    // choice via resetToIdle() before the finger ever lifted. (2) The first fix routed through the
+    // normal `.charging` state instead and let touchUp() classify tap-vs-hold on release — that
+    // broke long-press commit entirely under Reduce Motion (user-confirmed via Simulator, 2026-08-03:
+    // holding did nothing), since there is no timer to auto-finalize a sustained hold once the 3s
+    // charge Task is skipped. Restored the immediate touch-down lock, guarded by
+    // `hasLockedReduceMotionTouch` below so the SAME touch's repeated `onChanged` calls are a safe
+    // no-op while a genuinely new touch (after this one's `onEnded`/touchUp() resets the flag)
+    // still cancels via `.tapAwaitingUndo` as intended.
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // Story 2.8, AC #3 (see `reduceMotion`'s comment above): guards `.tapAwaitingUndo` in
+    // `touchDown()` against the SAME continuous touch's own repeated `onChanged` callbacks under
+    // Reduce Motion. Reset in `touchUp()`/`resetToIdle()`, never read outside this Reduce Motion
+    // touch-down path.
+    @State private var hasLockedReduceMotionTouch = false
 
     // Not decided elsewhere, not finalized locally. Deliberately does NOT check whether a
     // sibling is currently active — AC #1 ("holding a second cancels the first") requires a
@@ -69,6 +89,14 @@ struct ChoiceCardView: View {
             .overlay(alignment: .trailing) {
                 if showsCheckmark {
                     Image(systemName: "checkmark")
+                        .padding(.trailing, Spacing.medium)
+                } else if isInteractive {
+                    // Code review, 2026-08-02: DESIGN.md `components.choice-card` — "...
+                    // {typography.choice-label}, an arrow glyph trailing"; EXPERIENCE.md's Choice
+                    // idle row: "Card shows text + arrow". No SF Symbol is named by either doc —
+                    // chevron.right is a reasonable idle-state default, shown only while
+                    // interactive (idle/charging), never alongside the checkmark or once decided.
+                    Image(systemName: "chevron.right")
                         .padding(.trailing, Spacing.medium)
                 }
             }
@@ -134,11 +162,14 @@ struct ChoiceCardView: View {
 
         switch localState {
         case .idle:
-            // Story 2.8, AC #3: under Reduce Motion, a touch-down skips the animated 3s charge
-            // entirely and routes through the same tap-undo path VoiceOver's
-            // handleAccessibilityActivate() already uses — never straight to finalize(), which
-            // would make Reduce Motion strictly less forgiving than every other interaction path.
+            // Story 2.8, AC #3: under Reduce Motion, lock straight into the tap-undo path —
+            // matching handleAccessibilityActivate()'s VoiceOver shape — instead of starting the
+            // animated 3s charge. hasLockedReduceMotionTouch (reset in touchUp()) makes this
+            // idempotent for the SAME continuous touch's own repeated onChanged callbacks, which
+            // would otherwise fall through to the .tapAwaitingUndo case below and be misread as a
+            // second, distinct touch canceling the choice before the finger ever lifts.
             guard !reduceMotion else {
+                hasLockedReduceMotionTouch = true
                 lockAndStartUndoWindow()
                 return
             }
@@ -159,7 +190,10 @@ struct ChoiceCardView: View {
         case .tapAwaitingUndo:
             // A second touch while the undo window is open: full cancel. selectChoice(_:) never
             // fired (RESOLVED CONFLICT), so there is nothing to undo at the engine layer — this
-            // is purely local state reverting.
+            // is purely local state reverting. hasLockedReduceMotionTouch distinguishes that from
+            // this SAME touch's own repeated onChanged calls immediately after the Reduce Motion
+            // lock above (see that case's comment) — ignore those instead of canceling.
+            guard !hasLockedReduceMotionTouch else { return }
             resetToIdle()
 
         case .charging, .finalized:
@@ -168,6 +202,12 @@ struct ChoiceCardView: View {
     }
 
     private func touchUp(translation: CGSize) {
+        // Story 2.8, AC #3: clears the Reduce Motion re-entrancy guard as soon as this touch ends
+        // — unconditionally, since under Reduce Motion localState is already .tapAwaitingUndo (not
+        // .charging) by the time onEnded fires, so the guard below returns early without reaching
+        // any of the logic that would otherwise reset it.
+        hasLockedReduceMotionTouch = false
+
         // Fires on every touch-up. A completed charge has already moved localState to .finalized
         // by the time this runs (the Task-based timer, not this gesture callback, drives that) —
         // only a still-.charging state here means the touch is actually ending mid-interaction.
@@ -231,6 +271,10 @@ struct ChoiceCardView: View {
         pendingTask = nil
         localState = .idle
         chargeProgress = 0
+        // Story 2.8, AC #3: any reset to idle (VoiceOver's second-activation cancel above, a
+        // sibling card stealing activeOptionID via onChange below) should also clear this so a
+        // future Reduce Motion touch on this card starts from a clean slate.
+        hasLockedReduceMotionTouch = false
         if activeOptionID == option.id {
             activeOptionID = nil
         }

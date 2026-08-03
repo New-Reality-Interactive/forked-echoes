@@ -20,12 +20,13 @@ private struct EyebrowTextStyle: ViewModifier {
 
 private struct HeadlineTextStyle: ViewModifier {
     @ScaledMetric(relativeTo: .largeTitle) private var tracking: CGFloat = -0.68
+    let color: Color
 
     func body(content: Content) -> some View {
         content
             .font(.largeTitle.weight(.black))
             .tracking(tracking)
-            .foregroundStyle(Color.inkPrimary)
+            .foregroundStyle(color)
     }
 }
 
@@ -53,13 +54,21 @@ extension View {
     }
 
     /// DESIGN.md `typography.headline`: largeTitle, weight 900/black, tracking -0.02em.
-    /// Not uppercased here — the approved home/tutorial mockups render the story title in
-    /// Title Case, overriding the token note's "Uppercase" for this specific use. DESIGN.md
-    /// also binds `typography.stat` to the same `largeTitle` text style ("scale in lockstep"
-    /// with headline) — don't reuse this helper for `stat` (e.g. Memory screen's score,
+    /// `color` defaults to `ink-primary` (Home/Tutorial's story-title use, which also stays
+    /// Title Case rather than uppercase — the mockups' one carved-out exception to the token's
+    /// "Uppercase" note, so this helper never applies `.textCase` itself; callers that need
+    /// Uppercase per the token's default rule add `.textCase(.uppercase)` themselves). Story 2.8:
+    /// parameterized so a different-surface headline (e.g. the branch-arrival interstitial's
+    /// `selected-fill`-on-`surface-inverse` caption) can reuse this modifier's font/tracking
+    /// without forking a second copy of the `@ScaledMetric` tracking constant — chaining a plain
+    /// `.foregroundStyle` after this modifier does NOT reliably override the color it sets
+    /// internally (code review, 2026-08-02: confirmed in Simulator, the root cause of a real
+    /// invisible-caption bug this story shipped and fixed), so the color must be passed in here.
+    /// DESIGN.md also binds `typography.stat` to the same `largeTitle` text style ("scale in
+    /// lockstep" with headline) — don't reuse this helper for `stat` (e.g. Memory screen's score,
     /// Epic 3) without re-deciding the uppercase question for that context.
-    func headlineStyle() -> some View {
-        modifier(HeadlineTextStyle())
+    func headlineStyle(color: Color = Color.inkPrimary) -> some View {
+        modifier(HeadlineTextStyle(color: color))
     }
 
     /// DESIGN.md `typography.body`: body, weight 500/medium.

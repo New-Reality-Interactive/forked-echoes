@@ -113,16 +113,26 @@ struct StoryChoiceView: View {
                 GeometryReader { proxy in
                     ScrollView {
                         content
-                            .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
+                            .id(engine.currentNodeId)
+                            .transition(.opacity)
                             .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)
                     }
                 }
             } else {
                 content
-                    .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
+                    .id(engine.currentNodeId)
+                    .transition(.opacity)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             }
         }
+        // Story 2.8, AC #3/EXPERIENCE.md Accessibility Floor: page-turn is "plain wayfinding
+        // motion" that must collapse to an instant cut under Reduce Motion, same gating shape as
+        // the interstitial's phase-keyed transition above and FrameView's power-up transition.
+        // `.id(engine.currentNodeId)` above forces a fresh `content` instance per page so the
+        // `.transition(.opacity)` actually fires; without it, two pages sharing the same `content`
+        // switch case (e.g. two `.reading` prose nodes) would just update their `Text` in place
+        // with nothing to animate.
+        .animation(reduceMotion ? nil : .easeInOut, value: engine.currentNodeId)
         .contentShape(Rectangle())
         .gesture(pageTurnGesture)
             .background(pageTapZones)
@@ -193,6 +203,12 @@ struct StoryChoiceView: View {
         // Dev Notes' resolved design question) — readingComposition's ordinary gestures are the
         // only way to advance from here, exactly like any other reading page.
         case .reading(_, _, _, let arrival?):
+            // Code review, 2026-08-02: this composition must stay full-bleed (DESIGN.md Layout &
+            // Spacing: "the branch-arrival interstitial is the one full-bleed exception") — no
+            // .readingCardPadding here, unlike the other cases below. BranchArrivalInterstitialView
+            // already applies its own internal Spacing.large padding and fills the available area
+            // with Color.surfaceInverse; wrapping it in readingComposition's outer padding left a
+            // visible non-full-bleed margin around the art on every revisit.
             BranchArrivalInterstitialView(arrival: arrival, onContinue: nil)
 
         case .reading(let bodyKey, _, let echoBodyKey, _):
@@ -229,6 +245,7 @@ struct StoryChoiceView: View {
                     .accessibilityElement(children: .combine)
                 }
             }
+            .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
 
         case .choice(let promptKey, let options):
             // Story 2.3: engine.choiceHistory is the sole source of truth for whether this page
@@ -261,6 +278,7 @@ struct StoryChoiceView: View {
                     }
                 }
             }
+            .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
 
         case .ending:
             // AC #4: temporary stand-in Epic 3 Story 3.2 replaces with the real Ending screen —
@@ -269,6 +287,7 @@ struct StoryChoiceView: View {
             // (StoryChoicePlaceholderView.swift) — dev-facing copy, not authored story content.
             // The payload (terminal NodeID) isn't needed yet — Story 3.1 is what gives it real use.
             Text(verbatim: "Run complete — Ending screen coming in Epic 3")
+                .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
         }
     }
 

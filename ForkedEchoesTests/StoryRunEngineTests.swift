@@ -732,11 +732,44 @@ struct StoryRunEngineTests {
         engine.goBack()
         #expect(engine.currentNodeId == .firstChoice)
 
+        // Code review, 2026-08-03 (Story 2.10 patch): this story is specifically about
+        // persistence, but nothing above confirmed the shrinking stack actually round-trips
+        // through persistOrClearSnapshot() on disk, not just in memory — reload here and assert
+        // the on-disk visitedNodeIds matches what's left after two pops.
+        #expect(RunSnapshot.loadValid(from: defaults)?.visitedNodeIds == [.intro])
+
         engine.goBack()
         #expect(engine.currentNodeId == .intro)
 
         engine.goBack()
         #expect(engine.currentNodeId == .intro) // stack exhausted, no-op (pre-existing behavior)
+    }
+
+    // Code review, 2026-08-03 (Story 2.10 patch): AC #3 guards against this story's persisted
+    // back-stack interacting badly with Story 2.9's interstitial gate. The composition test above
+    // only covers a *dismissed* arrival node; this covers the un-dismissed case — a resumed engine
+    // with a non-empty persisted visitedNodeIds stack sitting on a never-dismissed arrival node
+    // must still have goBack() blocked entirely by phase == .interstitial (Story 2.6/2.9), not
+    // silently pop the stack because history happens to exist.
+    @Test func goBackStaysBlockedByInterstitialGateOnAResumedEngineWithNonEmptyHistory() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .shoreArrival,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
+            alignmentScore: -1,
+            tutorialSeen: false,
+            visitedArrivalNodeIds: [],
+            visitedNodeIds: [.intro, .firstChoice]
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+        #expect(engine.phase == .interstitial)
+
+        engine.goBack()
+
+        #expect(engine.currentNodeId == .shoreArrival) // gate held; stack untouched despite non-empty history
     }
 
     // Story 2.10 (AC #3): proves this story's persisted back-stack composes correctly with Story

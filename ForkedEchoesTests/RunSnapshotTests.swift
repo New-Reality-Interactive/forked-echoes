@@ -58,6 +58,26 @@ struct RunSnapshotTests {
         #expect(decoded.visitedNodeIds.isEmpty)
     }
 
+    // Code review, 2026-08-03 (Story 2.10 patch): visitedNodeIds is an ordered [NodeID], unlike
+    // visitedArrivalNodeIds's Set — duplicate entries are meaningful (a player can revisit the
+    // same node id twice in one back-navigation history if the tree ever reconverges) and order
+    // must survive the round trip. Nothing above actually asserted this.
+    @Test func encodeDecodeRoundTripPreservesDuplicateAndOrderedVisitedNodeIds() throws {
+        let snapshot = RunSnapshot(
+            currentNodeId: .shoreArrival,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
+            alignmentScore: -1,
+            tutorialSeen: false,
+            visitedArrivalNodeIds: [],
+            visitedNodeIds: [.intro, .intro, .firstChoice]
+        )
+
+        let data = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(RunSnapshot.self, from: data)
+
+        #expect(decoded.visitedNodeIds == [.intro, .intro, .firstChoice])
+    }
+
     @Test func loadValidReturnsNilWhenKeyIsMissing() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }

@@ -10,7 +10,8 @@ struct RunSnapshotTests {
             choiceHistory: [ChoiceRecord(nodeId: .intro, chosenOptionId: .boat)],
             alignmentScore: 3,
             tutorialSeen: false,
-            visitedArrivalNodeIds: [.shoreArrival]
+            visitedArrivalNodeIds: [.shoreArrival],
+            visitedNodeIds: [.intro, .firstChoice]
         )
 
         let data = try JSONEncoder().encode(snapshot)
@@ -36,6 +37,25 @@ struct RunSnapshotTests {
 
         #expect(decoded.currentNodeId == .firstChoice)
         #expect(decoded.visitedArrivalNodeIds.isEmpty)
+    }
+
+    // Story 2.10 (Task 1): a snapshot written before this story shipped has no `visitedNodeIds`
+    // key at all. This must decode cleanly with an empty array, not fail — same reasoning as
+    // decodingASnapshotWithoutTheVisitedArrivalNodeIdsKeyDefaultsToEmpty above, for the new field.
+    @Test func decodingASnapshotWithoutTheVisitedNodeIdsKeyDefaultsToEmpty() throws {
+        let legacyJSON = """
+        {
+            "currentNodeId": {"firstChoice": {}},
+            "choiceHistory": [],
+            "alignmentScore": 0,
+            "tutorialSeen": false,
+            "visitedArrivalNodeIds": []
+        }
+        """
+        let decoded = try JSONDecoder().decode(RunSnapshot.self, from: Data(legacyJSON.utf8))
+
+        #expect(decoded.currentNodeId == .firstChoice)
+        #expect(decoded.visitedNodeIds.isEmpty)
     }
 
     @Test func loadValidReturnsNilWhenKeyIsMissing() {

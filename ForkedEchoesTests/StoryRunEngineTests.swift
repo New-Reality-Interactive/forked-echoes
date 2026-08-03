@@ -694,4 +694,95 @@ struct StoryRunEngineTests {
         #expect(relaunchedEngine.choiceHistory.isEmpty)
         #expect(relaunchedEngine.alignmentScore == 0)
     }
+
+    // Story 2.10 (AC #1, #4): the actual regression test for the bug this story fixes. Before
+    // this story, StoryRunEngine.visitedNodeIds (the back-navigation stack) was never part of
+    // RunSnapshot, so a freshly-constructed engine resuming onto a mid-run snapshot always
+    // started with an empty stack — goBack() was a silent no-op until the player advanced forward
+    // again in the new session. Builds a snapshot at a node reached via two forward moves from
+    // root (.intro -> .firstChoice -> .shoreArrival), with visitedNodeIds recording that history,
+    // resumes on a fresh engine instance, and proves goBack() can walk all the way back through
+    // it, exactly as it could pre-relaunch.
+    @Test func resumedEngineCanNavigateBackwardThroughPersistedHistory() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let snapshot = RunSnapshot(
+            currentNodeId: .shoreArrival,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
+            alignmentScore: -1,
+            tutorialSeen: false,
+            visitedArrivalNodeIds: [],
+            visitedNodeIds: [.intro, .firstChoice]
+        )
+        defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
+
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .interstitial)
+
+        // Interstitial blocks backward navigation until dismissed (Story 2.6/2.9) — advance past
+        // it first via Continue, matching how a player would actually reach a backward-navigable
+        // state from a never-dismissed arrival node.
+        engine.advancePage()
+        #expect(engine.currentNodeId == .endingElsewhere)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .shoreArrival)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .firstChoice)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .intro)
+
+        engine.goBack()
+        #expect(engine.currentNodeId == .intro) // stack exhausted, no-op (pre-existing behavior)
+    }
+
+    // Story 2.10 (AC #3): proves this story's persisted back-stack composes correctly with Story
+    // 2.9's persisted arrival-dismissal tracking rather than one silently overriding the other.
+    // Drives a real engine through dismissing .shoreArrival, advancing past it, then backing up
+    // to it once (leaving a genuinely resumable, non-ending on-disk snapshot — reaching the
+    // ending itself would clear the snapshot entirely, AC #5), then resumes a FRESH engine
+    // instance from that exact on-disk state and confirms: (a) it lands on the dismissed arrival
+    // node ungated, matching Story 2.9's own behavior, and (b) goBack() from there still walks
+    // further back through this story's persisted history to the choice node.
+    @Test func resumedEngineComposesPersistedBackStackWithDismissedArrivalState() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let priorSessionEngine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        priorSessionEngine.selectChoice(.shore)
+        priorSessionEngine.advancePage() // Continue: dismiss + advance to .endingElsewhere
+        priorSessionEngine.goBack() // back to .shoreArrival, now ungated; writes a resumable snapshot
+        #expect(priorSessionEngine.currentNodeId == .shoreArrival)
+
+        // Simulate force-quit + relaunch: a brand new engine instance, not the same one above.
+        let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
+
+        #expect(engine.currentNodeId == .shoreArrival)
+        #expect(engine.phase == .reading)
+
+        engine.goBack()
+
+        #expect(engine.currentNodeId == .firstChoice)
+    }
+
+    // Story 2.10 (Task 2): resetRunState() already cleared the in-memory visitedNodeIds stack
+    // (pre-dates this story) — this proves the clear now also propagates to disk via the next
+    // persistOrClearSnapshot() call, mirroring Story 2.9's equivalent regression test for
+    // visitedArrivalNodeIds.
+    @Test func startingAFreshRunAfterEndingClearsPersistedBackNavigationHistoryOnNextSnapshotWrite() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        engine.advancePage() // .boatEcho -> .endingHomeward, clears the snapshot (AC #5)
+        #expect(engine.currentNodeId == .endingHomeward)
+
+        engine.startFreshRunIfCurrentRunHasEnded()
+        engine.advancePage() // .intro (StoryTree.root) -> .firstChoice, the fresh run's own start
+
+        let reloaded = RunSnapshot.loadValid(from: defaults)
+        #expect(reloaded?.visitedNodeIds == [.intro])
+    }
 }

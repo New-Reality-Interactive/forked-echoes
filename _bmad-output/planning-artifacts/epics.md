@@ -104,7 +104,7 @@ UX-DR9: Home screen — title, story title, "Start Story"/"Start Tutorial" actio
 
 UX-DR10: Tutorial screen — explains page-turn (swipe/tap-zone) and choice (hold/tap) mechanics in words before the player reaches a real choice; "Start Story" is a fixed, always-visible primary action (pinned outside scrolling content, both orientations); leaving Tutorial uses standard iOS back navigation (nav-bar button/edge-swipe), no separate "Back Home" button. *(Amended 2026-08-02 — see Story 2.11 and `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md`; originally specified "Back Home / Start Story actions, tap only" as implemented by Story 1.3.)*
 
-UX-DR11: Run-options action sheet — ellipsis-circle icon, top-right of the reading card content area, present on every Story/Choice and Tutorial page (absent from interstitial and Home); opens platform-native action sheet with Exit to Home (non-destructive, preserves snapshot), Restart This Run (destructive-styled, requires a second explicit confirmation, clears progress and score), Cancel.
+UX-DR11: Run-options action sheet — ellipsis-circle icon, top-right of the reading card content area, present on every Story/Choice page (absent from interstitial, Home, and Tutorial); opens platform-native action sheet with Exit to Home (non-destructive, preserves snapshot), Restart This Run (destructive-styled, requires a second explicit confirmation, clears progress and score), Cancel. *(Amended 2026-08-02 — see Story 2.11 and `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md`; originally added to Tutorial by Story 2.7 as "present on every Story/Choice and Tutorial page." Tutorial is a pre-run explainer, not a page within a run — its own back navigation already covers the "leave" case, and "Restart This Run" needed a hasInProgressRun guard to avoid describing progress that might not exist, a sign the control didn't fit the screen it was retrofitted onto.)*
 
 UX-DR12: VoiceOver support — every choice card exposes role/label/state (including the 1.5s undo-window announcement); Story page exposes "Next Page"/"Previous Page" as VoiceOver custom actions (rotor-accessible, since swipe is otherwise consumed by VoiceOver navigation); run-options button carries an explicit `accessibilityLabel` of "Run options"; focus traversal follows reading order (eyebrow → prose → choices → pager, run-options last).
 
@@ -627,10 +627,10 @@ So that resuming a run doesn't strand me on a forward-only path.
 ### Story 2.11: Tutorial Navigation & Fixed-Actions Layout
 
 As a player,
-I want a single, obvious way back to Home from Tutorial and the "Start Story" button always reachable without scrolling,
-So the screen isn't cluttered with two overlapping exits and I'm never stuck scrolling past the mechanics copy just to start the story.
+I want a single, obvious way back to Home from Tutorial, the "Start Story" button always reachable without scrolling, and no run-management controls on a screen where there's no run yet to manage,
+So the screen isn't cluttered with two overlapping exits, an escape hatch for a run that may not exist, and I'm never stuck scrolling past the mechanics copy just to start the story.
 
-*(UX design pass with Sally, 2026-08-02, prompted by user observation on this branch — see `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md` for the full discussion and rationale. Amends UX-DR10 and Story 1.3's shipped ("done") implementation; Story 1.3 itself is left historically intact per the Story 2.6→2.9 precedent.)*
+*(UX design pass with Sally, 2026-08-02, prompted by user observation on this branch — see `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md` for the full discussion and rationale, including its 2026-08-02 addendum. Amends UX-DR10, UX-DR11, and Story 1.3/2.7's shipped ("done") implementations; those stories are left historically intact per the Story 2.6→2.9 precedent.)*
 
 **Acceptance Criteria:**
 
@@ -642,11 +642,15 @@ So the screen isn't cluttered with two overlapping exits and I'm never stuck scr
 **When** rendered in either portrait or landscape, and regardless of Dynamic Type category
 **Then** the button is pinned outside the scrollable region (fixed position, always visible without scrolling) — only the mechanic-explanation copy scrolls, using a restructure of the shared `GeometryReader`/`ScrollView` centering pattern (project-context.md's "Never use `Spacer()` inside this pattern" rule still applies to whatever internal layout replaces it)
 
+**Given** `TutorialView.swift`'s `.overlay(alignment: .topTrailing) { RunOptionsButton(...) }` (added by Story 2.7 per UX-DR11)
+**When** this story lands
+**Then** the run-options button and its `onExitToHome`/`onRestartRun` closures are removed from `TutorialView.swift` entirely — Tutorial is a pre-run explainer screen, not a page within a run, and its "Exit to Home"/"Restart This Run" actions duplicated exits/state-mutation already covered by Tutorial's own back navigation and the fact that no run is guaranteed to exist yet (Story 2.7's own `onRestartRun` guard, `guard runProgress.hasInProgressRun else { return }`, was already a sign this control didn't fully fit the screen it was retrofitted onto)
+
 **Given** this is a Tutorial-only change
 **When** implemented
-**Then** `HomeView.swift` and its `GeometryReader`/`ScrollView` centering pattern are untouched — Home is not in scope for this story
+**Then** `HomeView.swift` and its `GeometryReader`/`ScrollView` centering pattern are untouched — Home is not in scope for this story; the run-options button's presence on Story/Choice pages (UX-DR11) is also untouched — only Tutorial loses it
 
-**And** a manual-verification AC: in Xcode/Simulator, confirm (1) tapping the nav-bar back chevron and (2) an edge-swipe-back gesture both return to Home from Tutorial; (3) "Start Story"/"Resume Story" is reachable with zero scrolling in landscape at both default and an accessibility Dynamic Type size; (4) the mechanic-explanation text still scrolls independently when it overflows. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+**And** a manual-verification AC: in Xcode/Simulator, confirm (1) tapping the nav-bar back chevron and (2) an edge-swipe-back gesture both return to Home from Tutorial; (3) "Start Story"/"Resume Story" is reachable with zero scrolling in landscape at both default and an accessibility Dynamic Type size; (4) the mechanic-explanation text still scrolls independently when it overflows; (5) no run-options icon renders anywhere on Tutorial, regardless of `hasInProgressRun` state. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
 ## Epic 3: Alignment Scoring, Ending & Memory Recap
 

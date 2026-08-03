@@ -76,3 +76,19 @@ Rationale:
 - **An alternative considered and rejected:** folding both "Start Story" and "Back Home" into a single run-options-style icon menu (mirroring Story 2.7's pattern). Rejected because "Start Story" is the screen's primary forward-progress CTA, not a secondary/escape action — burying it behind an icon tap would be a net UX regression for the screen's actual job (getting the player into the story). A hybrid (Start Story prominent + fixed, Back Home behind an icon) was also considered but superseded once the user confirmed standard iOS back nav alone was sufficient — no icon-menu needed for either action.
 - **Start Story fixed-position scope:** applies in **both** portrait and landscape (not landscape-only), for one consistent layout regardless of rotation.
 - **Screen scope:** Tutorial only. Home is not affected — no reported problem there, and its content is short enough that it isn't hitting the same landscape squeeze.
+
+## 5. Addendum (2026-08-02) — Remove the Run-Options Control from Tutorial
+
+After the decisions above were recorded and Story 2.11 was drafted, the user asked to also remove Tutorial's run-options icon/menu (the ellipsis-circle button opening "Exit to Home"/"Restart This Run"/"Cancel"). **Correction for the record:** that control was added to Tutorial by **Story 2.7** (`RunOptionsButton` retrofit, per UX-DR11's original "present on every Story/Choice and Tutorial page"), not Story 2.8 as initially suspected — Story 2.8 (reading surface visual identity) never touched `TutorialView.swift`'s run-options wiring. Confirmed via `git log -- ForkedEchoes/Views/Tutorial/TutorialView.swift` and the `// Story 2.7:` comment already in that file.
+
+**Rationale for removal, independent of the misattribution:** Tutorial is a pre-run explainer screen, not a page within an active run. Its two run-options actions don't fit that context:
+- **"Exit to Home"** duplicates the exit Tutorial already has (now: standard iOS back navigation, per this proposal's main decision) — there's no meaningful difference between "leave Tutorial" and "exit to Home from Tutorial."
+- **"Restart This Run"** presumes a run exists to restart. Tutorial is reachable with no run in progress at all (fresh install), which is exactly why Story 2.7 had to add a guard (`guard runProgress.hasInProgressRun else { return }`) around it — a control needing a no-op guard for its most common entry context is a sign it was retrofitted onto a screen it doesn't really belong on, not a sign the guard fixed the fit.
+
+**Scope:** Removes `TutorialView.swift`'s `.overlay(alignment: .topTrailing) { RunOptionsButton(...) }` entirely, including its `onExitToHome`/`onRestartRun` closures. Story/Choice pages are unaffected — the run-options control remains exactly as Story 2.7 shipped it there; UX-DR11 is narrowed to Story/Choice only, not repealed.
+
+**Artifacts updated:**
+- `epics.md` UX-DR11 — narrowed to "Story/Choice" only, dated amendment note added.
+- `epics.md` Story 2.11 — AC added for removing the `RunOptionsButton` overlay; story statement and title context updated; manual-verification AC extended to confirm no run-options icon renders on Tutorial.
+- `EXPERIENCE.md`'s "Run options button" row — narrowed to "Story/Choice," Tutorial added to the explicit absence list, pointer note added.
+- `2-7-run-options-action-sheet.md` — pointer note added to Change Log (story itself left historically intact — it correctly implemented UX-DR11 as specified at the time).

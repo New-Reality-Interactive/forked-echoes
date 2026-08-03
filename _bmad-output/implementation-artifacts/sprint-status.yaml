@@ -1,5 +1,5 @@
 # generated: 2026-07-26
-# last_updated: 2026-07-26
+# last_updated: 2026-08-02
 # project: game
 # project_key: NOKEY
 # tracking_system: file-system
@@ -41,7 +41,7 @@
 # - Retrospective appends its action items to action_items; sprint-status surfaces open ones
 
 generated: 2026-07-26
-last_updated: 2026-08-02 (2-7-run-options-action-sheet: code review complete, all patches applied (Tutorial restart guard, UX-DR12 focus-traversal order, runOptions.* localization key rename), status done; 2-9-branch-arrival-interstitial-first-visit-only-gate: code review complete, all patches applied, status done; 2-10-persist-back-navigation-across-app-relaunch: added to backlog, deferred follow-up from Story 2.9 Simulator testing)
+last_updated: 2026-08-03 (2-7-run-options-action-sheet: code review complete, all patches applied (Tutorial restart guard, UX-DR12 focus-traversal order, runOptions.* localization key rename), status done; 2-9-branch-arrival-interstitial-first-visit-only-gate: code review complete, all patches applied, status done; 2-10-persist-back-navigation-across-app-relaunch: added to backlog, deferred follow-up from Story 2.9 Simulator testing; 2-8-reading-surface-visual-identity-dynamic-type-and-reduce-motion: code review complete, 3 decision-needed resolved + 7 patches applied (Reduce Motion choice-card touch-handling bug — 2 rounds, full-bleed interstitial padding regression, page-turn transition, interstitial caption uppercase, caption-bar-accent accessibility, headlineStyle() color refactor, choice-card arrow glyph), 6 items deferred, manual Simulator verification confirmed by user 2026-08-03, status done)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -72,9 +72,10 @@ development_status:
   2-5-narrative-callback-choice-echo: done
   2-6-branch-arrival-interstitial-and-illustrations: done
   2-7-run-options-action-sheet: done
-  2-8-reading-surface-visual-identity-dynamic-type-and-reduce-motion: backlog
+  2-8-reading-surface-visual-identity-dynamic-type-and-reduce-motion: done
   2-9-branch-arrival-interstitial-first-visit-only-gate: done
   2-10-persist-back-navigation-across-app-relaunch: backlog
+  2-11-tutorial-navigation-and-fixed-actions-layout: backlog
   epic-2-retrospective: optional
 
   epic-3: backlog

@@ -14,12 +14,10 @@ import SwiftUI
 // this view itself has no opinion on gesture wiring, only on whether the forced-advance button
 // exists.
 //
-// Placeholder colors only (this story's Scoping Note, mirroring FrameView.swift's precedent):
-// `Color.inkPrimary` stands in for DESIGN.md's `surface-inverse` background, `Color.surfaceBase`
-// for `ink-on-inverse` caption text. `Color.selectedFill` on the headline is a real DESIGN.md
-// token match, not a placeholder substitution. No entrance/exit animation — an instant show/hide
-// is correct until Story 2.8 introduces transitions/Reduce Motion handling for every Epic 2
-// reading-surface component at once.
+// DESIGN.md `components.interstitial`: `surface-inverse` background, `selected-fill` headline
+// (a real token match, not a placeholder), plus a thin `accent-ember` caption-bar accent above the
+// caption. Entrance/exit animates via StoryChoiceView's `.transition`/`.animation` on the branch
+// that conditionally shows this view, gated by Reduce Motion there (Story 2.8, AC #3).
 struct BranchArrivalInterstitialView: View {
     let arrival: BranchArrival
     let onContinue: (() -> Void)?
@@ -50,6 +48,14 @@ struct BranchArrivalInterstitialView: View {
     // height keeps the caption+button reachable without reintroducing ScrollView's gesture race.
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
+    // User-reported Simulator bug, 2026-08-02: chaining `.foregroundStyle(Color.selectedFill)`
+    // after `.headlineStyle()` did NOT override the color `HeadlineTextStyle` bakes in
+    // (`Color.inkPrimary`) — real Simulator rendering showed the caption invisible (inkPrimary
+    // and surfaceInverse are the identical hex value in light mode, so the "wrong" color and the
+    // background matched exactly). Code review, 2026-08-02: fixed at the source — `headlineStyle()`
+    // now takes a `color` parameter (`Typography.swift`) instead of hardcoding `inkPrimary`, so
+    // this call site sets the color once, correctly, with no override-order ambiguity, and no
+    // longer needs its own duplicated copy of `HeadlineTextStyle`'s tracking constant.
     var body: some View {
         // Story 2.9 (user-reported Simulator bug, 2026-08-02): the illustration's prior
         // `.frame(maxHeight: .infinity)` had no real ceiling inside a `ScrollView` (which offers
@@ -68,8 +74,13 @@ struct BranchArrivalInterstitialView: View {
                 }
             }
         }
-        .background(Color.inkPrimary)
+        .background(Color.surfaceInverse)
     }
+
+    // No DESIGN.md token for exact caption-bar-accent dimensions — sized by feel, like this
+    // file's other untokened constants (illustration height fractions above).
+    private static let captionBarAccentHeight: CGFloat = 3
+    private static let captionBarAccentWidth: CGFloat = 64
 
     @ViewBuilder
     private func arrivalContent(availableHeight: CGFloat) -> some View {
@@ -81,13 +92,22 @@ struct BranchArrivalInterstitialView: View {
                 .frame(maxHeight: availableHeight * illustrationMaxHeightFraction)
                 .accessibilityLabel(Text(LocalizedStringKey(arrival.illustration.assets.accessibilityLabelKey)))
 
+            // DESIGN.md `components.interstitial.caption-bar-accent` = accent-ember, a thin rule
+            // above the caption text — no other element for this, added here. Purely decorative,
+            // like FrameView's corner marks — hidden so VoiceOver doesn't announce it as an
+            // unlabeled element.
+            Rectangle()
+                .fill(Color.accentEmber)
+                .frame(width: Self.captionBarAccentWidth, height: Self.captionBarAccentHeight)
+                .accessibilityHidden(true)
+
             // AC #1/#6: the interstitial's one flavor caption, styled as an oversized headline
-            // (DESIGN.md `components.interstitial.headline-color` = selected-fill) — this stands
-            // in for the node's ordinary body prose, which stays hidden until Continue.
+            // (DESIGN.md `components.interstitial.headline-color` = selected-fill), uppercased per
+            // `typography.headline.note` (Uppercase for every headline-role usage except Home/
+            // Tutorial's carved-out story-title exception, which doesn't apply here).
             Text(LocalizedStringKey(arrival.captionKey))
-                .font(.largeTitle)
-                .fontWeight(.heavy)
-                .foregroundStyle(Color.selectedFill)
+                .headlineStyle(color: Color.selectedFill)
+                .textCase(.uppercase)
                 .multilineTextAlignment(.center)
 
             // Story 2.9 (AC #2): only rendered while gated. A revisited arrival node is an
@@ -101,7 +121,7 @@ struct BranchArrivalInterstitialView: View {
                     Text(LocalizedStringKey("storyChoice.interstitial.continue"))
                         .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
                 }
-                .buttonStyle(.primaryAction)
+                .buttonStyle(.continueAction)
                 .disabled(isDismissing)
             }
         }

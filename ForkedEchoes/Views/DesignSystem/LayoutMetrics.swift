@@ -9,6 +9,11 @@ enum Spacing {
     /// DESIGN.md `{spacing.2}` = 8pt.
     static let small: CGFloat = 8
 
+    /// DESIGN.md `{spacing.3}` = 12pt. Gap between stacked choice cards (Story 2.8, DESIGN.md
+    /// Layout & Spacing) — deliberately distinct from `medium`/`{spacing.4}`, used elsewhere for
+    /// generic stack spacing.
+    static let choiceCardGap: CGFloat = 12
+
     /// DESIGN.md `{spacing.4}` = 16pt.
     static let medium: CGFloat = 16
 
@@ -103,6 +108,21 @@ enum LayoutMetrics {
     /// swipe-gesture reliability (no scroll-to-reach fallback). A smaller fraction in compact
     /// height leaves more guaranteed room for the caption+button without reintroducing ScrollView.
     static let interstitialIllustrationMaxHeightFractionCompact: CGFloat = 0.35
+
+    /// DESIGN.md `{components.choice-card.border-width}` = 3pt. The choice card's `ink-primary`
+    /// border stroke (Story 2.8).
+    static let choiceCardBorderWidth: CGFloat = 3
+
+    /// No DESIGN.md token. User-reported Simulator gap, Story 2.8: `RunOptionsButton`'s
+    /// top-trailing `.overlay` on `readingComposition` occupies `minTapTarget` (44pt) plus its own
+    /// `Spacing.small` (8pt) padding on every side — a ~60pt footprint from the screen's top-right
+    /// corner. Reading prose/choice-prompt text that reached that corner was rendering underneath
+    /// it. This is the vertical clearance `readingCardPadding(top:)` uses instead of the default
+    /// `Spacing.medium` for that one call site, so text starts below the button instead of beside
+    /// it. Matches this codebase's mockup precedent (`tutorial.html`'s `.top-row`, a dedicated
+    /// header row above content, not an overlay text can run under) more closely than the
+    /// unguarded overlay did. Tunable by feel, like this file's other untokened constants.
+    static let runOptionsButtonClearance: CGFloat = minTapTarget + Spacing.small * 2
 }
 
 extension Duration {
@@ -112,6 +132,24 @@ extension Duration {
     var timeInterval: TimeInterval {
         let components = components
         return Double(components.seconds) + Double(components.attoseconds) / 1e18
+    }
+}
+
+extension View {
+    /// DESIGN.md Layout & Spacing: "the reading card's internal padding sits at `{spacing.6}`/
+    /// `{spacing.4}`" (24pt/16pt) — DESIGN.md doesn't name which axis gets which value; interpreted
+    /// here as horizontal/vertical (generous side margins for a book-like reading measure, per the
+    /// same section's "this is a book, not a form" framing). User-reported Simulator gap, Story
+    /// 2.8: `readingComposition`'s content previously had no padding at all, running edge-to-edge
+    /// under the frame's corner marks — this closes that gap. `top` defaults to the same
+    /// `{spacing.4}` value but is overridable — `StoryChoiceView` passes
+    /// `LayoutMetrics.runOptionsButtonClearance` instead, since that's the one call site sharing
+    /// its top-trailing corner with `RunOptionsButton`'s overlay.
+    func readingCardPadding(top: CGFloat = Spacing.medium) -> some View {
+        self
+            .padding(.horizontal, Spacing.large)
+            .padding(.top, top)
+            .padding(.bottom, Spacing.medium)
     }
 }
 

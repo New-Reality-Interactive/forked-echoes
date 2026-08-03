@@ -25,12 +25,8 @@ struct RunOptionsButton: View {
                 .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
                 .contentShape(Rectangle())
         }
-        // DESIGN.md's run-options-button token specifies {colors.trace-brass} idle / {colors.ink-
-        // primary} pressed — no TraceBrass color set exists yet (confirmed contents: AccentColor,
-        // InkPrimary, InkSecondary, SelectedFill, SurfaceBase). Placeholder-color-reuse precedent
-        // (Stories 2.3/2.5/2.6/2.9): Color.inkPrimary stands in for now; Story 2.8 owns the real
-        // DESIGN.md palette pass for every Epic 2 reading-surface component at once.
-        .foregroundStyle(Color.inkPrimary)
+        // DESIGN.md `components.run-options-button`: trace-brass idle, ink-primary pressed.
+        .buttonStyle(RunOptionsButtonStyle())
         .padding(Spacing.small)
         .accessibilityLabel(Text("runOptions.accessibilityLabel"))
         // Code review, 2026-08-02 (UX-DR12): VoiceOver's default traversal order follows visual
@@ -57,6 +53,16 @@ struct RunOptionsButton: View {
             }
             Button("runOptions.cancel", role: .cancel) {}
         }
+    }
+}
+
+// DESIGN.md `components.run-options-button`: trace-brass idle, ink-primary pressed. A dedicated
+// ButtonStyle (rather than @GestureState/@State press-tracking) mirrors ButtonStyles.swift's
+// sibling styles for a single-glyph icon button — the least code for this one small control.
+private struct RunOptionsButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(configuration.isPressed ? Color.inkPrimary : Color.traceBrass)
     }
 }
 

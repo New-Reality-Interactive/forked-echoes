@@ -5,17 +5,23 @@ import SwiftUI
 // binds to `engine.isEchoActive` (StoryChoiceView), which is derived from `currentNodeId`
 // (AD-5) — nothing here decides activeness itself.
 //
-// Placeholder colors only (this story's Scoping Note): `Color.inkPrimary` dormant, reusing
-// `Color.selectedFill` (already reused by ChoiceCardView for a different "highlighted state"
-// purpose, Story 2.3) for active — DESIGN.md's real Frame token set (`trace-brass`,
-// `accent-ember`, etc.) needs Color Set assets that don't exist yet and is Story 2.8's scope. No
-// glow, no animated transition — an instant dormant/active swap is correct until Story 2.8
-// introduces something for Reduce Motion to later govern.
+// DESIGN.md `components.frame`: `trace-brass` dormant, `accent-ember` active, plus the one
+// permitted glow in the whole system (Elevation & Depth) on the active state. The power-up
+// color/glow change animates unless Reduce Motion is on, per Story 2.8 AC #3 — read directly from
+// SwiftUI's environment (AD-3: StoryRunEngine never touches rendering/animation).
 //
 // Reserved for Story/Choice reading content only (AC #4) — never wrapped around Home, Tutorial,
 // or the Epic 2 Ending placeholder.
 struct FrameView: View {
     let isActive: Bool
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    // No DESIGN.md token for exact radius/opacity of the power-up glow — a modest,
+    // clearly-visible-but-not-garish value, tunable by feel like this file's other untokened
+    // constants (LayoutMetrics.swift's own convention for values with no source token).
+    private static let glowRadius: CGFloat = 6
+    private static let powerUpAnimationDuration: TimeInterval = 0.25
 
     var body: some View {
         GeometryReader { proxy in
@@ -26,10 +32,11 @@ struct FrameView: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+        .animation(reduceMotion ? nil : .easeInOut(duration: Self.powerUpAnimationDuration), value: isActive)
     }
 
     private var cornerMark: some View {
-        let color = isActive ? Color.selectedFill : Color.inkPrimary
+        let color = isActive ? Color.accentEmber : Color.traceBrass
         let viaDiameter = isActive
             ? LayoutMetrics.frameCornerViaDiameterActive
             : LayoutMetrics.frameCornerViaDiameter
@@ -49,6 +56,7 @@ struct FrameView: View {
                     .frame(width: LayoutMetrics.frameCornerPadDiameter, height: LayoutMetrics.frameCornerPadDiameter)
             }
         }
+        .shadow(color: isActive ? Color.accentEmber : .clear, radius: Self.glowRadius)
     }
 
     private enum Corner: CaseIterable {

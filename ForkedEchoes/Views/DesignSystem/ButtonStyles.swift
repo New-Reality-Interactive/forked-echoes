@@ -32,8 +32,31 @@ struct SecondaryActionButtonStyle: ButtonStyle {
     }
 }
 
+// DESIGN.md `components.continue-button`: selected-fill background, surface-inverse text,
+// uppercase — differs from PrimaryActionButtonStyle (selected-fill bg, ink-primary text, no
+// uppercase), which Home/Tutorial's CTAs deliberately keep as-is. A dedicated style rather than
+// parameterizing PrimaryActionButtonStyle, since only this one call site (the branch-arrival
+// interstitial's Continue button) needs this color/case combination (Story 2.8).
+struct ContinueActionButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .fontWeight(.heavy)
+            .textCase(.uppercase)
+            .foregroundStyle(Color.surfaceInverse)
+            .background(Color.selectedFill)
+            .contentShape(Rectangle())
+            .opacity(isEnabled ? (configuration.isPressed ? ButtonMetrics.pressedOpacity : 1) : ButtonMetrics.disabledOpacity)
+    }
+}
+
 extension ButtonStyle where Self == PrimaryActionButtonStyle {
     static var primaryAction: PrimaryActionButtonStyle { PrimaryActionButtonStyle() }
+}
+
+extension ButtonStyle where Self == ContinueActionButtonStyle {
+    static var continueAction: ContinueActionButtonStyle { ContinueActionButtonStyle() }
 }
 
 extension ButtonStyle where Self == SecondaryActionButtonStyle {

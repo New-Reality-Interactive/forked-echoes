@@ -1,14 +1,6 @@
 import SwiftUI
 
 struct TutorialView: View {
-    @Environment(\.dismiss) private var dismiss
-
-    // Story 2.7: retrofits Tutorial with the run-options control it was missing (UX-DR11) — the
-    // first time this view has needed StoryRunEngine at all. Requires RootView's .environment(
-    // engine) to be broadened to cover the whole NavigationStack (Task 6), not just the
-    // fullScreenCover, or this crashes at runtime with no Observable object of this type found.
-    @Environment(StoryRunEngine.self) private var engine
-
     // AD-5: the Story session is a full-screen modal presented from RootView, not a
     // NavigationStack push -- this button just flips the shared binding, RootView owns the
     // .fullScreenCover(isPresented:) itself.
@@ -24,9 +16,9 @@ struct TutorialView: View {
     var body: some View {
         let primaryActionLabel: LocalizedStringKey = runProgress.hasInProgressRun ? "home.action.resumeStory" : "tutorial.action.startStory"
 
-        GeometryReader { proxy in
-            ScrollView {
-                VStack(spacing: Spacing.large) {
+        VStack(spacing: Spacing.large) {
+            GeometryReader { proxy in
+                ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.medium) {
                         Text("tutorial.eyebrow")
                             .eyebrowStyle()
@@ -48,64 +40,35 @@ struct TutorialView: View {
                     // side margin"), so this inner frame keeps `.leading` and the outer one does
                     // not.
                     .frame(maxWidth: LayoutMetrics.readingColumnMaxWidthLandscape, alignment: .leading)
-                    .frame(maxWidth: .infinity)
-
-                    VStack(spacing: Spacing.medium) {
-                        Button {
-                            dismiss()
-                        } label: {
-                            Text("tutorial.action.backHome")
-                                .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
-                        }
-                        .buttonStyle(.secondaryAction)
-
-                        Button {
-                            isPresentingStorySession = true
-                        } label: {
-                            Text(primaryActionLabel)
-                                .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
-                        }
-                        .buttonStyle(.primaryAction)
-                    }
-                    // AD-8: geometry-only landscape constraint, matches HomeView's action-cap pattern
-                    // so the action stack doesn't stretch edge-to-edge in a wide landscape frame.
-                    .frame(maxWidth: LayoutMetrics.actionStackMaxWidth)
+                    // AD-8 / Story 5.3 pattern: `minHeight: proxy.size.height` (rather than
+                    // `maxHeight: .infinity`) centers the text block alone when it's short enough
+                    // to fit, but scrolls instead of clipping when Dynamic Type + landscape's
+                    // reduced height push it past the frame. No `Spacer` anywhere in this pattern
+                    // — a `Spacer` here would measure as zero/minLength during layout and can
+                    // push content out of the reachable area (Story 1.3's shipped landscape bug).
+                    .frame(maxWidth: .infinity, minHeight: proxy.size.height)
                 }
-                .padding()
-                // AD-8 / Story 5.3 pattern: `minHeight: proxy.size.height` (rather than
-                // `maxHeight: .infinity`) centers the whole content block (text + actions) as a
-                // single group when it fits, but scrolls instead of clipping when Dynamic Type +
-                // landscape's reduced height (this pushed destination has less available height
-                // than Home due to the NavigationStack back bar) push it past the frame. No
-                // `Spacer` between text and actions — a `Spacer` here would measure as zero/
-                // minLength during layout and can push "Start Story" out of the reachable area.
-                .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
-            .background(Color.surfaceBase.ignoresSafeArea())
+
+            // Story 2.11: the action button is a sibling of the ScrollView, not inside it — this
+            // is what keeps it fixed and always reachable without scrolling, regardless of how
+            // much mechanics copy is above it or how large Dynamic Type has grown. A ScrollView
+            // given flexible sizing as a sibling of a fixed-size button in this outer VStack
+            // doesn't have the same "Spacer measures as zero" failure mode as a Spacer placed
+            // inside the ScrollView's own content.
+            Button {
+                isPresentingStorySession = true
+            } label: {
+                Text(primaryActionLabel)
+                    .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
+            }
+            .buttonStyle(.primaryAction)
+            // AD-8: geometry-only landscape constraint, matches HomeView's action-cap pattern
+            // so the action button doesn't stretch edge-to-edge in a wide landscape frame.
+            .frame(maxWidth: LayoutMetrics.actionStackMaxWidth)
         }
-        .overlay(alignment: .topTrailing) {
-            RunOptionsButton(
-                onExitToHome: {
-                    engine.exitToHome()
-                    dismiss()
-                },
-                onRestartRun: {
-                    // Code review, 2026-08-02: Tutorial can be reached with no run in progress at
-                    // all (fresh install, never tapped "Start Story"), where "Restart This Run"
-                    // has nothing real to restart — without this guard, confirming it silently
-                    // manufactures a fresh RunSnapshot behind a "can't be undone" dialog that's
-                    // describing progress that never existed.
-                    guard runProgress.hasInProgressRun else { return }
-                    engine.restartRun()
-                    // Story 2.7: restarting from a fresh install's Tutorial page (no prior run)
-                    // writes a RunSnapshot for the first time, flipping hasInProgressRun false ->
-                    // true — nothing dismisses this view to trigger RootView's existing refresh-
-                    // on-dismiss path, so the "Start Story"/"Resume Story" label needs an
-                    // explicit refresh here or it goes stale until some other navigation event.
-                    runProgress.refresh()
-                }
-            )
-        }
+        .padding()
+        .background(Color.surfaceBase.ignoresSafeArea())
         .correctColdLaunchOrientation()
         .onAppear { runProgress.refresh() }
     }
@@ -122,5 +85,4 @@ struct TutorialView: View {
             }
     }
     .environment(RunProgressObserver())
-    .environment(StoryRunEngine())
 }

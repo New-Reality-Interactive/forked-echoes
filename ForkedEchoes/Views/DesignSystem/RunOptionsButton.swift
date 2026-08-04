@@ -78,7 +78,7 @@ struct RunOptionsButton: View {
                         isPresentingExitAndClearConfirmation = true
                     }
                 case .cancel:
-                    Button("runOptions.cancel", role: cancelButtonRole) {}
+                    cancelButton
                 }
             }
         }
@@ -90,7 +90,7 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 onRestartRun()
             }
-            Button("runOptions.cancel", role: cancelButtonRole) {}
+            cancelButton
         }
         .confirmationDialog(
             "runOptions.exitAndClearConfirmation.title",
@@ -100,8 +100,14 @@ struct RunOptionsButton: View {
             Button("runOptions.exitAndClearProgress", role: .destructive) {
                 onExitAndClearProgress()
             }
-            Button("runOptions.cancel", role: cancelButtonRole) {}
+            cancelButton
         }
+    }
+
+    // Review finding, 2026-08-04: this Cancel button was hand-written identically in all three
+    // confirmationDialogs above — a single shared definition keeps them from drifting apart.
+    private var cancelButton: some View {
+        Button("runOptions.cancel", role: cancelButtonRole) {}
     }
 }
 

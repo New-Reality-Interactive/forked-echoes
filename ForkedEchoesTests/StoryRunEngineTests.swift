@@ -748,6 +748,22 @@ struct StoryRunEngineTests {
         #expect(RunSnapshotPresence.hasInProgressRun(in: defaults) == false)
     }
 
+    // Review finding, 2026-08-04: exitAndClearProgress()'s defaults.removeObject(forKey:) call was
+    // only ever exercised with a snapshot present. Asserts the no-prior-snapshot path is a harmless
+    // no-op, not just an assumption.
+    @Test func exitAndClearProgressIsHarmlessWithNoPriorSnapshot() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .intro, defaults: defaults)
+        #expect(RunSnapshot.loadValid(from: defaults) == nil)
+
+        engine.exitAndClearProgress()
+
+        #expect(engine.currentNodeId == StoryTree.root)
+        #expect(RunSnapshot.loadValid(from: defaults) == nil)
+        #expect(RunSnapshotPresence.hasInProgressRun(in: defaults) == false)
+    }
+
     // Story 2.10 (AC #1, #4): the actual regression test for the bug this story fixes. Before
     // this story, StoryRunEngine.visitedNodeIds (the back-navigation stack) was never part of
     // RunSnapshot, so a freshly-constructed engine resuming onto a mid-run snapshot always

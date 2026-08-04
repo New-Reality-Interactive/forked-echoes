@@ -4,7 +4,7 @@ baseline_commit: fbdfd3c
 
 # Story 2.13: Run-Options Sheet — Exit and Clear Progress
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -87,6 +87,14 @@ so I don't have to Restart and then separately Exit just to fully bail on a run.
 - [x] Task 6: Manual verification (AC #7)
   - [x] Request from user per project-context.md's Process Agreement (this devcontainer has no Xcode/Simulator) — start a run, advance a few pages, invoke run options, select "Exit and Clear Progress," confirm, and verify: (1) lands on Home in fresh-install state ("Start Story," not "Resume Story"), (2) a subsequently-started new run has no carried-over progress/score, (3) VoiceOver announces the new row and its confirmation correctly, in both portrait and landscape
   - [x] Record result + date in Completion Notes List once reported back
+
+### Review Findings
+
+- [x] [Review][Patch] Cancel-button construction (`Button("runOptions.cancel", role: cancelButtonRole) {}`) is now hand-written three times across the options sheet and two confirmation dialogs — extract a small shared helper so a future edit can't let the three copies drift [ForkedEchoes/Views/DesignSystem/RunOptionsButton.swift:81,93,103] — fixed: added private `cancelButton` computed property, all three call sites now reference it
+- [x] [Review][Patch] `exitAndClearProgress()` called with no snapshot ever persisted (e.g. from `StoryTree.root` before any choice) is untested — `defaults.removeObject(forKey:)` on an already-absent key is assumed to be a harmless no-op but that assumption isn't asserted [ForkedEchoes/Engine/StoryRunEngine.swift:242] — fixed: added `exitAndClearProgressIsHarmlessWithNoPriorSnapshot()` test
+- [x] [Review][Defer] `runOptionsRowOrderIsFixed()` only asserts `RunOptionsRow.allCases`'s order — it doesn't prove `RunOptionsButton`'s `switch` maps each case to the correct label/action, so a swapped `case` body would still pass this test. No automated fix is available without SwiftUI-rendering test infra this project deliberately doesn't have (see Task 3's own note) — deferred, pre-existing testing-approach constraint [ForkedEchoesTests/RunOptionsButtonTests.swift:11; ForkedEchoes/Views/DesignSystem/RunOptionsButton.swift:66-83]
+- [x] [Review][Defer] `StoryChoiceView`'s `onExitAndClearProgress` closure calling `engine.exitAndClearProgress()` then `onExitToHome()`, in that order, has no automated regression coverage — a future accidental reordering would only surface via manual QA, same UI-test-infra gap as above — deferred, pre-existing testing-approach constraint [ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift:162-165]
+- [x] [Review][Defer] Story 2.14 treats the `UserDefaults(suiteName:)` write-then-read race as test-infrastructure-only, but `StoryRunEngine.resumingFromSnapshot(defaults:)` (production code) has the identical write-then-immediate-read access shape against real `UserDefaults` — if the eventual root cause turns out to be a genuine synchronization issue rather than a Linux `swift-corelibs-foundation` test artifact, it could be reachable in the shipped app, not just `swift test`. Story 2.14's own scope notes already include a safety valve for this ("stop and reconsider scope" if production code is implicated) — deferred to that story, flagging here so it isn't lost — deferred, tracked in Story 2.14
 
 ## Dev Notes
 

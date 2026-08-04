@@ -77,7 +77,7 @@ development_status:
   2-10-persist-back-navigation-across-app-relaunch: done
   2-11-tutorial-navigation-and-fixed-actions-layout: done
   2-12-run-options-sheet-fix-popover-presentation-and-missing-cancel: done
-  2-13-run-options-sheet-exit-and-clear-progress: review
+  2-13-run-options-sheet-exit-and-clear-progress: done
   2-14-fix-flaky-tests-under-swift-testings-parallel-execution: ready-for-dev
   epic-2-retrospective: optional
 

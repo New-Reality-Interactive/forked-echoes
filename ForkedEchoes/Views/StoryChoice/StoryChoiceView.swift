@@ -158,6 +158,10 @@ struct StoryChoiceView: View {
                     },
                     onRestartRun: {
                         engine.restartRun()
+                    },
+                    onExitAndClearProgress: {
+                        engine.exitAndClearProgress()
+                        onExitToHome()
                     }
                 )
             }

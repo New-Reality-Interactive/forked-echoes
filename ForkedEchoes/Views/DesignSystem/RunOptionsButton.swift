@@ -30,9 +30,11 @@ import SwiftUI
 struct RunOptionsButton: View {
     let onExitToHome: () -> Void
     let onRestartRun: () -> Void
+    let onExitAndClearProgress: () -> Void
 
     @State private var isPresentingOptions = false
     @State private var isPresentingRestartConfirmation = false
+    @State private var isPresentingExitAndClearConfirmation = false
 
     private var cancelButtonRole: ButtonRole? {
         if #available(iOS 26, *) {
@@ -58,14 +60,27 @@ struct RunOptionsButton: View {
         // sort priority (default is 0 for every other element in this composition) pushes it to
         // the end of the traversal, after eyebrow -> prose -> choices -> pager, per UX-DR12.
         .accessibilitySortPriority(-1)
+        // AC #5: row order comes from RunOptionsRow.allCases (Engine/RunOptionsRow.swift) — a
+        // plain, Swift-Testing-covered value — rather than only this ViewBuilder's line order.
         .confirmationDialog("runOptions.accessibilityLabel", isPresented: $isPresentingOptions, titleVisibility: .hidden) {
-            Button("runOptions.exitToHome") {
-                onExitToHome()
+            ForEach(RunOptionsRow.allCases, id: \.self) { row in
+                switch row {
+                case .exitToHome:
+                    Button("runOptions.exitToHome") {
+                        onExitToHome()
+                    }
+                case .restartRun:
+                    Button("runOptions.restartRun", role: .destructive) {
+                        isPresentingRestartConfirmation = true
+                    }
+                case .exitAndClearProgress:
+                    Button("runOptions.exitAndClearProgress", role: .destructive) {
+                        isPresentingExitAndClearConfirmation = true
+                    }
+                case .cancel:
+                    cancelButton
+                }
             }
-            Button("runOptions.restartRun", role: .destructive) {
-                isPresentingRestartConfirmation = true
-            }
-            Button("runOptions.cancel", role: cancelButtonRole) {}
         }
         .confirmationDialog(
             "runOptions.restartConfirmation.title",
@@ -75,8 +90,24 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 onRestartRun()
             }
-            Button("runOptions.cancel", role: cancelButtonRole) {}
+            cancelButton
         }
+        .confirmationDialog(
+            "runOptions.exitAndClearConfirmation.title",
+            isPresented: $isPresentingExitAndClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("runOptions.exitAndClearProgress", role: .destructive) {
+                onExitAndClearProgress()
+            }
+            cancelButton
+        }
+    }
+
+    // Review finding, 2026-08-04: this Cancel button was hand-written identically in all three
+    // confirmationDialogs above — a single shared definition keeps them from drifting apart.
+    private var cancelButton: some View {
+        Button("runOptions.cancel", role: cancelButtonRole) {}
     }
 }
 
@@ -91,5 +122,5 @@ private struct RunOptionsButtonStyle: ButtonStyle {
 }
 
 #Preview {
-    RunOptionsButton(onExitToHome: {}, onRestartRun: {})
+    RunOptionsButton(onExitToHome: {}, onRestartRun: {}, onExitAndClearProgress: {})
 }

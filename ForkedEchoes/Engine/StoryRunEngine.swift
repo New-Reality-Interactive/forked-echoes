@@ -228,6 +228,20 @@ final class StoryRunEngine {
         persistOrClearSnapshot()
     }
 
+    /// Story 2.13 (AD-3): the run-options action sheet's destructive "Exit and Clear Progress,"
+    /// fired mid-run after its own second confirmation. Resets fields exactly like `restartRun()`
+    /// above (same `resetRunState()`), but deliberately does **not** call `persistOrClearSnapshot()`
+    /// afterward. That helper writes a fresh `RunSnapshot` whenever `currentNodeId` isn't
+    /// `.ending` — which a reset-to-root always is — so calling it here would leave a resumable
+    /// snapshot on disk even though this action's whole point is to leave the run. Home's
+    /// Resume/Start label (`RunSnapshotPresence.hasInProgressRun`) reads snapshot *presence*, not
+    /// engine field state, so removing the persisted key directly is what actually lands Home on
+    /// its fresh-install "Start Story" state rather than "Resume Story."
+    func exitAndClearProgress() {
+        resetRunState()
+        defaults.removeObject(forKey: RunSnapshotPresence.runSnapshotKey)
+    }
+
     /// Resets to a fresh run at `StoryTree.root` if the current run has ended; a no-op otherwise
     /// (mid-run, "Start Story"/"Resume Story" tapped again should do nothing to the live run).
     ///

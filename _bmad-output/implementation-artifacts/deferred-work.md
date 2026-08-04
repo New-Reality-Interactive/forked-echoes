@@ -1,5 +1,11 @@
 # Deferred Work
 
+## Deferred from: code review of 2-13-run-options-sheet-exit-and-clear-progress (2026-08-04)
+
+- `runOptionsRowOrderIsFixed()` only asserts `RunOptionsRow.allCases`'s order — it doesn't prove `RunOptionsButton`'s `switch` maps each case to the correct label/action, so a swapped `case` body would still pass this test. No automated fix available without SwiftUI-rendering test infra this project deliberately doesn't have.
+- `StoryChoiceView`'s `onExitAndClearProgress` closure calling `engine.exitAndClearProgress()` then `onExitToHome()`, in that order, has no automated regression coverage — a future accidental reordering would only surface via manual QA, same UI-test-infra gap as above.
+- Story 2.14 treats the `UserDefaults(suiteName:)` write-then-read race as test-infrastructure-only, but `StoryRunEngine.resumingFromSnapshot(defaults:)` (production code) has the identical write-then-immediate-read access shape against real `UserDefaults`. If the eventual root cause is a genuine synchronization issue rather than a Linux `swift-corelibs-foundation` test artifact, it could be reachable in the shipped app, not just `swift test`. Story 2.14's own scope already has a safety valve for this ("stop and reconsider scope" if production code is implicated) — flagging here so it isn't lost if that valve doesn't trigger.
+
 ## Deferred from: code review of 2-10-persist-back-navigation-across-app-relaunch (2026-08-03)
 
 - AC #3's literal scenario (relaunch-then-`goBack()`-into-a-dismissed-arrival-node) is not actually exercised by `resumedEngineComposesPersistedBackStackWithDismissedArrivalState`, which resumes directly onto `.shoreArrival` and backs away from it rather than resuming past it and backing into it. Structurally unreachable in the current placeholder content tree (`.shoreArrival`'s only forward target is an ending node, which `loadValid(from:)` rejects), not merely untested. User decision 2026-08-03: accepted as sufficient evidence the underlying mechanism works; revisit once Epic 4 ships a content tree with reachable post-arrival nodes.

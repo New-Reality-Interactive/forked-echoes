@@ -712,6 +712,34 @@ So I don't have to Restart and then separately Exit just to fully bail on a run.
 
 **And** a manual-verification AC: in Xcode/Simulator, start a run, advance a few pages, invoke run options, select "Exit and Clear Progress," confirm, and verify (1) the app lands on Home in its fresh-install state, (2) a new run starts clean with no carried-over progress or score, (3) VoiceOver announces the new option and its confirmation correctly. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
+### Story 2.14: Fix Flaky Tests Under Swift Testing's Parallel Execution
+
+As a developer running `swift test`,
+I want the engine-logic test suite to pass reliably every run,
+So that a red run always means a real regression, never noise I have to explain away or rerun past.
+
+*(Bug surfaced during Story 2.13's own `swift test` verification, 2026-08-04 — repeated runs intermittently failed `observerRefreshPicksUpASnapshotWrittenAfterConstruction` (`RunSnapshotPresenceTests.swift`), `anEngineResumedOntoShoreArrivalWithoutDismissalStillReportsInterstitialPhase`, and `anEngineResumedOntoANonEchoNodeReportsIsEchoActiveFalseImmediately` (`StoryRunEngineTests.swift`) — none of them touched by Story 2.13's changes, and none new. Confirmed pre-existing, not a 2.13 regression, by `git stash`-ing 2.13's diff and rerunning the unmodified baseline suite repeatedly (no failures observed in that sample, but the failure signature — a freshly-written `RunSnapshot` not read back on the very next line, same `UserDefaults` suite — is unrelated to anything 2.13 touched). Every failure observed so far has the same shape: a value just written to a `UserDefaults(suiteName:)` instance isn't visible on an immediate subsequent read from that same instance, sometimes off by exactly one prior test's state — consistent with a race under Swift Testing's default parallel execution, not a logic bug in the engine or in `RunSnapshotPresence`/`StoryRunEngine` themselves. `TestSupport.swift`'s `freshDefaults()` already mints a UUID-suffixed suite name per test specifically to avoid cross-test collisions (code review, 2026-08-01, Story 2.4) — this bug means that isolation isn't actually complete under Linux's `swift-corelibs-foundation` `UserDefaults` implementation, or isn't complete under concurrent access to it, and needs root-causing, not just a symptom-level retry.)*
+
+**Acceptance Criteria:**
+
+**Given** the full `ForkedEchoesTests` suite
+**When** `swift test` is run repeatedly from the repo root (at least 10 consecutive runs)
+**Then** every run passes with zero flaky failures — no test that was previously observed to intermittently fail (`observerRefreshPicksUpASnapshotWrittenAfterConstruction`, `anEngineResumedOntoShoreArrivalWithoutDismissalStillReportsInterstitialPhase`, `anEngineResumedOntoANonEchoNodeReportsIsEchoActiveFalseImmediately`, or any other test sharing the same write-then-immediate-read-on-a-fresh-`UserDefaults`-suite shape) fails on any run
+
+**Given** the root cause of the flakiness
+**When** it is investigated
+**Then** the investigation identifies why a `UserDefaults(suiteName:)` instance's own immediately-prior synchronous write is sometimes not visible on the very next read from that same instance under Swift Testing's parallel execution, despite each test using a unique UUID-suffixed suite name (`TestSupport.swift`'s `freshDefaults()`) — findings recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+**Given** the fix
+**When** applied
+**Then** it addresses the actual race (e.g. serializing the affected UserDefaults-suite-creation/read/write sequence, disabling parallel execution only if genuinely unavoidable and justified in Completion Notes, or a correctness fix to how `freshDefaults()` isolates suites) rather than papering over it with retries, `sleep`s, or `.serialized` applied blanket across the whole suite without first understanding why isolation is failing
+
+**Given** this story's own changes
+**When** complete
+**Then** all 64 pre-existing tests (60 before Story 2.13, plus 2.13's 4 new tests) still pass, with no test logic changed except what's needed to fix the race itself — this is an infrastructure/reliability fix, not a behavior change
+
+**And** a verification AC: run `swift test` at least 10 consecutive times from the repo root and record the pass count (expect 10/10) in the story's Completion Notes List, alongside a one-line description of the actual root cause found
+
 ## Epic 3: Alignment Scoring, Ending & Memory Recap
 
 When a run terminates (naturally or via hard-fail), it silently resolves to one of four endings through a shared template, followed by a memory screen recapping every choice, its consequence, and the alignment score/tier — for every run, no exceptions.

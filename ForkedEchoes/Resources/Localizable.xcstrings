@@ -316,18 +316,6 @@
         }
       }
     },
-    "tutorial.action.backHome" : {
-      "comment" : "Tutorial screen: secondary action label, returns to Home",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back Home"
-          }
-        }
-      }
-    },
     "tutorial.action.startStory" : {
       "comment" : "Tutorial screen: primary action label, starts the story",
       "extractionState" : "manual",

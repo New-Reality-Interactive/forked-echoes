@@ -48,29 +48,16 @@ struct RootView: View {
                 }
         }
         .environment(runProgress)
-        // Story 2.7: also applied to the whole NavigationStack now (previously only inside the
-        // fullScreenCover below), so TutorialView (which now needs StoryRunEngine for its own
-        // run-options control) can see it too.
-        //
-        // User-confirmed bug, 2026-08-02: this NavigationStack-level application does NOT, in
-        // practice, propagate into the fullScreenCover's content closure below — contrary to this
-        // story's original assumption ("SwiftUI environment values propagate from a presenting
-        // view into its modally-presented content by default"). Real Xcode/Simulator testing
-        // showed the opposite: StoryChoiceView crashed with "No Observable object of type
-        // StoryRunEngine found" the moment "Start Story" presented it, because the explicit
-        // `.environment(engine)` that used to sit directly inside the fullScreenCover closure had
-        // been removed on the assumption it was now redundant. It wasn't. Both applications are
-        // needed: this one for Home/Tutorial, and the one inside the closure below for the Story
-        // session — a fullScreenCover's content, at least as this app's SwiftUI version resolves
-        // it, only inherits environment values from its presenting view's environment at the
-        // *call site* the modifier is attached to, not modifiers applied earlier in the same
-        // chain to the view the modifier decorates.
-        .environment(engine)
         .fullScreenCover(isPresented: $isPresentingStorySession) {
             StoryChoiceView(onExitToHome: {
                 navigationPath = NavigationPath()
                 isPresentingStorySession = false
             })
+            // User-confirmed bug, 2026-08-02: a fullScreenCover's content, at least as this app's
+            // SwiftUI version resolves it, only inherits environment values from its presenting
+            // view's environment at the *call site* the modifier is attached to, not modifiers
+            // applied earlier in the same chain to the view the modifier decorates — so `engine`
+            // must be applied explicitly here even though it's also injected elsewhere.
             .environment(engine)
         }
         // User-confirmed bug, 2026-08-01: HomeView/TutorialView's own `.onAppear` refresh does

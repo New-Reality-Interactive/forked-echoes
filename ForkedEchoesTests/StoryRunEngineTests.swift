@@ -610,9 +610,10 @@ struct StoryRunEngineTests {
         #expect(engine.phase == .interstitial)
     }
 
-    // Story 2.7: exitToHome()/restartRun() complete AD-3's intent surface (only startNewRun(),
-    // Epic 3's job, remains). exitToHome() is intentionally a no-op — these tests prove that
-    // directly, including against the persisted snapshot, not just in-memory state.
+    // Story 2.7: exitToHome()/restartRun() are part of AD-3's intent surface (Story 2.13 adds
+    // exitAndClearProgress() below the restartRun() trio; only startNewRun(), Epic 3's job,
+    // remains). exitToHome() is intentionally a no-op — these tests prove that directly, including
+    // against the persisted snapshot, not just in-memory state.
     @Test func exitToHomeDoesNotMutateEngineState() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -693,6 +694,58 @@ struct StoryRunEngineTests {
         #expect(relaunchedEngine.currentNodeId == StoryTree.root)
         #expect(relaunchedEngine.choiceHistory.isEmpty)
         #expect(relaunchedEngine.alignmentScore == 0)
+    }
+
+    // Story 2.13: exitAndClearProgress() completes AD-3's intent surface. Modeled directly on the
+    // restartRun() trio above — the field reset is identical (shared resetRunState()) — except the
+    // last test, which pins down the one behavior that actually differs: no persisted snapshot.
+    @Test func exitAndClearProgressResetsAllRunStateMidRun() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(engine.currentNodeId == .boatEcho)
+
+        engine.exitAndClearProgress()
+
+        #expect(engine.currentNodeId == StoryTree.root)
+        #expect(engine.choiceHistory.isEmpty)
+        #expect(engine.alignmentScore == 0)
+
+        // Back-navigation stack cleared as part of the reset (shared resetRunState()).
+        engine.goBack()
+        #expect(engine.currentNodeId == StoryTree.root)
+    }
+
+    @Test func exitAndClearProgressClearsDismissedArrivalNodeState() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.shore)
+        engine.advancePage() // dismiss the interstitial, advances to .endingElsewhere
+        #expect(engine.currentNodeId == .endingElsewhere)
+
+        engine.exitAndClearProgress()
+        engine.advancePage() // .intro -> .firstChoice
+        engine.selectChoice(.shore) // re-arrive at .shoreArrival on the new run
+
+        #expect(engine.phase == .interstitial)
+    }
+
+    // The regression this story exists to prevent (see StoryRunEngine.exitAndClearProgress()'s
+    // doc comment): unlike restartRun(), which leaves a fresh, resumable snapshot on disk,
+    // exitAndClearProgress() must leave Home in its fresh-install state — no persisted snapshot.
+    @Test func exitAndClearProgressLeavesNoPersistedSnapshot() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.boat)
+        #expect(RunSnapshot.loadValid(from: defaults) != nil)
+
+        engine.exitAndClearProgress()
+
+        #expect(RunSnapshot.loadValid(from: defaults) == nil)
+        #expect(RunSnapshotPresence.hasInProgressRun(in: defaults) == false)
     }
 
     // Story 2.10 (AC #1, #4): the actual regression test for the bug this story fixes. Before

@@ -187,6 +187,7 @@ Claude Sonnet 5 (claude-sonnet-5)
 - Design decision confirmed correct via the new `exitAndClearProgressLeavesNoPersistedSnapshot` test: `exitAndClearProgress()` reuses `resetRunState()` for field parity with `restartRun()`, but removes the persisted `RunSnapshot` key directly instead of calling `persistOrClearSnapshot()`, since the latter would re-persist a fresh, resumable snapshot the moment `currentNodeId` lands back at `StoryTree.root`.
 - `RunOptionsRow` (new `ForkedEchoes/Engine/RunOptionsRow.swift`) makes the sheet's four-row order a plain, `CaseIterable` value that both `RunOptionsButton`'s options `confirmationDialog` (via `ForEach(RunOptionsRow.allCases, id: \.self)`) and `RunOptionsButtonTests.runOptionsRowOrderIsFixed()` consume — closes the automated-coverage gap Story 2.7's code review flagged, without adding a UI test target/pattern (project-context.md's Testing rule stays intact).
 - `ARCHITECTURE-SPINE.md`'s AD-3 intent-method list and `StoryRunEngineTests.swift`'s line-613 doc comment both updated in place to include `exitAndClearProgress()`, keeping the "AD-3's intent surface is exhaustively enumerated" invariant true.
+- **Code review verification confirmed by user, 2026-08-04:** after the review's two patches (shared `cancelButton` helper in `RunOptionsButton.swift`, new `exitAndClearProgressIsHarmlessWithNoPriorSnapshot()` test), the user rebuilt and retested the whole app in Xcode — build, `swift test` in Xcode, and Simulator verification all passed as expected. Story remains `done`.
 
 ### File List
 

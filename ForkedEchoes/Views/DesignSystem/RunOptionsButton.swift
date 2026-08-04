@@ -22,15 +22,24 @@ import SwiftUI
 // That popover-style presentation has always auto-suppressed any button with `role: .cancel`
 // (documented UIAlertController behavior since iOS 8: tap-outside-to-dismiss already covers that
 // case in a popover, so the system drops a redundant Cancel action) — which is why the sheet's
-// intended "Cancel" row went missing. Fix: both dialogs' dismiss buttons below are plain buttons
-// (no `.cancel` role), which keeps them visible and tappable in the anchored-popover style.
-
+// intended "Cancel" row went missing. Fix: `cancelButtonRole` below is `nil` on iOS 26+ so the
+// row survives, but `.cancel` on iOS 18-25 (this app's real deployment target, project-context.md)
+// where confirmationDialog still renders as the bottom sheet and role: .cancel's native
+// bold/separated styling and VoiceOver cancel trait are never suppressed — unconditionally
+// dropping the role would needlessly regress that still-supported presentation.
 struct RunOptionsButton: View {
     let onExitToHome: () -> Void
     let onRestartRun: () -> Void
 
     @State private var isPresentingOptions = false
     @State private var isPresentingRestartConfirmation = false
+
+    private var cancelButtonRole: ButtonRole? {
+        if #available(iOS 26, *) {
+            return nil
+        }
+        return .cancel
+    }
 
     var body: some View {
         Button {
@@ -56,7 +65,7 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 isPresentingRestartConfirmation = true
             }
-            Button("runOptions.cancel") {}
+            Button("runOptions.cancel", role: cancelButtonRole) {}
         }
         .confirmationDialog(
             "runOptions.restartConfirmation.title",
@@ -66,7 +75,7 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 onRestartRun()
             }
-            Button("runOptions.cancel") {}
+            Button("runOptions.cancel", role: cancelButtonRole) {}
         }
     }
 }

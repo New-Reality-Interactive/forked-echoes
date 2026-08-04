@@ -4,7 +4,7 @@ baseline_commit: 4875900
 
 # Story 2.12: Run-Options Sheet — Fix Popover Presentation & Missing Cancel
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -114,6 +114,12 @@ This story's epic entry is explicit that the fix must address a *root cause*, no
 - [Source: WWDC 2025 Session 284, "Build a UIKit app with the new design" — https://developer.apple.com/videos/play/wwdc2025/284/] (confirms iOS 26's action-sheet-anchors-to-source-view-on-iPhone platform change)
 - [Source: Apple Developer Forums thread 803824, "How to get an anchored action sheet without the popover..." — https://developer.apple.com/forums/thread/803824] (confirms no supported way to force the pre-iOS-26 bottom-sheet style for a non-nav-bar-anchored button)
 
+### Review Findings
+
+- [x] [Review][Patch] `.cancel` role removal not gated to iOS 26+, degrading the app's own supported iOS 18–25 range [ForkedEchoes/Views/DesignSystem/RunOptionsButton.swift:59,69]
+- [x] [Review][Patch] `sprint-status.yaml` narrative contradicts the story's own completed-verification record [_bmad-output/implementation-artifacts/sprint-status.yaml:44]
+- [x] [Review][Patch] Dev Agent Record → File List omits `sprint-status.yaml` as a modified file [story file:140-143]
+
 ## Dev Agent Record
 
 ### Agent Model Used
@@ -141,6 +147,7 @@ Claude Sonnet 5 (claude-sonnet-5)
 
 - Modified: `ForkedEchoes/Views/DesignSystem/RunOptionsButton.swift`
 - Modified: `_bmad-output/planning-artifacts/epics.md` (UX-DR11 addendum)
+- Modified: `_bmad-output/implementation-artifacts/sprint-status.yaml` (status backlog → review)
 
 ## Change Log
 

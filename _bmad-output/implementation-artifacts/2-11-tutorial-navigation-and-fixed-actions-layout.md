@@ -4,7 +4,7 @@ baseline_commit: cdd803f
 
 # Story 2.11: Tutorial Navigation & Fixed-Actions Layout
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -65,6 +65,10 @@ so the screen isn't cluttered with two overlapping exits, an escape hatch for a 
 - [x] Task 5: Manual verification (AC #5)
   - [x] Request from user per project-context.md's Process Agreement (this devcontainer has no Xcode/Simulator) — the 5-point checklist in AC #5 is the exact list to hand off
   - [x] Record result + date in Completion Notes List once reported back
+
+### Review Findings
+
+- [x] [Review][Patch] `RootView.swift`'s NavigationStack-level `.environment(engine)` (line 68) and its accompanying comment are now stale — this story removed `TutorialView`'s only need for `StoryRunEngine` via environment, and `HomeView.swift` never consumed it either, so nothing under the `NavigationStack` reads it anymore (the `fullScreenCover`'s own explicit `.environment(engine)` at line 74 is the one that's actually load-bearing, per the 2026-08-02 bug comment already in that file). Removed the now-unnecessary `.environment(engine)` application at the `NavigationStack` level and its stale comment; the `fullScreenCover`'s own `.environment(engine)` (with its bug-explanation comment condensed) is retained as the sole, correct application. Verified via `swiftc -parse`. [ForkedEchoes/Views/RootView.swift:50-58]
 
 ## Dev Notes
 
@@ -161,3 +165,4 @@ Claude Sonnet 5 (claude-sonnet-5)
 - 2026-08-03: Story 2.11 created via create-story workflow, on branch to be named at dev-story time. Scoped to `TutorialView.swift` only (plus one `Localizable.xcstrings` key removal): drop the in-content "Back Home" button in favor of standard iOS back navigation, restructure the layout so "Start Story"/"Resume Story" is fixed outside the scrollable mechanics-copy region, and remove the Story 2.7 `RunOptionsButton` retrofit entirely (including the `dismiss`/`engine` environment values that become unused once both its call sites are gone). No engine-logic changes; Home is explicitly out of scope.
 - 2026-08-03: Implemented via dev-story on branch `2-11-tutorial-navigation-and-fixed-actions-layout`. Tasks 1-4 complete: "Back Home" button and its localization key removed; layout restructured with the action button as a fixed sibling of the mechanics-copy `ScrollView`; `RunOptionsButton` overlay and its now-unused `engine`/`dismiss` environment values removed; Home and `RunOptionsButton.swift` confirmed untouched. `swift test` 60/60 passing, no regressions. Task 5 (manual Simulator verification) requested from user; status set to review pending that result.
 - 2026-08-04: Task 5 complete — user confirmed build/`swift test` passed in Xcode and all 5 AC #5 manual-verification points passed in Simulator. All tasks now complete.
+- 2026-08-04: Code review complete (Blind Hunter + Edge Case Hunter + Acceptance Auditor). Acceptance Auditor found zero AC violations. 1 patch applied: `RootView.swift`'s stale NavigationStack-level `.environment(engine)` (left over from Story 2.7's Tutorial retrofit, now unread by anything) removed, verified via `swiftc -parse`. 11 other findings reviewed and dismissed (spec-intended behavior, verified non-issues, or process commentary out of code-review scope). Status set to done.

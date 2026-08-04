@@ -6,10 +6,25 @@ import SwiftUI
 // call sites need genuinely different "go home"/refresh behavior and shouldn't hardcode
 // navigation here.
 //
-// Uses .confirmationDialog (not the deprecated ActionSheet type) — still renders as a native
-// action sheet on iPhone, matching UX-DR11's "platform-native action sheet" wording. role:
-// .destructive/.cancel give native destructive styling, VoiceOver announcement, and Dynamic Type
-// support for free (EXPERIENCE.md Accessibility Floor: "no custom-built confirmation dialog").
+// Uses .confirmationDialog (not the deprecated ActionSheet type) — role: .destructive gives
+// native destructive styling, VoiceOver announcement, and Dynamic Type support for free
+// (EXPERIENCE.md Accessibility Floor: "no custom-built confirmation dialog").
+//
+// Story 2.12 (amends UX-DR11): starting in iOS 26, confirmationDialog/actionSheet presentations
+// triggered from an ordinary button (not a UIBarButtonItem in a navigation bar) anchor to that
+// button by default on iPhone — the same button-anchored popover-with-arrow style iPadOS has
+// always used, not the pre-iOS-26 bottom-sliding sheet (confirmed via WWDC 2025 Session 284,
+// "Build a UIKit app with the new design": "Starting in iOS 26, [action sheets] behave the same
+// on iPhone [as iPad], appearing directly over the originating view"). This is intentional
+// platform behavior, not a bug, and UX-DR11's "platform-native action sheet" now means this
+// anchored-popover style for this app's non-nav-bar-anchored control.
+//
+// That popover-style presentation has always auto-suppressed any button with `role: .cancel`
+// (documented UIAlertController behavior since iOS 8: tap-outside-to-dismiss already covers that
+// case in a popover, so the system drops a redundant Cancel action) — which is why the sheet's
+// intended "Cancel" row went missing. Fix: both dialogs' dismiss buttons below are plain buttons
+// (no `.cancel` role), which keeps them visible and tappable in the anchored-popover style.
+
 struct RunOptionsButton: View {
     let onExitToHome: () -> Void
     let onRestartRun: () -> Void
@@ -41,7 +56,7 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 isPresentingRestartConfirmation = true
             }
-            Button("runOptions.cancel", role: .cancel) {}
+            Button("runOptions.cancel") {}
         }
         .confirmationDialog(
             "runOptions.restartConfirmation.title",
@@ -51,7 +66,7 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 onRestartRun()
             }
-            Button("runOptions.cancel", role: .cancel) {}
+            Button("runOptions.cancel") {}
         }
     }
 }

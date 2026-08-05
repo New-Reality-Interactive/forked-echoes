@@ -889,6 +889,24 @@ struct StoryRunEngineTests {
         #expect(reloaded?.visitedNodeIds == [.intro])
     }
 
+    // Story 3.1 (AC #1/#2, code review 2026-08-05): the compiler only guarantees every terminal
+    // node has *some* EndingKind (AD-1's non-optional `kind` field) — it can't catch a *wrong*
+    // one being assigned (e.g. a copy-paste swap of .home for .hardFail). This test asserts each
+    // terminal node's resolved EndingKind matches what StoryTree.swift actually authors, closing
+    // that gap directly rather than relying on NodeID reachability alone.
+
+    @Test func eachTerminalNodeResolvesToItsAuthoredEndingKind() {
+        func kind(of nodeId: NodeID) -> EndingKind? {
+            guard case .ending(let payload) = StoryTree.node(for: nodeId) else { return nil }
+            return payload.kind
+        }
+
+        #expect(kind(of: .endingHomeward) == .home)
+        #expect(kind(of: .endingElsewhere) == .stay)
+        #expect(kind(of: .endingLimbo) == .limbo)
+        #expect(kind(of: .endingHardFail) == .hardFail)
+    }
+
     // Story 3.1 (AC #3, AD-5, AD-7/NFR3): selectChoice(_:) targeting a hard-fail terminal node
     // transitions the engine to Ending the instant the choice fires, with no intervening
     // advancePage() call. phase's derivation is already generic (see StoryRunEngine.phase) — this
@@ -906,27 +924,39 @@ struct StoryRunEngineTests {
     }
 
     // Story 3.1 (AC #3): the hard-fail terminal node is reachable only via its designated gotcha
-    // choice — selecting any other firstChoice option never lands on .endingHardFail.
+    // choice — selecting any other firstChoice option never lands on .endingHardFail. Three
+    // independent tests (code review, 2026-08-05: originally one bundled @Test with three
+    // scenarios inline, which masked which sub-case failed) rather than one @Test asserting all
+    // three, so a Swift Testing failure report identifies exactly which option's targeting broke.
 
-    @Test func onlyTheGotchaChoiceReachesTheHardFailEnding() {
+    @Test func selectingBoatNeverReachesTheHardFailEnding() {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
 
-        let boatEngine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
-        boatEngine.selectChoice(.boat)
-        #expect(boatEngine.currentNodeId != .endingHardFail)
+        engine.selectChoice(.boat)
 
-        let (shoreDefaults, shoreSuiteName) = freshDefaults()
-        defer { shoreDefaults.removePersistentDomain(forName: shoreSuiteName) }
-        let shoreEngine = StoryRunEngine(startingAt: .firstChoice, defaults: shoreDefaults)
-        shoreEngine.selectChoice(.shore)
-        #expect(shoreEngine.currentNodeId != .endingHardFail)
+        #expect(engine.currentNodeId != .endingHardFail)
+    }
 
-        let (limboDefaults, limboSuiteName) = freshDefaults()
-        defer { limboDefaults.removePersistentDomain(forName: limboSuiteName) }
-        let limboEngine = StoryRunEngine(startingAt: .firstChoice, defaults: limboDefaults)
-        limboEngine.selectChoice(.driftLimbo)
-        #expect(limboEngine.currentNodeId != .endingHardFail)
+    @Test func selectingShoreNeverReachesTheHardFailEnding() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.shore)
+
+        #expect(engine.currentNodeId != .endingHardFail)
+    }
+
+    @Test func selectingDriftLimboNeverReachesTheHardFailEnding() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.driftLimbo)
+
+        #expect(engine.currentNodeId != .endingHardFail)
     }
 
     // Story 3.1 (AC #7): reaching either of this story's two new terminal nodes clears the

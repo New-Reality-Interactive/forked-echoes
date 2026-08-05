@@ -74,11 +74,13 @@ enum StoryTree {
                         target: .endingHardFail
                     ),
                     // Story 3.1: reaches the fourth EndingKind case (.limbo), otherwise unexercised
-                    // by .boat/.shore.
+                    // by .boat/.shore. Non-zero delta (code review, 2026-08-05): matches the
+                    // "non-zero placeholder deltas" comment above, which this option originally
+                    // violated with a 0 value.
                     ChoiceOption(
                         id: .driftLimbo,
                         labelKey: "story.firstChoice.choice.4",
-                        alignmentDelta: 0,
+                        alignmentDelta: 2,
                         target: .endingLimbo
                     ),
                 ]

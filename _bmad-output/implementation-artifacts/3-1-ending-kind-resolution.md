@@ -4,7 +4,7 @@ baseline_commit: 8da93b0e442afd8844b624a830f26de05ea9e8a0
 
 # Story 3.1: Ending Kind Resolution
 
-Status: review
+Status: done
 
 ## Story
 
@@ -44,11 +44,21 @@ so that ending resolution requires no runtime computation.
   - [x] A test proving `.endingLimbo` and `.endingHardFail` both clear the persisted `RunSnapshot` on arrival, exactly like the existing `reachingAnEndingNodeClearsTheStoredSnapshot` test does for `.endingHomeward` — this is AC #7's traceability, though note in Dev Notes below that the clearing behavior itself is **already implemented and generic** (see `persistOrClearSnapshot()`'s `case .ending` branch), so this task only needs a new test case, not an engine code change.
 - [x] Task 6: Manual verification (`swift test`, not Xcode/Simulator — this story has no UI) — run `swift test` from the repo root and confirm the full suite passes with the new tests included; record the pass count in Completion Notes (project-context.md Process Agreement).
 
+### Review Findings
+
+- [x] [Review][Patch] No test asserts a terminal node's `EndingPayload.kind` is the *correct* value — only `NodeID` reachability/phase is tested, so a swapped/wrong `EndingKind` (e.g. `.endingHardFail` assigned `.home`) would compile cleanly and the full 69-test suite would still pass, silently defeating AC #1/#2/#5's actual purpose. [ForkedEchoes/Content/StoryTree.swift:103-115]
+- [x] [Review][Patch] `.driftLimbo`'s `alignmentDelta` is `0`, contradicting Task 3's explicit "give both new options non-zero placeholder alignmentDelta values" requirement and the pre-existing comment above the options array ("Non-zero placeholder deltas to exercise alignmentScore accumulation in tests") — doesn't affect ending-resolution correctness (AD-6) but is a clear content-authoring inconsistency this story's own task called for. [ForkedEchoes/Content/StoryTree.swift:78-83]
+- [x] [Review][Patch] `onlyTheGotchaChoiceReachesTheHardFailEnding` bundles three independent scenarios (`.boat`, `.shore`, `.driftLimbo`) into one `@Test` with copy-pasted `freshDefaults()`/`defer` boilerplate per scenario — a failure on the first assertion masks whether the other two would also fail, and the test report won't distinguish which sub-case broke. [ForkedEchoesTests/StoryRunEngineTests.swift]
+- [x] [Review][Patch] Dev Notes/Task 6 frame this story as having "no new View code"/no UI impact, but `firstChoice`'s rendered choice-card count grew from 2 to 4 via the existing `StoryChoiceView`/`ChoiceCardView` — a real, currently-shipping screen whose content just changed. No manual Simulator verification was requested, contrary to project-context.md's Process Agreement to explicitly ask for an Xcode/Simulator check whenever a change touches app-rendered content. Nothing in `ChoiceCardView`/`StoryChoiceView` hardcodes an option count (`ForEach` is generic), so this isn't a proven bug — but per project convention it needs an explicit verification ask, not a "no UI impact" framing. [_bmad-output/implementation-artifacts/3-1-ending-kind-resolution.md Dev Notes]
+- [x] [Review][Defer] `sprint-status.yaml`'s `last_updated` field keeps growing unboundedly — this diff's own status-update entry appends yet another multi-thousand-character narrative onto a field a prior retrospective already flagged as a known, deferred, pre-existing problem. Not caused by this diff, just continued. [_bmad-output/implementation-artifacts/sprint-status.yaml] — deferred, pre-existing
+
 ## Dev Notes
 
-### This story is engine/content-only — there is no new View code
+### This story adds no new View code, but it does change what an existing screen renders
 
 Per the implementation-readiness report and the epic intro, Story 3.1's whole job is making `AD-5`'s phase-derivation reach `.ending` meaningfully — no `EndingView` exists yet (that's Story 3.2). Do not create any `Views/Ending/` files in this story; a `.gitkeep` there or a stub view is explicitly out of scope. `EndingPayload` does **not** need a `bodyKey` — that's Story 3.2's job, when it renders outcome-specific text keyed off `EndingKind`.
+
+**Correction (code review, 2026-08-05):** "no UI impact" was an overstatement. `firstChoice`'s `options` array grew from 2 to 4 (Task 3), and it renders through the existing, currently-shipping `StoryChoiceView`/`ChoiceCardView` (`.choice` case, `ForEach(options, id: \.id)` inside a `VStack`) — a real screen's rendered content changed, even though no View file was touched. `ForEach`/the surrounding `VStack` are generic (no hardcoded option count), so there's no specific reason to expect breakage, but per project-context.md's Process Agreement ("actively request the user's Xcode/Simulator check... at the end of every session that touches app code — don't just passively note it's unverified"), this needed an explicit ask rather than a "no UI impact" framing. **Please check in Xcode/Simulator:** open the choice page at `.firstChoice` (4 cards now, including longer placeholder copy) at at least one accessibility Dynamic Type size, and confirm all four cards render, are tappable, and don't clip/overflow.
 
 ### The Ending-clears-snapshot behavior (AC #7) is already implemented — don't reimplement it
 
@@ -104,7 +114,18 @@ Claude Sonnet 5 (claude-sonnet-5)
 - Added `story.firstChoice.choice.3`/`.4` to `Localizable.xcstrings`, placed immediately after `.choice.2` (alphabetical order preserved), each with `comment`/`extractionState: "manual"`/translated `en` `stringUnit`, matching the existing two entries' shape exactly. Validated with `python3 -m json.tool`.
 - 4 new Swift Testing cases added to `StoryRunEngineTests.swift`, all using the existing `freshDefaults()`/`defer { removePersistentDomain }` isolation pattern: immediate hard-fail transition, hard-fail-reachable-only-via-gotcha (checked against all three other `firstChoice` options), and snapshot-clearing for both new endings.
 - **`swift test` result: 69/69 passing** (65 pre-existing + 4 new), confirmed across 3 consecutive full runs post-implementation, 0 flakes.
-- This story is engine/content-only, per its own scope (no `EndingView` — that's Story 3.2) — no Xcode/Simulator manual-verification step applies; `swift test` is this story's complete verification, consistent with its Dev Notes/Testing Standards Summary.
+- This story is engine/content-only, per its own scope (no `EndingView` — that's Story 3.2); **correction below** narrows this to "no new View *code*," not "no UI impact."
+
+**Code review, 2026-08-05 — 4 patches applied:**
+
+- `EndingKind` given `Equatable` conformance, and a new test (`eachTerminalNodeResolvesToItsAuthoredEndingKind`) added asserting each of the four terminal nodes' `EndingPayload.kind` matches what `StoryTree.swift` actually authors — closes the gap where only `NodeID` reachability was tested, not `EndingKind` correctness (the compiler guarantees a kind is *present*, never that it's the *correct* one).
+- `.driftLimbo`'s `alignmentDelta` changed from `0` to `2`, matching Task 3's own "non-zero placeholder deltas" requirement, which this option had violated.
+- `onlyTheGotchaChoiceReachesTheHardFailEnding` (one `@Test` bundling three scenarios) split into three independent tests (`selectingBoatNeverReachesTheHardFailEnding`, `selectingShoreNeverReachesTheHardFailEnding`, `selectingDriftLimboNeverReachesTheHardFailEnding`) so a failure identifies exactly which option's targeting broke.
+- Corrected the "no UI impact" framing in Dev Notes — `firstChoice` now renders 4 choice cards instead of 2 through the existing `StoryChoiceView`/`ChoiceCardView`. **A manual Xcode/Simulator check is requested**: open the `.firstChoice` choice page (4 cards, longer placeholder copy) at an accessibility Dynamic Type size and confirm all four cards render, are tappable, and don't clip/overflow. Not yet performed — please run this check and report back.
+
+**`swift test` result after patches: 72/72 passing** (69 prior + 1 new kind-correctness test + 2 net from the 1-test-split-into-3), confirmed across 3 consecutive full runs, 0 flakes.
+
+**Manual Xcode/Simulator verification confirmed by user, 2026-08-05:** Xcode build and `swift test` both succeeded; on the Simulator, `firstChoice` renders all 4 choice cards, and selecting either of the two new options (the gotcha hard-fail choice or the limbo choice) correctly navigates straight to the Ending placeholder page — confirming AC #3's immediate-transition behavior end-to-end on a real build, not just in the engine-level test suite.
 
 ### File List
 

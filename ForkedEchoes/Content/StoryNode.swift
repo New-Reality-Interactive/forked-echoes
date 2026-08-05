@@ -32,7 +32,10 @@ struct EndingPayload: Hashable, Sendable {
 // AD-6: fixed at write-time on each terminal node — the run's ending is read directly from this,
 // never computed from alignmentScore. hardFail nodes are reached only via a designated gotcha
 // choice (StoryTree.swift); every other case is reached through ordinary branch traversal.
-enum EndingKind: Sendable {
+// Equatable (code review, 2026-08-05): so tests can assert a terminal node's resolved kind matches
+// expectation directly, rather than only checking NodeID reachability — the compiler only
+// guarantees a kind is *present* on every terminal node (AD-1), never that it's the *correct* one.
+enum EndingKind: Sendable, Equatable {
     case home
     case stay
     case limbo

@@ -24,9 +24,15 @@ indirect enum StoryNode: Sendable {
 // supplied a kind. That's what makes AD-1/AD-6's "every terminal node resolves to exactly one
 // EndingKind" a compiler guarantee rather than a runtime check: StoryTree.swift's
 // `resolvedNode(for:)` cannot construct an `.ending` case for any NodeID without naming its kind.
+// Story 3.2: `titleKey`/`bodyKey` follow `kind`'s non-defaulted precedent (see the doc comment
+// above), not `.reading`'s `echoBodyKey`/`arrival` defaulted-parameter one — ending text isn't an
+// optional, additive node feature, so every terminal node's authoring site becomes a compile error
+// until it supplies real values, same as `kind` did in Story 3.1.
 struct EndingPayload: Hashable, Sendable {
     let nodeId: NodeID
     let kind: EndingKind
+    let titleKey: String
+    let bodyKey: String
 }
 
 // AD-6: fixed at write-time on each terminal node — the run's ending is read directly from this,

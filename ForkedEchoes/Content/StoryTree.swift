@@ -103,18 +103,39 @@ enum StoryTree {
             )
 
         case .endingHomeward:
-            return .ending(EndingPayload(nodeId: id, kind: .home))
+            return .ending(EndingPayload(
+                nodeId: id,
+                kind: .home,
+                titleKey: "story.endingHomeward.title",
+                bodyKey: "story.endingHomeward.body"
+            ))
 
         case .endingElsewhere:
-            return .ending(EndingPayload(nodeId: id, kind: .stay))
+            return .ending(EndingPayload(
+                nodeId: id,
+                kind: .stay,
+                titleKey: "story.endingElsewhere.title",
+                bodyKey: "story.endingElsewhere.body"
+            ))
 
         // Story 3.1: two new terminal nodes, reached directly from firstChoice's new options —
         // exercise the remaining two EndingKind cases not covered by the pre-existing tree.
         case .endingLimbo:
-            return .ending(EndingPayload(nodeId: id, kind: .limbo))
+            return .ending(EndingPayload(
+                nodeId: id,
+                kind: .limbo,
+                titleKey: "story.endingLimbo.title",
+                bodyKey: "story.endingLimbo.body"
+            ))
 
         case .endingHardFail:
-            return .ending(EndingPayload(nodeId: id, kind: .hardFail))
+            // Story 3.2 (AC #4): tone-appropriate dark comedy, per mockups/ending.html's sample.
+            return .ending(EndingPayload(
+                nodeId: id,
+                kind: .hardFail,
+                titleKey: "story.endingHardFail.title",
+                bodyKey: "story.endingHardFail.body"
+            ))
         }
     }
 }

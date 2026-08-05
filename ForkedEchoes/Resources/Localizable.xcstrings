@@ -4,6 +4,18 @@
     "" : {
 
     },
+    "ending.continueHint" : {
+      "comment" : "Story 3.2: Ending screen's tap-to-continue affordance text, shown beneath the ending body copy — no matching DESIGN.md typography token (mockups/ending.html's .continue-hint has no source), styled by feel per LayoutMetrics.swift's other untokened constants",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to see your run"
+          }
+        }
+      }
+    },
     "home.action.resumeStory" : {
       "comment" : "Home screen: primary action label when a run is already in progress",
       "extractionState" : "manual",
@@ -180,6 +192,150 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You chose the boat back at the dock. It's waiting for you now, exactly where you left it."
+          }
+        }
+      }
+    },
+    "story.ending.eyebrow.hardFail" : {
+      "comment" : "Story 3.2: Ending screen's eyebrow tag for a hard-fail-kind ending, derived from EndingKind — Views-layer presentation data, no new content-model field",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ending — Hard-Fail"
+          }
+        }
+      }
+    },
+    "story.ending.eyebrow.home" : {
+      "comment" : "Story 3.2: Ending screen's eyebrow tag for a home-kind ending, derived from EndingKind — Views-layer presentation data, no new content-model field",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ending — Home"
+          }
+        }
+      }
+    },
+    "story.ending.eyebrow.limbo" : {
+      "comment" : "Story 3.2: Ending screen's eyebrow tag for a limbo-kind ending, derived from EndingKind — Views-layer presentation data, no new content-model field",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ending — Limbo"
+          }
+        }
+      }
+    },
+    "story.ending.eyebrow.stay" : {
+      "comment" : "Story 3.2: Ending screen's eyebrow tag for a stay-kind ending, derived from EndingKind — Views-layer presentation data, no new content-model field",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ending — Stay"
+          }
+        }
+      }
+    },
+    "story.endingElsewhere.body" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingElsewhere node's body text, reached via the shore/shoreArrival path",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You never did turn back toward the boat. The shoreline kept going, and so did you, until it led somewhere that felt like it had been waiting."
+          }
+        }
+      }
+    },
+    "story.endingElsewhere.title" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingElsewhere node's short narrative punchline",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The shoreline kept walking, and so did you."
+          }
+        }
+      }
+    },
+    "story.endingHardFail.body" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingHardFail node's body text, tone-appropriate dark comedy (AC #4), matching mockups/ending.html's sample",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In your defense, no one told you this branch reality's boats don't have a wheel. Sam has never seen anyone do that before. Neither had the lake."
+          }
+        }
+      }
+    },
+    "story.endingHardFail.title" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingHardFail node's short narrative punchline, matching mockups/ending.html's sample",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You tried to steer with your feet."
+          }
+        }
+      }
+    },
+    "story.endingHomeward.body" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingHomeward node's body text, matching mockups/ending.html's sample",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sam's hair is short again. The boat is back in the garage, right where it's always been. You did say you wanted to steer — turns out that was the way back, not away."
+          }
+        }
+      }
+    },
+    "story.endingHomeward.title" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingHomeward node's short narrative punchline, matching mockups/ending.html's sample",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The door was exactly where you left it."
+          }
+        }
+      }
+    },
+    "story.endingLimbo.body" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingLimbo node's body text, reached directly via firstChoice's driftLimbo option",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You never picked a direction, so the dock never let you go. It's not a bad place. It's just not anywhere."
+          }
+        }
+      }
+    },
+    "story.endingLimbo.title" : {
+      "comment" : "Story 3.2 placeholder ending copy (Epic 4 replaces): endingLimbo node's short narrative punchline",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're still standing on the dock."
           }
         }
       }

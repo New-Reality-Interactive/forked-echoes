@@ -41,6 +41,10 @@ final class StoryRunEngine {
         case reading
         case interstitial
         case ending
+        // Story 3.2: reachable once advancePage() has been called from .ending — Story 3.3
+        // (Memory/Recap) doesn't exist yet, so this phase currently renders only a temporary
+        // placeholder (StoryChoiceView.swift). See hasAdvancedPastEnding's doc comment below.
+        case memory
     }
 
     /// Story 2.9: persisted via `RunSnapshot.visitedArrivalNodeIds` (AD-4/AD-5, amended
@@ -52,6 +56,13 @@ final class StoryRunEngine {
     /// only changes how this set survives process restart, not how it's read within one process.
     private var dismissedInterstitialNodeIds: Set<NodeID> = []
 
+    /// Story 3.2: true once `advancePage()` has been called from `.ending` — Story 3.3 doesn't
+    /// exist yet, so this is a temporary stand-in for "advanced past Ending" (this story's Dev
+    /// Notes: same shape as the Epic-2-era `.ending` placeholder this story itself replaces).
+    /// Reset in `resetRunState()` alongside the other session-scoped flags, so a fresh run never
+    /// starts in `.memory`.
+    private var hasAdvancedPastEnding = false
+
     var phase: Phase {
         switch StoryTree.node(for: currentNodeId) {
         case .reading(_, _, _, let arrival):
@@ -59,7 +70,7 @@ final class StoryRunEngine {
         case .choice:
             return .reading
         case .ending:
-            return .ending
+            return hasAdvancedPastEnding ? .memory : .ending
         }
     }
 
@@ -183,8 +194,14 @@ final class StoryRunEngine {
             currentNodeId = target
             persistOrClearSnapshot()
 
+        // Story 3.2 (AC #3): "tap to continue" past Ending — the same "move forward past the
+        // current blocking beat" intent AD-3 already documents for this method's other phases.
+        // Deliberately does NOT call persistOrClearSnapshot() (AC #6): AD-4/Story 3.1 AC #7
+        // already cleared the snapshot on arrival at .ending, and there is nothing to write for
+        // a phase with no corresponding NodeID/currentNodeId change — persisting here would
+        // silently resurrect a "resumable" snapshot for a run that has already ended.
         case .ending:
-            return
+            hasAdvancedPastEnding = true
         }
     }
 
@@ -274,6 +291,7 @@ final class StoryRunEngine {
         alignmentScore = 0
         visitedNodeIds = []
         dismissedInterstitialNodeIds = []
+        hasAdvancedPastEnding = false
     }
 
     // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both

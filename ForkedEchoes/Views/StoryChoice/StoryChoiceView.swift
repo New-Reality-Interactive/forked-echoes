@@ -52,7 +52,21 @@ struct StoryChoiceView: View {
 
     var body: some View {
         Group {
-            if engine.phase == .interstitial, case .reading(_, _, _, let arrival?) = StoryTree.node(for: engine.currentNodeId) {
+            if engine.phase == .ending, case .ending(let payload) = StoryTree.node(for: engine.currentNodeId) {
+                // Story 3.2: a dedicated top-level phase branch, not routed through
+                // readingComposition below — see this story's Dev Notes "EndingView should NOT
+                // reuse readingComposition..." section. EndingView owns its own permanently-active
+                // FrameView, gesture, and accessibility-action wiring.
+                EndingView(payload: payload)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if engine.phase == .memory {
+                // Story 3.3 (Memory/Recap Screen) doesn't exist yet — temporary stand-in,
+                // tracked in deferred-work.md, same shape as the Epic-2-era Ending placeholder
+                // this story itself replaces. Text(verbatim:) matches that precedent: dev-facing
+                // stand-in copy, not authored story content.
+                Text(verbatim: "Run complete — Memory screen coming in Story 3.3")
+                    .readingCardPadding()
+            } else if engine.phase == .interstitial, case .reading(_, _, _, let arrival?) = StoryTree.node(for: engine.currentNodeId) {
                 // Story 2.6, AC #2/#5: this branch fully replaces the ordinary composition below
                 // — no page-turn gesture, no tap zones, no exit/run-options button attached at
                 // all while gated (true first-visit-ever, Story 2.9/AD-5), not merely visually
@@ -285,13 +299,12 @@ struct StoryChoiceView: View {
             .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
 
         case .ending:
-            // AC #4: temporary stand-in Epic 3 Story 3.2 replaces with the real Ending screen —
-            // tracked in deferred-work.md so it isn't forgotten (code-review finding, 2026-07-31).
-            // Text(verbatim:) matches the precedent set by the placeholder this story removes
-            // (StoryChoicePlaceholderView.swift) — dev-facing copy, not authored story content.
-            // The payload (terminal NodeID) isn't needed yet — Story 3.1 is what gives it real use.
-            Text(verbatim: "Run complete — Ending screen coming in Epic 3")
-                .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
+            // Story 3.2: unreachable in practice — body's top-level branch above renders
+            // EndingView (and the .memory placeholder) directly whenever the current node is
+            // .ending, so readingComposition/content never runs for one (phase is purely derived
+            // from node type, AD-5). Fails loudly rather than silently rendering nothing, mirroring
+            // StoryTree.node(for:)'s own "fail loudly" convention for content-authoring invariants.
+            preconditionFailure("StoryChoiceView.content must never render a .ending node — body's phase == .ending branch handles it first")
         }
     }
 
@@ -367,9 +380,21 @@ struct StoryChoiceView: View {
         .environment(StoryRunEngine(startingAt: .firstChoice))
 }
 
-#Preview("Ending node") {
+#Preview("Ending node, home") {
     StoryChoiceView(onExitToHome: {})
         .environment(StoryRunEngine(startingAt: .endingHomeward))
+}
+
+#Preview("Ending node, hard-fail") {
+    StoryChoiceView(onExitToHome: {})
+        .environment(StoryRunEngine(startingAt: .endingHardFail))
+}
+
+#Preview("Memory placeholder") {
+    let engine = StoryRunEngine(startingAt: .endingHomeward)
+    engine.advancePage()
+    return StoryChoiceView(onExitToHome: {})
+        .environment(engine)
 }
 
 #Preview("Branch arrival, gated first visit") {

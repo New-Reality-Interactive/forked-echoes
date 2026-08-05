@@ -220,6 +220,30 @@
         }
       }
     },
+    "story.firstChoice.choice.3" : {
+      "comment" : "Story 3.1 placeholder content tree: firstChoice node's third option label, the designated gotcha (hard-fail) choice, leads directly to the endingHardFail placeholder",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take the shortcut through the reeds."
+          }
+        }
+      }
+    },
+    "story.firstChoice.choice.4" : {
+      "comment" : "Story 3.1 placeholder content tree: firstChoice node's fourth option label, leads directly to the endingLimbo placeholder",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wait and see what the tide brings."
+          }
+        }
+      }
+    },
     "story.intro.body" : {
       "comment" : "Story 2.1 placeholder content tree: intro reading node's body text, the story's opening page",
       "extractionState" : "manual",

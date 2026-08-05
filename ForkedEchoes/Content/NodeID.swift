@@ -10,4 +10,8 @@ enum NodeID: Hashable, CaseIterable, Sendable, Codable {
     case shoreArrival
     case endingHomeward
     case endingElsewhere
+    // Story 3.1: two new terminal nodes exercising the remaining two EndingKind cases
+    // (.endingHomeward is .home, .endingElsewhere is .stay — see StoryTree.swift).
+    case endingLimbo
+    case endingHardFail
 }

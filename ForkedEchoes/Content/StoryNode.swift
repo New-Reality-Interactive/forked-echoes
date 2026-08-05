@@ -16,12 +16,30 @@ indirect enum StoryNode: Sendable {
     case ending(EndingPayload)
 }
 
-// Struct-backed (not a bare associated NodeID) so Story 3.1 can add an `EndingKind` field here
-// later without breaking existing `case .ending(let payload):` call sites — a positional second
-// associated value would break their arity, a new struct field with a default does not. Keeps
-// the extension additive per this story's own Dev Notes.
+// Struct-backed (not a bare associated NodeID) so Story 3.1 could add an `EndingKind` field here
+// without breaking existing `case .ending(let payload):` call sites — a positional second
+// associated value would have broken their arity. Story 3.1: `kind` is deliberately non-optional
+// and non-defaulted (unlike `.reading`'s `echoBodyKey`/`arrival` additive extensions above) — every
+// existing `EndingPayload(nodeId:)` call site was expected to become a compile error until it
+// supplied a kind. That's what makes AD-1/AD-6's "every terminal node resolves to exactly one
+// EndingKind" a compiler guarantee rather than a runtime check: StoryTree.swift's
+// `resolvedNode(for:)` cannot construct an `.ending` case for any NodeID without naming its kind.
 struct EndingPayload: Hashable, Sendable {
     let nodeId: NodeID
+    let kind: EndingKind
+}
+
+// AD-6: fixed at write-time on each terminal node — the run's ending is read directly from this,
+// never computed from alignmentScore. hardFail nodes are reached only via a designated gotcha
+// choice (StoryTree.swift); every other case is reached through ordinary branch traversal.
+// Equatable (code review, 2026-08-05): so tests can assert a terminal node's resolved kind matches
+// expectation directly, rather than only checking NodeID reachability — the compiler only
+// guarantees a kind is *present* on every terminal node (AD-1), never that it's the *correct* one.
+enum EndingKind: Sendable, Equatable {
+    case home
+    case stay
+    case limbo
+    case hardFail
 }
 
 // AD-1: Content node/choice IDs are Swift enum cases — referencing a case that doesn't exist is a
@@ -30,6 +48,13 @@ struct EndingPayload: Hashable, Sendable {
 enum ChoiceOptionID: Hashable, Sendable, CaseIterable, Codable {
     case boat
     case shore
+    // Story 3.1: the designated gotcha (hard-fail) choice — targets .endingHardFail directly, one
+    // hop from firstChoice, so the immediate selectChoice(_:)-to-Ending transition (AD-5, AC #3)
+    // is directly exercisable and testable.
+    case gotcha
+    // Story 3.1: reaches the fourth EndingKind case (.limbo) not otherwise exercised by the
+    // existing .boat/.shore paths.
+    case driftLimbo
 }
 
 // Alignment deltas live on the choice edge (AD-1) — Memory-screen display data only (FR-7);

@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of 3-1-ending-kind-resolution (2026-08-05)
+
+- `sprint-status.yaml`'s `last_updated` field keeps growing unboundedly — already flagged as a known, deferred, pre-existing problem during the 2-14 review below; this story's own status-update entry continued the pattern (appended yet another multi-thousand-character narrative) rather than fixing it. Not caused by this diff.
+
 ## Deferred from: code review of 2-14-fix-flaky-tests-under-swift-testings-parallel-execution (2026-08-04)
 
 - `sprint-status.yaml`'s `last_updated` field is one ever-growing, unbounded single-line string that keeps accumulating the entire history verbatim as new entries are prepended — this diff perpetuates that pattern rather than introducing it, but it will eventually make the file unwieldy to diff, read, or merge.

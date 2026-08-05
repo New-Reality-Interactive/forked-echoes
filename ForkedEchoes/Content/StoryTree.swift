@@ -3,9 +3,16 @@ import Foundation
 // Story 2.1: minimal placeholder tree (1 reading node -> 1 choice node w/ 2 options -> 2 terminal
 // ending nodes) to exercise StoryRunEngine/UI. Story 2.5 added one echo-wired reading node on the
 // .boat path; Story 2.6 added one branch-arrival node on the .shore path. The tree never
-// reconverges: firstChoice's two options each lead to a distinct ending node (.boat via the echo
-// node, .shore via the arrival node). Full v1 authoring is Epic 4's job (epics.md Epic 2 Content
-// note) — this tree is expected to be replaced wholesale, not extended in place.
+// reconverges: .boat leads to a distinct ending node via the echo node, .shore via the arrival
+// node. Full v1 authoring is Epic 4's job (epics.md Epic 2 Content note) — this tree is expected
+// to be replaced wholesale, not extended in place.
+//
+// Story 3.1: firstChoice now has 4 options, one per EndingKind case. .boat/.shore (and everything
+// between them and their original endings) are untouched — only two new options were appended.
+// .gotcha and .driftLimbo each target a new terminal node directly, one hop from firstChoice, so
+// selecting either produces an immediate selectChoice(_:)-to-Ending transition (AD-5) with no
+// intervening reading/interstitial node — .gotcha is this tree's designated hard-fail choice
+// (AD-6, FR8), .driftLimbo exists purely to exercise the fourth EndingKind case.
 //
 // Prose keys follow ARCHITECTURE-SPINE.md's `story.<nodeId>.body` / `story.<nodeId>.choice.<n>`
 // convention, referenced as plain dot-path String keys (project-context.md Localization section —
@@ -58,6 +65,24 @@ enum StoryTree {
                         alignmentDelta: -1,
                         target: .shoreArrival
                     ),
+                    // Story 3.1: the designated gotcha (hard-fail) choice — one hop from
+                    // firstChoice directly to .endingHardFail.
+                    ChoiceOption(
+                        id: .gotcha,
+                        labelKey: "story.firstChoice.choice.3",
+                        alignmentDelta: -3,
+                        target: .endingHardFail
+                    ),
+                    // Story 3.1: reaches the fourth EndingKind case (.limbo), otherwise unexercised
+                    // by .boat/.shore. Non-zero delta (code review, 2026-08-05): matches the
+                    // "non-zero placeholder deltas" comment above, which this option originally
+                    // violated with a 0 value.
+                    ChoiceOption(
+                        id: .driftLimbo,
+                        labelKey: "story.firstChoice.choice.4",
+                        alignmentDelta: 2,
+                        target: .endingLimbo
+                    ),
                 ]
             )
 
@@ -77,8 +102,19 @@ enum StoryTree {
                 arrival: BranchArrival(illustration: .shoreArrival, captionKey: "story.shoreArrival.caption")
             )
 
-        case .endingHomeward, .endingElsewhere:
-            return .ending(EndingPayload(nodeId: id))
+        case .endingHomeward:
+            return .ending(EndingPayload(nodeId: id, kind: .home))
+
+        case .endingElsewhere:
+            return .ending(EndingPayload(nodeId: id, kind: .stay))
+
+        // Story 3.1: two new terminal nodes, reached directly from firstChoice's new options —
+        // exercise the remaining two EndingKind cases not covered by the pre-existing tree.
+        case .endingLimbo:
+            return .ending(EndingPayload(nodeId: id, kind: .limbo))
+
+        case .endingHardFail:
+            return .ending(EndingPayload(nodeId: id, kind: .hardFail))
         }
     }
 }

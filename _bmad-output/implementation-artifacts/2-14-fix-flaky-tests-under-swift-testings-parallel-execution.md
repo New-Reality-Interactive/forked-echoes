@@ -4,7 +4,7 @@ baseline_commit: fbdfd3c
 
 # Story 2.14: Fix Flaky Tests Under Swift Testing's Parallel Execution
 
-Status: review
+Status: done
 
 <!-- Note: Validation is optional. Run validate-create-story for quality check before dev-story. -->
 
@@ -32,7 +32,7 @@ so that a red run always means a real regression, never noise I have to explain 
 
 4. **Given** this story's own changes
    **When** complete
-   **Then** all 64 pre-existing tests (60 before Story 2.13, plus 2.13's 4 new tests) still pass, with no test *logic* changed except what's needed to fix the race itself — this is an infrastructure/reliability fix, not a behavior change
+   **Then** all ~~64~~ **65** pre-existing tests (60 before Story 2.13, plus 2.13's 4 new tests, plus 1 more from `RunOptionsButtonTests` added during 2.13's own code review pass — see Completion Notes) still pass, with no test *logic* changed except what's needed to fix the race itself — this is an infrastructure/reliability fix, not a behavior change
 
 5. **And** a verification AC: run `swift test` at least 10 consecutive times from the repo root and record the pass count (expect 10/10) in the story's Completion Notes List, alongside a one-line description of the actual root cause found
 
@@ -59,6 +59,12 @@ so that a red run always means a real regression, never noise I have to explain 
   - [x] Run `swift test` at least 10 consecutive times from the repo root; confirm 10/10 pass with zero flakes across the previously-identified failing tests and the suite as a whole
   - [x] Confirm the full suite is still 64/64 tests (60 pre-2.13 + 2.13's 4 new) with no test logic changes beyond what Task 3 required
   - [x] Record the pass count and the one-line root-cause summary in this story's Completion Notes List (AC #5)
+
+### Review Findings
+
+- [x] [Review][Patch] `UserDefaultsTestMutex.lock()` doesn't observe task cancellation — a cancelled waiter's continuation is never resumed, leaving it parked in `waiters` indefinitely [ForkedEchoesTests/TestSupport.swift:93]
+- [x] [Review][Patch] AC #4 still says "64 pre-existing tests" though the verified/actual count is 65; only Completion Notes reconciles this [_bmad-output/implementation-artifacts/2-14-fix-flaky-tests-under-swift-testings-parallel-execution.md:35]
+- [x] [Review][Defer] `sprint-status.yaml`'s `last_updated` field is one ever-growing, unbounded single-line string [_bmad-output/implementation-artifacts/sprint-status.yaml] — deferred, pre-existing
 
 ## Dev Notes
 
@@ -154,3 +160,4 @@ Claude Sonnet 5 (claude-sonnet-5), via the `dev-story` workflow.
 
 - 2026-08-04: Story 2.14 created via create-story workflow. Scoped to root-causing and fixing pre-existing test flakiness discovered during Story 2.13's `swift test` verification — a write-then-immediate-read race on freshly-minted `UserDefaults(suiteName:)` instances under Swift Testing's parallel execution, affecting `observerRefreshPicksUpASnapshotWrittenAfterConstruction`, `anEngineResumedOntoShoreArrivalWithoutDismissalStillReportsInterstitialPhase`, and `anEngineResumedOntoANonEchoNodeReportsIsEchoActiveFalseImmediately` (and possibly others sharing the same shape). Test-infrastructure-only fix; no production code expected to change.
 - 2026-08-04: All 4 tasks implemented via dev-story workflow. Root-caused the flakiness to `swift-corelibs-foundation`'s CFPreferences holding its domain cache and per-application-name preferences cache as process-global state shared across every `UserDefaults(suiteName:)` value, not per-suite state — confirmed with a minimal reproduction outside this codebase. Fixed with a custom Swift Testing trait (`SerializesUserDefaultsAccess`, `TestSupport.swift`) backed by a continuation-based async mutex, applied to the three suites that touch `UserDefaults` (`StoryRunEngineTests`, `RunSnapshotTests`, `RunSnapshotPresenceTests`); the two suites that don't (`ForkedEchoesTests`, `RunOptionsButtonTests`) keep running in parallel. `freshDefaults()` itself and all existing test assertions are unchanged. Verified with 20 consecutive `swift test` runs, 20/20 passed, 0 flakes (suite is 65 tests, not the 64 estimated when this story was drafted — see Completion Notes for the reconciliation). Status: review.
+- 2026-08-04: Code review complete, 2 patches applied (`UserDefaultsTestMutex.lock()` made cancellation-aware via `withTaskCancellationHandler` so a cancelled waiter is removed and rethrows instead of hanging indefinitely; AC #4's stale "64 pre-existing tests" corrected to 65), 1 item deferred (`sprint-status.yaml`'s ever-growing `last_updated` field, pre-existing), 10 findings dismissed (speculative future-code risks, refuted claims, or established project conventions), 6 consecutive `swift test` runs post-patch, 65/65 passing each time, status done.

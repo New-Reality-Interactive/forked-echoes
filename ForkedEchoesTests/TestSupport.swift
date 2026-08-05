@@ -53,7 +53,7 @@ struct SerializesUserDefaultsAccess: TestTrait, SuiteTrait, TestScoping {
         testCase: Test.Case?,
         performing function: @Sendable () async throws -> Void
     ) async throws {
-        await UserDefaultsTestMutex.shared.lock()
+        try await UserDefaultsTestMutex.shared.lock()
         do {
             try await function()
         } catch {
@@ -84,19 +84,35 @@ extension Trait where Self == SerializesUserDefaultsAccess {
 /// This does not block an OS thread (unlike `DispatchSemaphore.wait()`, which would risk starving
 /// Swift's cooperative thread pool if many of this suite's ~60 gated tests tried to block
 /// simultaneously) — a waiting task suspends and yields its thread back to the pool until resumed.
+///
+/// `lock()` is cancellation-aware (code review, 2026-08-04): a plain `withCheckedContinuation`
+/// ignores task cancellation entirely, so a waiter whose task is cancelled while queued would sit
+/// in `waiters` forever, resumable only by an unrelated `unlock()` reaching it — the same class of
+/// silent hang this mutex exists to prevent. `withTaskCancellationHandler` lets a cancelled waiter
+/// remove itself and rethrow instead. `waiters.append` happens synchronously inside `lock()` (an
+/// actor-isolated method) before the awaited continuation suspends, and `onCancel` can only reach
+/// `cancelWaiter` by hopping back onto the actor via `Task { await ... }` — so a waiter is always
+/// enqueued before any cancellation targeting it can be processed, even for an already-cancelled
+/// task, ruling out the append-vs-cancel ordering race this pattern would otherwise risk.
 private actor UserDefaultsTestMutex {
     static let shared = UserDefaultsTestMutex()
 
     private var isLocked = false
-    private var waiters: [CheckedContinuation<Void, Never>] = []
+    private var waiters: [(id: UUID, continuation: CheckedContinuation<Void, Error>)] = []
 
-    func lock() async {
+    func lock() async throws {
         if !isLocked {
             isLocked = true
             return
         }
-        await withCheckedContinuation { continuation in
-            waiters.append(continuation)
+        try Task.checkCancellation()
+        let id = UUID()
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                waiters.append((id, continuation))
+            }
+        } onCancel: {
+            Task { await self.cancelWaiter(id) }
         }
     }
 
@@ -104,7 +120,12 @@ private actor UserDefaultsTestMutex {
         if waiters.isEmpty {
             isLocked = false
         } else {
-            waiters.removeFirst().resume()
+            waiters.removeFirst().continuation.resume()
         }
+    }
+
+    private func cancelWaiter(_ id: UUID) {
+        guard let index = waiters.firstIndex(where: { $0.id == id }) else { return }
+        waiters.remove(at: index).continuation.resume(throwing: CancellationError())
     }
 }

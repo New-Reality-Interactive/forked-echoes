@@ -50,7 +50,7 @@ NFR1: Platform — Native iOS, on-device only. No network calls, no backend, no 
 
 NFR2: Compatibility — Support the current major iOS release and the previous one (N-1). Deployment target: iOS 18.0 minimum, iOS 26 SDK.
 
-NFR3: Automated test coverage — Engine logic (`StoryRunEngine`) must be covered by Swift Testing: alignment-tier resolution (including boundary cases), echo-callback reachability as authored in the tree, hard-fail bypass, pager-gating (forward blocked on unresolved choice; locked display on revisit), and `RunSnapshot` encode/decode round-trip.
+NFR3: Automated test coverage — Engine logic (`StoryRunEngine`) must be covered by Swift Testing: every terminal node resolves to exactly one `EndingKind` with no ambiguity, echo-callback reachability as authored in the tree, hard-fail terminal nodes reachable only via their designated gotcha choice, pager-gating (forward blocked on unresolved choice; locked display on revisit), and `RunSnapshot` encode/decode round-trip (including the alignment-score field, verified only for correct accumulation/persistence, not for any ending-resolution role).
 
 NFR4: Persistence resilience — A `RunSnapshot` decode failure of any kind (missing key, malformed JSON, unrecognized node id) is treated identically to "no saved run": the engine falls back to a fresh run at Home rather than crashing.
 
@@ -770,7 +770,7 @@ So ending resolution requires no runtime computation.
 
 **And** a Swift Testing case verifies hard-fail nodes are reachable only via their designated gotcha choice, and that the Ending transition fires immediately at `selectChoice(_:)` time rather than being deferred to a subsequent `advancePage()` (AD-7, NFR3) — `EndingKind` coverage itself is already guaranteed by the compiler (AD-1), not something a test needs to re-verify
 
-**And** content-authoring guidance is documented for later story-tree writing: roughly 1-2 terminal nodes as home endings and 3-4 as stay endings across the full v1 tree (addendum.md); this story's placeholder tree only needs enough terminal nodes to exercise all four `EndingKind` cases at least once each
+**And** content-authoring guidance is documented for later story-tree writing: roughly 1-2 terminal nodes as home endings and 3-4 as stay endings across the full v1 tree (addendum.md) — both this ratio and AD-9's score→tier boundaries are placeholder until Epic 4 authors the real v1 tree and finalizes them together against actual score distribution; this story's placeholder tree only needs enough terminal nodes to exercise all four `EndingKind` cases at least once each
 
 **Given** the engine's phase derives to `.ending`
 **When** the transition completes
@@ -803,6 +803,10 @@ So I understand how my choices resolved.
 **Given** the Ending screen's "tap to continue" affordance text
 **When** rendered
 **Then** it is sourced from `Localizable.xcstrings`, consistent with the ending body copy's own per-node localization (AD-2)
+
+**Given** the app is backgrounded or terminated while on the Ending or Memory screen
+**When** it relaunches
+**Then** Home renders in its fresh-install "Start Story" state — `RunSnapshot` was already cleared on entering Ending (Story 3.1, AD-4), so there is no in-progress run to resume and no persisted recap to restore; this is expected, not a bug
 
 ### Story 3.3: Memory / Recap Screen
 
@@ -843,6 +847,10 @@ So the run becomes a story about me.
 **Given** the Memory screen's "Return Home"/"Start New Run" action labels and any tier-label copy
 **When** rendered
 **Then** every string is sourced from `Localizable.xcstrings` via generated symbols, never hardcoded (AD-2)
+
+**Given** `scoreToTier(score:)` (AD-9)
+**When** the accumulated alignment score is negative, zero, or any value outside a placeholder band's current bounds
+**Then** it still resolves to exactly one tier — no unmapped/crash state — because the lowest band is open-ended
 
 ### Story 3.4: Ending & Memory Visual Identity
 

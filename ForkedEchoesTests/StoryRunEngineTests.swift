@@ -888,4 +888,71 @@ struct StoryRunEngineTests {
         let reloaded = RunSnapshot.loadValid(from: defaults)
         #expect(reloaded?.visitedNodeIds == [.intro])
     }
+
+    // Story 3.1 (AC #3, AD-5, AD-7/NFR3): selectChoice(_:) targeting a hard-fail terminal node
+    // transitions the engine to Ending the instant the choice fires, with no intervening
+    // advancePage() call. phase's derivation is already generic (see StoryRunEngine.phase) — this
+    // is a content-wiring regression test, not a test of new engine logic.
+
+    @Test func selectingTheGotchaChoiceTransitionsToEndingImmediately() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.gotcha)
+
+        #expect(engine.currentNodeId == .endingHardFail)
+        #expect(engine.phase == .ending)
+    }
+
+    // Story 3.1 (AC #3): the hard-fail terminal node is reachable only via its designated gotcha
+    // choice — selecting any other firstChoice option never lands on .endingHardFail.
+
+    @Test func onlyTheGotchaChoiceReachesTheHardFailEnding() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let boatEngine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        boatEngine.selectChoice(.boat)
+        #expect(boatEngine.currentNodeId != .endingHardFail)
+
+        let (shoreDefaults, shoreSuiteName) = freshDefaults()
+        defer { shoreDefaults.removePersistentDomain(forName: shoreSuiteName) }
+        let shoreEngine = StoryRunEngine(startingAt: .firstChoice, defaults: shoreDefaults)
+        shoreEngine.selectChoice(.shore)
+        #expect(shoreEngine.currentNodeId != .endingHardFail)
+
+        let (limboDefaults, limboSuiteName) = freshDefaults()
+        defer { limboDefaults.removePersistentDomain(forName: limboSuiteName) }
+        let limboEngine = StoryRunEngine(startingAt: .firstChoice, defaults: limboDefaults)
+        limboEngine.selectChoice(.driftLimbo)
+        #expect(limboEngine.currentNodeId != .endingHardFail)
+    }
+
+    // Story 3.1 (AC #7): reaching either of this story's two new terminal nodes clears the
+    // persisted RunSnapshot, exactly like the pre-existing endings — persistOrClearSnapshot()'s
+    // `.ending` branch already matches generically (see reachingAnEndingNodeClearsTheStoredSnapshot
+    // above for the pre-existing equivalent), so these are new traceability, not new behavior.
+
+    @Test func reachingTheHardFailEndingClearsTheStoredSnapshot() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.gotcha)
+
+        #expect(engine.currentNodeId == .endingHardFail)
+        #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
+    }
+
+    @Test func reachingTheLimboEndingClearsTheStoredSnapshot() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.driftLimbo)
+
+        #expect(engine.currentNodeId == .endingLimbo)
+        #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
+    }
 }

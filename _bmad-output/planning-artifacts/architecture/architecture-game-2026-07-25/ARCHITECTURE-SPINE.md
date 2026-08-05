@@ -93,6 +93,12 @@ Maps to source tree: `Content/`, `Engine/`, `Views/` (see Structural Seed).
 - **Prevents:** duplicate view hierarchies per orientation (e.g. a separate `LandscapeHomeView` alongside `HomeView`); brittle `UIDevice.orientation`/`UIDeviceOrientationDidChangeNotification` observation, which doesn't map cleanly onto SwiftUI's declarative environment model and requires manual lifecycle handling; misclassifying orientation via `horizontalSizeClass`, which reports `.compact` in *both* portrait and landscape on standard (non-Plus/Max) iPhones and so cannot distinguish the two.
 - **Rule:** Every screen is a single SwiftUI view hierarchy that reflows continuously across orientation. Where a structural layout branch is needed (e.g. `choice-card` stack→row), the view reads `@Environment(\.verticalSizeClass)` (`.compact` = landscape, `.regular` = portrait — reliable across all iPhone sizes, unlike `horizontalSizeClass`) and branches inline (e.g. a conditional modifier or `Group`) — never a second view type or file. Where only geometry changes (e.g. `reading-surface`'s landscape column-width cap), express it as a plain `.frame(maxWidth:)`-style constraint that is simply a no-op in portrait, not a size-class branch at all. No orientation-specific view types, no `UIDevice.orientation` polling, no manual rotation lifecycle code anywhere in `Views/`. `verticalSizeClass` is `Optional` — if it is ever `nil` (e.g. a view instantiated outside a window scene, such as certain preview contexts with no explicit size-class override), treat it as `.regular` (portrait), the safer default since no orientation-dependent layout should ever silently assume the more space-constrained landscape branch. `StoryRunEngine`'s phase model (AD-5) is orientation-agnostic and untouched by this — landscape is a Presentation-layer-only concern.
 
+### AD-9 — Alignment score maps to a display-only tier via one pure function
+
+- **Binds:** Memory screen, `StoryRunEngine`'s alignment-score field (AD-4)
+- **Prevents:** tier-label logic being duplicated or invented ad hoc at the View layer; tier boundaries drifting between what's documented and what's implemented.
+- **Rule:** A single pure function, `scoreToTier(score: Int) -> Tier`, is the one place score→tier-label boundaries live (mirrors AD-6's `EndingKind` pattern). The lowest tier's range is open-ended toward negative infinity (never a fixed floor like "0"), so no possible score — including negative — falls through unmapped. `Tier`'s label text is sourced from `Localizable.xcstrings` per AD-2, never hardcoded. Concrete boundary values and tier count are placeholder until Epic 4 authors the real v1 story tree and its actual score distribution is known — same open item as Story 3.1's ending-node-ratio guidance (`addendum.md`); both should be finalized together once real content exists, not guessed now.
+
 ### Dependency Direction
 
 ```mermaid
@@ -177,7 +183,7 @@ stateDiagram-v2
 | FR-7 Silent alignment scoring | `Engine` (score accumulation, never exposed) | AD-3 |
 | FR-8 Ending resolution | `Content` (per-node `EndingKind`), `Engine` (hard-fail bypass transition) | AD-1, AD-6 |
 | FR-9 Ending screen | `Views/Ending` (one shared template) | AD-3, AD-8 |
-| FR-10 Memory/recap | `Engine` (choice history), `Views/Memory` | AD-3, AD-4, AD-8 |
+| FR-10 Memory/recap | `Engine` (choice history), `Views/Memory` | AD-3, AD-4, AD-8, AD-9 |
 | FR-11 Accessible interaction parity | `Views` (VoiceOver/Dynamic Type), `Resources/Localizable.xcstrings` (a11y labels) | AD-2, AD-3, AD-8 |
 | FR-12 Bundled illustrations | `Resources/Assets.xcassets` | AD-2 |
 

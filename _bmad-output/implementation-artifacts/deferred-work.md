@@ -1,5 +1,9 @@
 # Deferred Work
 
+## Deferred from: code review of 2-14-fix-flaky-tests-under-swift-testings-parallel-execution (2026-08-04)
+
+- `sprint-status.yaml`'s `last_updated` field is one ever-growing, unbounded single-line string that keeps accumulating the entire history verbatim as new entries are prepended — this diff perpetuates that pattern rather than introducing it, but it will eventually make the file unwieldy to diff, read, or merge.
+
 ## Deferred from: code review of 2-13-run-options-sheet-exit-and-clear-progress (2026-08-04)
 
 - `runOptionsRowOrderIsFixed()` only asserts `RunOptionsRow.allCases`'s order — it doesn't prove `RunOptionsButton`'s `switch` maps each case to the correct label/action, so a swapped `case` body would still pass this test. No automated fix available without SwiftUI-rendering test infra this project deliberately doesn't have.

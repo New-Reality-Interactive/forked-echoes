@@ -1,11 +1,12 @@
 import Foundation
 
 // AD-4: the persisted run-state shape. Four fields, in this order, from Story 2.4 through Story
-// 2.8; Story 2.9 adds a fifth (`visitedArrivalNodeIds`) as a deliberate, documented exception —
-// the branch-arrival interstitial's first-visit-ever gate (AD-5, amended 2026-08-02) cannot be
-// derived from the original four fields across a real app relaunch, so it needs its own persisted
-// signal. `phase` itself is still never stored — it stays derived from currentNodeId's node kind
-// plus this new field, AD-5's "phase derived, not stored" ethos unchanged.
+// 2.8; Story 2.9 added a fifth (`visitedArrivalNodeIds`), Story 2.10 a sixth (`visitedNodeIds`),
+// each a deliberate, documented exception — the branch-arrival interstitial's first-visit-ever
+// gate (AD-5, amended 2026-08-02) and the back-navigation stack (AD-3) both need their own
+// persisted signal to survive a real app relaunch; neither is derivable from the original four
+// fields alone. `phase` itself is still never stored — it stays derived from currentNodeId's node
+// kind plus `visitedArrivalNodeIds`, AD-5's "phase derived, not stored" ethos unchanged.
 // `tutorialSeen` has no producer anywhere in the codebase yet (see Story 2.4 Completion Notes) —
 // it is always written/read as `false` until a future story wires a real signal into the engine.
 struct RunSnapshot: Codable, Equatable {
@@ -23,26 +24,39 @@ struct RunSnapshot: Codable, Equatable {
     /// Home fallback" contract, Story 2.4 AC #3 — a missing key must not be treated the same as
     /// a genuinely malformed snapshot).
     let visitedArrivalNodeIds: Set<NodeID>
+    /// Story 2.10: the ordered back-navigation stack StoryRunEngine.goBack() pops, surviving
+    /// relaunch. Before this story, StoryRunEngine's own private `visitedNodeIds` was never part
+    /// of RunSnapshot, so goBack() was silently a no-op immediately after any relaunch until the
+    /// player advanced forward again in the new session (a gap surfaced during Story 2.9
+    /// Simulator testing, deferred to this story by explicit user decision). An ordered `[NodeID]`,
+    /// not a `Set` like `visitedArrivalNodeIds` above — order and duplicate entries both matter
+    /// for a stack. Defaults to empty on decode (see init(from:)) so a snapshot written before
+    /// this story shipped, which has no such key, still decodes cleanly instead of
+    /// RunSnapshot.loadValid(from:) rejecting it outright — same reasoning as
+    /// visitedArrivalNodeIds above.
+    let visitedNodeIds: [NodeID]
 
     init(
         currentNodeId: NodeID,
         choiceHistory: [ChoiceRecord],
         alignmentScore: Int,
         tutorialSeen: Bool,
-        visitedArrivalNodeIds: Set<NodeID> = []
+        visitedArrivalNodeIds: Set<NodeID> = [],
+        visitedNodeIds: [NodeID] = []
     ) {
         self.currentNodeId = currentNodeId
         self.choiceHistory = choiceHistory
         self.alignmentScore = alignmentScore
         self.tutorialSeen = tutorialSeen
         self.visitedArrivalNodeIds = visitedArrivalNodeIds
+        self.visitedNodeIds = visitedNodeIds
     }
 
     // Custom Codable, not synthesized: a synthesized init(from:) would fail to decode any
-    // snapshot written before this story shipped, since visitedArrivalNodeIds wouldn't exist as
-    // a key yet. decodeIfPresent + a `?? []` fallback is what makes that decode succeed instead
-    // of falling through to RunSnapshot.loadValid(from:)'s "reject and start fresh" path for a
-    // reason that isn't actually a corrupted snapshot.
+    // snapshot written before visitedArrivalNodeIds/visitedNodeIds existed as keys.
+    // decodeIfPresent + a `?? []` fallback is what makes that decode succeed instead of falling
+    // through to RunSnapshot.loadValid(from:)'s "reject and start fresh" path for a reason that
+    // isn't actually a corrupted snapshot.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         currentNodeId = try container.decode(NodeID.self, forKey: .currentNodeId)
@@ -50,6 +64,7 @@ struct RunSnapshot: Codable, Equatable {
         alignmentScore = try container.decode(Int.self, forKey: .alignmentScore)
         tutorialSeen = try container.decode(Bool.self, forKey: .tutorialSeen)
         visitedArrivalNodeIds = try container.decodeIfPresent(Set<NodeID>.self, forKey: .visitedArrivalNodeIds) ?? []
+        visitedNodeIds = try container.decodeIfPresent([NodeID].self, forKey: .visitedNodeIds) ?? []
     }
 
     func encode(to encoder: Encoder) throws {
@@ -59,10 +74,11 @@ struct RunSnapshot: Codable, Equatable {
         try container.encode(alignmentScore, forKey: .alignmentScore)
         try container.encode(tutorialSeen, forKey: .tutorialSeen)
         try container.encode(visitedArrivalNodeIds, forKey: .visitedArrivalNodeIds)
+        try container.encode(visitedNodeIds, forKey: .visitedNodeIds)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case currentNodeId, choiceHistory, alignmentScore, tutorialSeen, visitedArrivalNodeIds
+        case currentNodeId, choiceHistory, alignmentScore, tutorialSeen, visitedArrivalNodeIds, visitedNodeIds
     }
 }
 

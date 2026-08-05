@@ -6,16 +6,42 @@ import SwiftUI
 // call sites need genuinely different "go home"/refresh behavior and shouldn't hardcode
 // navigation here.
 //
-// Uses .confirmationDialog (not the deprecated ActionSheet type) — still renders as a native
-// action sheet on iPhone, matching UX-DR11's "platform-native action sheet" wording. role:
-// .destructive/.cancel give native destructive styling, VoiceOver announcement, and Dynamic Type
-// support for free (EXPERIENCE.md Accessibility Floor: "no custom-built confirmation dialog").
+// Uses .confirmationDialog (not the deprecated ActionSheet type) — role: .destructive gives
+// native destructive styling, VoiceOver announcement, and Dynamic Type support for free
+// (EXPERIENCE.md Accessibility Floor: "no custom-built confirmation dialog").
+//
+// Story 2.12 (amends UX-DR11): starting in iOS 26, confirmationDialog/actionSheet presentations
+// triggered from an ordinary button (not a UIBarButtonItem in a navigation bar) anchor to that
+// button by default on iPhone — the same button-anchored popover-with-arrow style iPadOS has
+// always used, not the pre-iOS-26 bottom-sliding sheet (confirmed via WWDC 2025 Session 284,
+// "Build a UIKit app with the new design": "Starting in iOS 26, [action sheets] behave the same
+// on iPhone [as iPad], appearing directly over the originating view"). This is intentional
+// platform behavior, not a bug, and UX-DR11's "platform-native action sheet" now means this
+// anchored-popover style for this app's non-nav-bar-anchored control.
+//
+// That popover-style presentation has always auto-suppressed any button with `role: .cancel`
+// (documented UIAlertController behavior since iOS 8: tap-outside-to-dismiss already covers that
+// case in a popover, so the system drops a redundant Cancel action) — which is why the sheet's
+// intended "Cancel" row went missing. Fix: `cancelButtonRole` below is `nil` on iOS 26+ so the
+// row survives, but `.cancel` on iOS 18-25 (this app's real deployment target, project-context.md)
+// where confirmationDialog still renders as the bottom sheet and role: .cancel's native
+// bold/separated styling and VoiceOver cancel trait are never suppressed — unconditionally
+// dropping the role would needlessly regress that still-supported presentation.
 struct RunOptionsButton: View {
     let onExitToHome: () -> Void
     let onRestartRun: () -> Void
+    let onExitAndClearProgress: () -> Void
 
     @State private var isPresentingOptions = false
     @State private var isPresentingRestartConfirmation = false
+    @State private var isPresentingExitAndClearConfirmation = false
+
+    private var cancelButtonRole: ButtonRole? {
+        if #available(iOS 26, *) {
+            return nil
+        }
+        return .cancel
+    }
 
     var body: some View {
         Button {
@@ -25,12 +51,8 @@ struct RunOptionsButton: View {
                 .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
                 .contentShape(Rectangle())
         }
-        // DESIGN.md's run-options-button token specifies {colors.trace-brass} idle / {colors.ink-
-        // primary} pressed — no TraceBrass color set exists yet (confirmed contents: AccentColor,
-        // InkPrimary, InkSecondary, SelectedFill, SurfaceBase). Placeholder-color-reuse precedent
-        // (Stories 2.3/2.5/2.6/2.9): Color.inkPrimary stands in for now; Story 2.8 owns the real
-        // DESIGN.md palette pass for every Epic 2 reading-surface component at once.
-        .foregroundStyle(Color.inkPrimary)
+        // DESIGN.md `components.run-options-button`: trace-brass idle, ink-primary pressed.
+        .buttonStyle(RunOptionsButtonStyle())
         .padding(Spacing.small)
         .accessibilityLabel(Text("runOptions.accessibilityLabel"))
         // Code review, 2026-08-02 (UX-DR12): VoiceOver's default traversal order follows visual
@@ -38,14 +60,27 @@ struct RunOptionsButton: View {
         // sort priority (default is 0 for every other element in this composition) pushes it to
         // the end of the traversal, after eyebrow -> prose -> choices -> pager, per UX-DR12.
         .accessibilitySortPriority(-1)
+        // AC #5: row order comes from RunOptionsRow.allCases (Engine/RunOptionsRow.swift) — a
+        // plain, Swift-Testing-covered value — rather than only this ViewBuilder's line order.
         .confirmationDialog("runOptions.accessibilityLabel", isPresented: $isPresentingOptions, titleVisibility: .hidden) {
-            Button("runOptions.exitToHome") {
-                onExitToHome()
+            ForEach(RunOptionsRow.allCases, id: \.self) { row in
+                switch row {
+                case .exitToHome:
+                    Button("runOptions.exitToHome") {
+                        onExitToHome()
+                    }
+                case .restartRun:
+                    Button("runOptions.restartRun", role: .destructive) {
+                        isPresentingRestartConfirmation = true
+                    }
+                case .exitAndClearProgress:
+                    Button("runOptions.exitAndClearProgress", role: .destructive) {
+                        isPresentingExitAndClearConfirmation = true
+                    }
+                case .cancel:
+                    cancelButton
+                }
             }
-            Button("runOptions.restartRun", role: .destructive) {
-                isPresentingRestartConfirmation = true
-            }
-            Button("runOptions.cancel", role: .cancel) {}
         }
         .confirmationDialog(
             "runOptions.restartConfirmation.title",
@@ -55,11 +90,37 @@ struct RunOptionsButton: View {
             Button("runOptions.restartRun", role: .destructive) {
                 onRestartRun()
             }
-            Button("runOptions.cancel", role: .cancel) {}
+            cancelButton
         }
+        .confirmationDialog(
+            "runOptions.exitAndClearConfirmation.title",
+            isPresented: $isPresentingExitAndClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("runOptions.exitAndClearProgress", role: .destructive) {
+                onExitAndClearProgress()
+            }
+            cancelButton
+        }
+    }
+
+    // Review finding, 2026-08-04: this Cancel button was hand-written identically in all three
+    // confirmationDialogs above — a single shared definition keeps them from drifting apart.
+    private var cancelButton: some View {
+        Button("runOptions.cancel", role: cancelButtonRole) {}
+    }
+}
+
+// DESIGN.md `components.run-options-button`: trace-brass idle, ink-primary pressed. A dedicated
+// ButtonStyle (rather than @GestureState/@State press-tracking) mirrors ButtonStyles.swift's
+// sibling styles for a single-glyph icon button — the least code for this one small control.
+private struct RunOptionsButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(configuration.isPressed ? Color.inkPrimary : Color.traceBrass)
     }
 }
 
 #Preview {
-    RunOptionsButton(onExitToHome: {}, onRestartRun: {})
+    RunOptionsButton(onExitToHome: {}, onRestartRun: {}, onExitAndClearProgress: {})
 }

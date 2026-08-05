@@ -102,9 +102,9 @@ UX-DR8: Memory/Recap screen — read-only list of choice → consequence rows, a
 
 UX-DR9: Home screen — title, story title, "Start Story"/"Start Tutorial" actions (relabels to "Resume Story" when a run is in progress per snapshot presence); no circuit frame; simpler/more spacious layout than reading surfaces.
 
-UX-DR10: Tutorial screen — explains page-turn (swipe/tap-zone) and choice (hold/tap) mechanics in words before the player reaches a real choice; Back Home / Start Story actions, tap only.
+UX-DR10: Tutorial screen — explains page-turn (swipe/tap-zone) and choice (hold/tap) mechanics in words before the player reaches a real choice; "Start Story" is a fixed, always-visible primary action (pinned outside scrolling content, both orientations); leaving Tutorial uses standard iOS back navigation (nav-bar button/edge-swipe), no separate "Back Home" button. *(Amended 2026-08-02 — see Story 2.11 and `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md`; originally specified "Back Home / Start Story actions, tap only" as implemented by Story 1.3.)*
 
-UX-DR11: Run-options action sheet — ellipsis-circle icon, top-right of the reading card content area, present on every Story/Choice and Tutorial page (absent from interstitial and Home); opens platform-native action sheet with Exit to Home (non-destructive, preserves snapshot), Restart This Run (destructive-styled, requires a second explicit confirmation, clears progress and score), Cancel.
+UX-DR11: Run-options action sheet — ellipsis-circle icon, top-right of the reading card content area, present on every Story/Choice page (absent from interstitial, Home, and Tutorial); opens platform-native action sheet with Exit to Home (non-destructive, preserves snapshot), Restart This Run (destructive-styled, requires a second explicit confirmation, clears progress and score), Exit and Clear Progress (destructive-styled, requires a second explicit confirmation matching Restart This Run's weight, clears progress and score and navigates to Home), Cancel. *(Amended 2026-08-02 — see Story 2.11 and `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md`; originally added to Tutorial by Story 2.7 as "present on every Story/Choice and Tutorial page." Tutorial is a pre-run explainer, not a page within a run — its own back navigation already covers the "leave" case, and "Restart This Run" needed a hasInProgressRun guard to avoid describing progress that might not exist, a sign the control didn't fit the screen it was retrofitted onto. Amended again 2026-08-03 — see Story 2.13 and a Sally/UX discussion of deferred-work.md's "2-7-run-options-action-sheet" open design questions; the sheet previously had no single action that both cleared progress and returned to Home, only a two-step Restart-then-Exit workaround. The interstitial exclusion was separately discussed and reconfirmed as-is: the first-visit-only gate (Story 2.9) already means a revisited interstitial behaves like an ordinary page, so no gap actually exists there. Amended again 2026-08-04 — see Story 2.12: "platform-native action sheet" is redefined for this control from a bottom-sliding sheet to iOS 26's button-anchored popover style — Apple changed `confirmationDialog`/`actionSheet` to anchor to their triggering view on iPhone starting in iOS 26, matching iPadOS's long-standing popover presentation (confirmed via WWDC 2025 Session 284), and this app is built against the iOS 26 SDK. This is accepted as the new native behavior rather than fought — the actionable defect was the missing Cancel row, not the presentation style itself; that row is restored by dropping the `.cancel` role from its Button declaration, since popover-style action sheets have always auto-suppressed `.cancel`-role actions (documented `UIAlertController` behavior since iOS 8) in favor of tap-outside-to-dismiss.)*
 
 UX-DR12: VoiceOver support — every choice card exposes role/label/state (including the 1.5s undo-window announcement); Story page exposes "Next Page"/"Previous Page" as VoiceOver custom actions (rotor-accessible, since swipe is otherwise consumed by VoiceOver navigation); run-options button carries an explicit `accessibilityLabel` of "Run options"; focus traversal follows reading order (eyebrow → prose → choices → pager, run-options last).
 
@@ -623,6 +623,122 @@ So that resuming a run doesn't strand me on a forward-only path.
 **And** a Swift Testing case verifies: a snapshot capturing a multi-step-forward run position, when resumed via `resumingFromSnapshot(defaults:)` on a freshly-constructed engine, supports `goBack()` navigating backward through that history correctly — not just forward (AD-7, NFR3)
 
 **And** a manual-verification AC: in Xcode/Simulator, advance forward through at least two pages, force-quit, relaunch, tap "Resume Story," and confirm swiping/tapping backward now works through the pages visited before the relaunch, not just forward. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+### Story 2.11: Tutorial Navigation & Fixed-Actions Layout
+
+As a player,
+I want a single, obvious way back to Home from Tutorial, the "Start Story" button always reachable without scrolling, and no run-management controls on a screen where there's no run yet to manage,
+So the screen isn't cluttered with two overlapping exits, an escape hatch for a run that may not exist, and I'm never stuck scrolling past the mechanics copy just to start the story.
+
+*(UX design pass with Sally, 2026-08-02, prompted by user observation on this branch — see `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md` for the full discussion and rationale, including its 2026-08-02 addendum. Amends UX-DR10, UX-DR11, and Story 1.3/2.7's shipped ("done") implementations; those stories are left historically intact per the Story 2.6→2.9 precedent.)*
+
+**Acceptance Criteria:**
+
+**Given** the Tutorial screen as it ships today (Story 1.3/1.4)
+**When** this story lands
+**Then** the in-content "Back Home" button is removed; leaving Tutorial is via the standard `NavigationStack` back button (top-left nav bar) and its default edge-swipe gesture — no `.navigationBarBackButtonHidden` suppression, no replacement in-content exit control
+
+**Given** the Tutorial screen's "Start Story" / "Resume Story" action
+**When** rendered in either portrait or landscape, and regardless of Dynamic Type category
+**Then** the button is pinned outside the scrollable region (fixed position, always visible without scrolling) — only the mechanic-explanation copy scrolls, using a restructure of the shared `GeometryReader`/`ScrollView` centering pattern (project-context.md's "Never use `Spacer()` inside this pattern" rule still applies to whatever internal layout replaces it)
+
+**Given** `TutorialView.swift`'s `.overlay(alignment: .topTrailing) { RunOptionsButton(...) }` (added by Story 2.7 per UX-DR11)
+**When** this story lands
+**Then** the run-options button and its `onExitToHome`/`onRestartRun` closures are removed from `TutorialView.swift` entirely — Tutorial is a pre-run explainer screen, not a page within a run, and its "Exit to Home"/"Restart This Run" actions duplicated exits/state-mutation already covered by Tutorial's own back navigation and the fact that no run is guaranteed to exist yet (Story 2.7's own `onRestartRun` guard, `guard runProgress.hasInProgressRun else { return }`, was already a sign this control didn't fully fit the screen it was retrofitted onto)
+
+**Given** this is a Tutorial-only change
+**When** implemented
+**Then** `HomeView.swift` and its `GeometryReader`/`ScrollView` centering pattern are untouched — Home is not in scope for this story; the run-options button's presence on Story/Choice pages (UX-DR11) is also untouched — only Tutorial loses it
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm (1) tapping the nav-bar back chevron and (2) an edge-swipe-back gesture both return to Home from Tutorial; (3) "Start Story"/"Resume Story" is reachable with zero scrolling in landscape at both default and an accessibility Dynamic Type size; (4) the mechanic-explanation text still scrolls independently when it overflows; (5) no run-options icon renders anywhere on Tutorial, regardless of `hasInProgressRun` state. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+### Story 2.12: Run-Options Sheet — Fix Popover Presentation & Missing Cancel
+
+As a player,
+I want the run-options control to present as the native bottom action sheet with a visible Cancel, exactly as designed,
+So I always have a clearly-labeled way to back out without accidentally triggering Exit or Restart.
+
+*(Bug surfaced via user-reviewed Simulator screenshot, 2026-08-03 — `Simulator Screenshot - iPhone 17 - 2026-08-03 at 08.14.12.png`, taken on `RunOptionsButton`'s options dialog. UX-DR11 specifies a "platform-native action sheet" with three options — "Exit to Home", "Restart This Run", "Cancel" — and `RunOptionsButton.swift` (Story 2.7) declares an explicit `Button("runOptions.cancel", role: .cancel)` in both its options dialog and its restart-confirmation dialog. The screenshot instead shows a popover anchored to the ellipsis button (callout arrow, not a bottom sheet) with only two rows — "Exit to Home" and "Restart This Run" — no Cancel visible. iOS auto-suppresses an explicit `.cancel`-role button only when a dialog renders in popover style (regular horizontal size class or an anchor-based presentation), since tap-outside-to-dismiss already covers that case there — so the missing Cancel is a symptom of the wrong presentation style, not two independent bugs. `TARGETED_DEVICE_FAMILY` is iPhone-only (1) and no `.popover`/`presentationCompactAdaptation`/size-class override exists anywhere in the codebase, so the root cause is not yet understood and needs investigation, not just a style override.)*
+
+**Acceptance Criteria:**
+
+**Given** `RunOptionsButton`'s options `confirmationDialog` or its restart-confirmation `confirmationDialog`
+**When** invoked on an iPhone simulator or device, in portrait or landscape
+**Then** it presents as a bottom-anchored native action sheet (UX-DR11), never as a button-anchored popover
+
+**Given** either of `RunOptionsButton`'s two confirmation dialogs
+**When** presented
+**Then** the explicit `runOptions.cancel` row is visible and dismisses the dialog with no side effects, in addition to the existing "Exit to Home"/"Restart This Run" rows
+
+**Given** the popover presentation seen in the 2026-08-03 screenshot
+**When** root-caused
+**Then** the investigation identifies why this build resolved a regular/anchor-based presentation despite `TARGETED_DEVICE_FAMILY = 1` and no popover-forcing code, and the fix addresses that cause (not just a superficial style override) — findings recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+**And** a manual-verification AC: in Xcode/Simulator, on an iPhone target, reproduce the original bug (screenshot above), apply the fix, and confirm both dialogs now render as bottom action sheets with all three rows ("Exit to Home"/"Restart This Run", "Cancel") visible. Result + date recorded in the story's Completion Notes List
+
+### Story 2.13: Run-Options Sheet — Exit and Clear Progress
+
+As a player mid-run,
+I want a single action that clears my progress and returns me to a clean Home screen,
+So I don't have to Restart and then separately Exit just to fully bail on a run.
+
+*(UX design pass with Sally, 2026-08-03 — resolves the second of two open design questions logged in `deferred-work.md`'s "2-7-run-options-action-sheet" entry and `sprint-status.yaml`'s epic-2 action items, 2026-08-02. Today's two options — "Exit to Home" (non-destructive, preserves `RunSnapshot`, stays where left off) and "Restart This Run" (destructive, clears progress, but resets in place at the intro rather than leaving the run) — cover stay+keep, stay+clear, and leave+keep, but not leave+clear. The companion open question (whether the branch-arrival interstitial should also carry the run-options control) was discussed and closed with no code change needed: Story 2.9's first-visit-only gate means a revisited interstitial already behaves like an ordinary page, so the "no escape hatch" concern only ever applied to a true first-visit interstitial, which the user confirmed should stay a pure art moment. Amends UX-DR11 — see that entry's 2026-08-03 addendum.)*
+
+**Acceptance Criteria:**
+
+**Given** the run-options action sheet (`RunOptionsButton`)
+**When** invoked
+**Then** it presents four rows in order: "Exit to Home", "Restart This Run", "Exit and Clear Progress", "Cancel"
+
+**Given** "Exit and Clear Progress" is selected
+**When** activated
+**Then** a second explicit confirmation is required before anything clears, styled and worded consistently with "Restart This Run"'s existing confirmation (destructive role, same interaction pattern)
+
+**Given** the "Exit and Clear Progress" confirmation is confirmed
+**When** the action completes
+**Then** progress and alignment score are cleared (same reset performed by `restartRun()`) and the app navigates to Home, landing on Home's fresh-install state — not the "Resume Story" state
+
+**Given** the "Exit and Clear Progress" action and its confirmation dialog's labels
+**When** rendered
+**Then** every label is sourced from `Localizable.xcstrings` via generated symbols, never hardcoded (AD-2), following the same `runOptions.*` naming convention as the sheet's existing options
+
+**Given** the run-options action sheet's four rows
+**When** their order is verified
+**Then** it is fixed as "Exit to Home", "Restart This Run", "Exit and Clear Progress", "Cancel" — in that sequence, never reordered by role/destructive styling — and this ordering is asserted by an automated test (closing the gap 2.7's code review flagged: no automated coverage existed for `RunOptionsButton`'s button ordering)
+
+**Given** Story 2.12 (popover-presentation/missing-Cancel bug fix)
+**When** this story lands
+**Then** it builds on the corrected bottom-action-sheet presentation from 2.12 — this story does not independently re-fix the presentation bug, only adds the new row and confirmation to the already-corrected sheet
+
+**And** a manual-verification AC: in Xcode/Simulator, start a run, advance a few pages, invoke run options, select "Exit and Clear Progress," confirm, and verify (1) the app lands on Home in its fresh-install state, (2) a new run starts clean with no carried-over progress or score, (3) VoiceOver announces the new option and its confirmation correctly. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+### Story 2.14: Fix Flaky Tests Under Swift Testing's Parallel Execution
+
+As a developer running `swift test`,
+I want the engine-logic test suite to pass reliably every run,
+So that a red run always means a real regression, never noise I have to explain away or rerun past.
+
+*(Bug surfaced during Story 2.13's own `swift test` verification, 2026-08-04 — repeated runs intermittently failed `observerRefreshPicksUpASnapshotWrittenAfterConstruction` (`RunSnapshotPresenceTests.swift`), `anEngineResumedOntoShoreArrivalWithoutDismissalStillReportsInterstitialPhase`, and `anEngineResumedOntoANonEchoNodeReportsIsEchoActiveFalseImmediately` (`StoryRunEngineTests.swift`) — none of them touched by Story 2.13's changes, and none new. Confirmed pre-existing, not a 2.13 regression, by `git stash`-ing 2.13's diff and rerunning the unmodified baseline suite repeatedly (no failures observed in that sample, but the failure signature — a freshly-written `RunSnapshot` not read back on the very next line, same `UserDefaults` suite — is unrelated to anything 2.13 touched). Every failure observed so far has the same shape: a value just written to a `UserDefaults(suiteName:)` instance isn't visible on an immediate subsequent read from that same instance, sometimes off by exactly one prior test's state — consistent with a race under Swift Testing's default parallel execution, not a logic bug in the engine or in `RunSnapshotPresence`/`StoryRunEngine` themselves. `TestSupport.swift`'s `freshDefaults()` already mints a UUID-suffixed suite name per test specifically to avoid cross-test collisions (code review, 2026-08-01, Story 2.4) — this bug means that isolation isn't actually complete under Linux's `swift-corelibs-foundation` `UserDefaults` implementation, or isn't complete under concurrent access to it, and needs root-causing, not just a symptom-level retry.)*
+
+**Acceptance Criteria:**
+
+**Given** the full `ForkedEchoesTests` suite
+**When** `swift test` is run repeatedly from the repo root (at least 10 consecutive runs)
+**Then** every run passes with zero flaky failures — no test that was previously observed to intermittently fail (`observerRefreshPicksUpASnapshotWrittenAfterConstruction`, `anEngineResumedOntoShoreArrivalWithoutDismissalStillReportsInterstitialPhase`, `anEngineResumedOntoANonEchoNodeReportsIsEchoActiveFalseImmediately`, or any other test sharing the same write-then-immediate-read-on-a-fresh-`UserDefaults`-suite shape) fails on any run
+
+**Given** the root cause of the flakiness
+**When** it is investigated
+**Then** the investigation identifies why a `UserDefaults(suiteName:)` instance's own immediately-prior synchronous write is sometimes not visible on the very next read from that same instance under Swift Testing's parallel execution, despite each test using a unique UUID-suffixed suite name (`TestSupport.swift`'s `freshDefaults()`) — findings recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+**Given** the fix
+**When** applied
+**Then** it addresses the actual race (e.g. serializing the affected UserDefaults-suite-creation/read/write sequence, disabling parallel execution only if genuinely unavoidable and justified in Completion Notes, or a correctness fix to how `freshDefaults()` isolates suites) rather than papering over it with retries, `sleep`s, or `.serialized` applied blanket across the whole suite without first understanding why isolation is failing
+
+**Given** this story's own changes
+**When** complete
+**Then** all 64 pre-existing tests (60 before Story 2.13, plus 2.13's 4 new tests) still pass, with no test logic changed except what's needed to fix the race itself — this is an infrastructure/reliability fix, not a behavior change
+
+**And** a verification AC: run `swift test` at least 10 consecutive times from the repo root and record the pass count (expect 10/10) in the story's Completion Notes List, alongside a one-line description of the actual root cause found
 
 ## Epic 3: Alignment Scoring, Ending & Memory Recap
 

@@ -2,6 +2,7 @@ import Foundation
 import Testing
 @testable import ForkedEchoes
 
+@Suite(.serializesUserDefaultsAccess)
 struct RunSnapshotTests {
 
     @Test func encodeDecodeRoundTripPreservesAllFields() throws {
@@ -10,7 +11,8 @@ struct RunSnapshotTests {
             choiceHistory: [ChoiceRecord(nodeId: .intro, chosenOptionId: .boat)],
             alignmentScore: 3,
             tutorialSeen: false,
-            visitedArrivalNodeIds: [.shoreArrival]
+            visitedArrivalNodeIds: [.shoreArrival],
+            visitedNodeIds: [.intro, .firstChoice]
         )
 
         let data = try JSONEncoder().encode(snapshot)
@@ -36,6 +38,45 @@ struct RunSnapshotTests {
 
         #expect(decoded.currentNodeId == .firstChoice)
         #expect(decoded.visitedArrivalNodeIds.isEmpty)
+    }
+
+    // Story 2.10 (Task 1): a snapshot written before this story shipped has no `visitedNodeIds`
+    // key at all. This must decode cleanly with an empty array, not fail — same reasoning as
+    // decodingASnapshotWithoutTheVisitedArrivalNodeIdsKeyDefaultsToEmpty above, for the new field.
+    @Test func decodingASnapshotWithoutTheVisitedNodeIdsKeyDefaultsToEmpty() throws {
+        let legacyJSON = """
+        {
+            "currentNodeId": {"firstChoice": {}},
+            "choiceHistory": [],
+            "alignmentScore": 0,
+            "tutorialSeen": false,
+            "visitedArrivalNodeIds": []
+        }
+        """
+        let decoded = try JSONDecoder().decode(RunSnapshot.self, from: Data(legacyJSON.utf8))
+
+        #expect(decoded.currentNodeId == .firstChoice)
+        #expect(decoded.visitedNodeIds.isEmpty)
+    }
+
+    // Code review, 2026-08-03 (Story 2.10 patch): visitedNodeIds is an ordered [NodeID], unlike
+    // visitedArrivalNodeIds's Set — duplicate entries are meaningful (a player can revisit the
+    // same node id twice in one back-navigation history if the tree ever reconverges) and order
+    // must survive the round trip. Nothing above actually asserted this.
+    @Test func encodeDecodeRoundTripPreservesDuplicateAndOrderedVisitedNodeIds() throws {
+        let snapshot = RunSnapshot(
+            currentNodeId: .shoreArrival,
+            choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
+            alignmentScore: -1,
+            tutorialSeen: false,
+            visitedArrivalNodeIds: [],
+            visitedNodeIds: [.intro, .intro, .firstChoice]
+        )
+
+        let data = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(RunSnapshot.self, from: data)
+
+        #expect(decoded.visitedNodeIds == [.intro, .intro, .firstChoice])
     }
 
     @Test func loadValidReturnsNilWhenKeyIsMissing() {

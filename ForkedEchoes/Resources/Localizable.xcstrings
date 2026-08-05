@@ -100,6 +100,30 @@
         }
       }
     },
+    "runOptions.exitAndClearConfirmation.title" : {
+      "comment" : "Story 2.13: explanatory title for the second, destructive-action confirmation dialog presented after selecting \"Exit and Clear Progress\" — only confirming this clears anything and leaves the run.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This clears your progress and score, and returns you to Home. This can't be undone."
+          }
+        }
+      }
+    },
+    "runOptions.exitAndClearProgress" : {
+      "comment" : "Story 2.13: run-options action sheet's destructive option label, and also the second confirmation dialog's destructive confirm-button label (same text, both call sites) — clears progress and score, then leaves the run for Home.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exit and Clear Progress"
+          }
+        }
+      }
+    },
     "runOptions.exitToHome" : {
       "comment" : "Story 2.7: run-options action sheet's non-destructive option — returns to Home, preserving the in-progress RunSnapshot.",
       "extractionState" : "manual",
@@ -312,18 +336,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Previous Page"
-          }
-        }
-      }
-    },
-    "tutorial.action.backHome" : {
-      "comment" : "Tutorial screen: secondary action label, returns to Home",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back Home"
           }
         }
       }

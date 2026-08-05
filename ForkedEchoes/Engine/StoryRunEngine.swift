@@ -63,6 +63,12 @@ final class StoryRunEngine {
         }
     }
 
+    /// The back-navigation stack `goBack()` pops. Story 2.10: persisted via
+    /// `RunSnapshot.visitedNodeIds` (AD-4) — seeded from the snapshot in
+    /// `resumingFromSnapshot(defaults:)` and written by every `persistOrClearSnapshot()` call, so
+    /// this stays populated across a real app relaunch, not just within one process (previously
+    /// an unpersisted, session-only stack — see the Story 2.4-through-2.9 history in
+    /// `resumingFromSnapshot(defaults:)`'s doc comment above).
     private var visitedNodeIds: [NodeID] = []
     private let defaults: UserDefaults
 
@@ -77,11 +83,12 @@ final class StoryRunEngine {
     /// Cold-launch construction (RootView's call site): attempts to resume from a validated
     /// `RunSnapshot`; falls back to a fresh run at `StoryTree.root` on any decode/validation
     /// failure (AC #2, #3) — identical fallback logic to `RunSnapshotPresence.hasInProgressRun`.
-    /// `visitedNodeIds` (the back-navigation stack, distinct from `RunSnapshot.visitedArrivalNodeIds`
-    /// added Story 2.9 — see that field's doc comment) is still not part of `RunSnapshot`, so a
-    /// resumed run starts with an empty back-navigation stack — `goBack()` is a no-op until the
-    /// player advances forward again this session. This is an accepted, deliberate consequence of
-    /// `RunSnapshot`'s shape, not a bug.
+    /// Story 2.10: `visitedNodeIds` (the back-navigation stack, distinct from
+    /// `RunSnapshot.visitedArrivalNodeIds` added Story 2.9 — see that field's doc comment) is now
+    /// seeded from the persisted `RunSnapshot.visitedNodeIds`, so a resumed run's `goBack()` can
+    /// navigate backward through the same history it had before the relaunch, instead of starting
+    /// with an empty stack (Story 2.4 through 2.9's prior, deliberate-but-since-superseded
+    /// behavior).
     ///
     /// Deliberately a distinctly-named factory rather than a third `init` overload: an earlier
     /// version of this made a bare `StoryRunEngine()` call resolve here instead of the plain init
@@ -107,6 +114,7 @@ final class StoryRunEngine {
         // illustration at all — that was a latent bug relative to AD-5's "first-visit-ever" intent,
         // not a case worth preserving.
         engine.dismissedInterstitialNodeIds = snapshot.visitedArrivalNodeIds
+        engine.visitedNodeIds = snapshot.visitedNodeIds
         return engine
     }
 
@@ -220,6 +228,20 @@ final class StoryRunEngine {
         persistOrClearSnapshot()
     }
 
+    /// Story 2.13 (AD-3): the run-options action sheet's destructive "Exit and Clear Progress,"
+    /// fired mid-run after its own second confirmation. Resets fields exactly like `restartRun()`
+    /// above (same `resetRunState()`), but deliberately does **not** call `persistOrClearSnapshot()`
+    /// afterward. That helper writes a fresh `RunSnapshot` whenever `currentNodeId` isn't
+    /// `.ending` — which a reset-to-root always is — so calling it here would leave a resumable
+    /// snapshot on disk even though this action's whole point is to leave the run. Home's
+    /// Resume/Start label (`RunSnapshotPresence.hasInProgressRun`) reads snapshot *presence*, not
+    /// engine field state, so removing the persisted key directly is what actually lands Home on
+    /// its fresh-install "Start Story" state rather than "Resume Story."
+    func exitAndClearProgress() {
+        resetRunState()
+        defaults.removeObject(forKey: RunSnapshotPresence.runSnapshotKey)
+    }
+
     /// Resets to a fresh run at `StoryTree.root` if the current run has ended; a no-op otherwise
     /// (mid-run, "Start Story"/"Resume Story" tapped again should do nothing to the live run).
     ///
@@ -277,7 +299,8 @@ final class StoryRunEngine {
             choiceHistory: choiceHistory,
             alignmentScore: alignmentScore,
             tutorialSeen: false,
-            visitedArrivalNodeIds: dismissedInterstitialNodeIds
+            visitedArrivalNodeIds: dismissedInterstitialNodeIds,
+            visitedNodeIds: visitedNodeIds
         )
 
         guard let data = try? JSONEncoder().encode(snapshot) else {

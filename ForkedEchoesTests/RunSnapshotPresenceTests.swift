@@ -2,6 +2,7 @@ import Foundation
 import Testing
 @testable import ForkedEchoes
 
+@Suite(.serializesUserDefaultsAccess)
 struct RunSnapshotPresenceTests {
 
     @Test func noSnapshotMeansNoRunInProgress() {

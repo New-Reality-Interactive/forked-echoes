@@ -4,7 +4,7 @@ baseline_commit: 48087a620301bbfd2e90a92b194509e1ca1b8cda
 
 # Story 3.2: Ending Screen
 
-Status: review
+Status: done
 
 ## Story
 
@@ -56,6 +56,18 @@ so that I understand how my choices resolved.
   - [x] Reach each of the 4 endings in Simulator (`.boat`→`.boatEcho`→`.endingHomeward`, `.shore`→`.shoreArrival`→`.endingElsewhere`, `.driftLimbo`→`.endingLimbo`, `.gotcha`→`.endingHardFail` directly) and confirm: correct title/body/eyebrow text per kind, the circuit Frame renders permanently ember-active (not dormant, no power-up animation), tapping anywhere advances (to the Story 3.3 placeholder text), and this holds at an accessibility Dynamic Type size without clipping/overflow.
   - [x] Confirm VoiceOver can both read the Ending content and trigger the "advance" action via its accessible equivalent (not just a bare screen tap).
   - [x] Force-quit the app while on the Ending (or the Story-3.3-placeholder) screen and relaunch — confirm Home renders "Start Story" (fresh-install state), not "Resume Story" (AC #6).
+
+### Review Findings
+
+- [x] [Review][Defer] No exit-to-Home affordance once a player reaches Ending or the Memory placeholder — `StoryChoiceView.swift`'s new `.ending`/`.memory` branches bypass `readingComposition` entirely (per this story's own Dev Notes reasoning), which is the only place `RunOptionsButton`/`onExitToHome` is mounted. Pre-diff, `.ending` rendered through `readingComposition` and had a working "Exit to Home." A player who finishes any run is now stuck on Ending or the Story-3.3 placeholder with no button, gesture, or accessibility action to leave short of force-quitting. — deferred, user decision 2026-08-05: accept this interim dead-end for this one merge; Story 3.3 (Memory screen) ships next and must include an explicit AC covering the "Return Home" exit affordance, not just implicitly assumed to fix this as a side effect.
+- [x] [Review][Patch] `goBack()` doesn't reset `hasAdvancedPastEnding`, so re-arriving at an ending node after a back-then-forward sequence reports stale `.memory` phase instead of `.ending` [ForkedEchoes/Engine/StoryRunEngine.swift:210]. **Fixed:** `goBack()` now resets `hasAdvancedPastEnding = false` unconditionally after popping `visitedNodeIds`.
+- [x] [Review][Patch] `FrameView.swift`'s doc comment still states the Frame is "never wrapped around Home, Tutorial, or the Epic 2 Ending placeholder" — now false since `EndingView` wraps it permanently per AC #2 [ForkedEchoes/Views/StoryChoice/FrameView.swift:13]. **Fixed:** comment updated to reflect the Ending screen's permanent-active exception.
+- [x] [Review][Patch] `EndingView`'s content stack (eyebrow/title/body/continue-hint) isn't `.accessibilityElement(children: .combine)`'d, so the custom `.accessibilityAction` attached to the outer container may not reliably surface as a rotor action per SwiftUI's documented behavior for non-combined multi-child containers — same class of gotcha the sibling echo-callback block in `StoryChoiceView.swift` already guards against [ForkedEchoes/Views/Ending/EndingView.swift:57]. **Fixed:** added `.accessibilityElement(children: .combine)`.
+- [x] [Review][Patch] Memory placeholder applies `.readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)`, reserving clearance for a `RunOptionsButton` overlay that's never rendered on that branch — leftover from copy-pasting the reading-page padding convention [ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift:62]. **Fixed:** switched to plain `.readingCardPadding()`.
+- [x] [Review][Patch] New test `advancePageFromEndingToMemoryNeverWritesASnapshot` asserts `defaults.object(forKey:) == nil`, weaker than every other test in the suite touching this key, which uses `.data(forKey:)` [ForkedEchoesTests/StoryRunEngineTests.swift]. **Fixed:** switched to `.data(forKey:)`, matching every other snapshot-absence assertion in the suite.
+- [x] [Review][Defer] `preconditionFailure` in `content`'s `.ending` arm is a real crash risk if `phase` and node-type derivation ever drift apart in a future change — true-by-construction today, not a current bug [ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift:378] — deferred, pre-existing design tradeoff this diff makes deliberately, not a regression.
+- [x] [Review][Defer] `story.endingElsewhere`/`story.endingLimbo` copy is invented placeholder text with no mockup reference (already acknowledged in this story's own Completion Notes) [ForkedEchoes/Content/StoryTree.swift] — deferred, content-scope note not a code defect, Epic 4 replaces placeholder copy anyway.
+- [x] [Review][Defer] `sprint-status.yaml`'s `last_updated` field continues as one unbounded growing line, compounded by this diff's entry [_bmad-output/implementation-artifacts/sprint-status.yaml] — deferred, pre-existing issue unrelated to this diff's substance.
 
 ## Dev Notes
 
@@ -138,6 +150,7 @@ Claude Sonnet 5 (dev-story workflow)
 - Task 4: added `Phase.memory` and a new engine-private `hasAdvancedPastEnding` flag (reset in `resetRunState()`). `advancePage()`'s `.ending` case now sets that flag instead of no-op'ing; it deliberately still never calls `persistOrClearSnapshot()` (AC #6). Added the `engine.phase == .memory` placeholder branch to `StoryChoiceView.body` and a matching `deferred-work.md` entry ("coming in Story 3.3"), and resolved the pre-existing "coming in Epic 3" entry as done.
 - Task 5: 4 new Swift Testing cases in `StoryRunEngineTests.swift` — per-node `titleKey`/`bodyKey` routing, `.ending` -> `.memory` transition, `.memory` re-advance no-op, and no-snapshot-write across both. 76/76 passing, 3 consecutive clean runs.
 - Task 6 (manual Xcode/Simulator verification): **confirmed by user, 2026-08-05** — Xcode build succeeded, `swift test` succeeded, and all Simulator checks passed: all 4 endings (Home/Stay/Limbo/Hard-Fail) show correct title/body/eyebrow text, the circuit Frame renders permanently ember-active with no power-up animation, tap-anywhere correctly advances to the Story 3.3 placeholder text (holding at an accessibility Dynamic Type size without clipping/overflow), VoiceOver reads the Ending content and can trigger the advance action via its accessible equivalent, and a force-quit/relaunch while on Ending/the Memory placeholder correctly renders Home's fresh-install "Start Story" state (AC #6).
+- **Post-code-review re-verification, confirmed by user, 2026-08-05:** after all 5 review patches applied (goBack()'s hasAdvancedPastEnding reset, FrameView.swift comment fix, EndingView's .accessibilityElement(children: .combine), Memory placeholder padding fix, snapshot-assertion style fix), Xcode build, `swift test`, and all Simulator checks were re-run in full and succeeded again — no regression from the patches.
 
 ### File List
 

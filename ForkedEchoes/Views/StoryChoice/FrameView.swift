@@ -10,8 +10,10 @@ import SwiftUI
 // color/glow change animates unless Reduce Motion is on, per Story 2.8 AC #3 — read directly from
 // SwiftUI's environment (AD-3: StoryRunEngine never touches rendering/animation).
 //
-// Reserved for Story/Choice reading content only (AC #4) — never wrapped around Home, Tutorial,
-// or the Epic 2 Ending placeholder.
+// Reserved for Story/Choice reading content and the Ending screen only (Story 2.5 AC #4, Story
+// 3.2 AC #2) — never wrapped around Home or Tutorial. Story 3.2's EndingView wraps this
+// permanently active (isActive: true always) as the screen's one deliberate exception to
+// isActive tracking engine.isEchoActive — a resting condition, not a transition.
 struct FrameView: View {
     let isActive: Bool
 

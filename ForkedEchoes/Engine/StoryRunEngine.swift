@@ -219,6 +219,11 @@ final class StoryRunEngine {
         }
 
         currentNodeId = previous
+        // Code review, 2026-08-05 (Story 3.2): without this, a back-then-forward sequence through
+        // an ending node left this flag stale-true, so re-arriving at .ending reported .memory
+        // instead — going back always leaves whichever .ending visit set the flag, so it must
+        // reset here regardless of the node navigated to.
+        hasAdvancedPastEnding = false
         persistOrClearSnapshot()
     }
 

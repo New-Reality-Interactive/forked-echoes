@@ -65,7 +65,7 @@ struct StoryChoiceView: View {
                 // this story itself replaces. Text(verbatim:) matches that precedent: dev-facing
                 // stand-in copy, not authored story content.
                 Text(verbatim: "Run complete — Memory screen coming in Story 3.3")
-                    .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
+                    .readingCardPadding()
             } else if engine.phase == .interstitial, case .reading(_, _, _, let arrival?) = StoryTree.node(for: engine.currentNodeId) {
                 // Story 2.6, AC #2/#5: this branch fully replaces the ordinary composition below
                 // — no page-turn gesture, no tap zones, no exit/run-options button attached at

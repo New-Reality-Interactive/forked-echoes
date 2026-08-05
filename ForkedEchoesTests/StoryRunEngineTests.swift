@@ -964,12 +964,12 @@ struct StoryRunEngineTests {
         let (defaults, suiteName) = freshDefaults()
         defer { defaults.removePersistentDomain(forName: suiteName) }
         let engine = StoryRunEngine(startingAt: .endingHomeward, defaults: defaults)
-        #expect(defaults.object(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
+        #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
 
         engine.advancePage()
 
         #expect(engine.phase == .memory)
-        #expect(defaults.object(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
+        #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
     }
 
     // Story 3.1 (AC #3, AD-5, AD-7/NFR3): selectChoice(_:) targeting a hard-fail terminal node

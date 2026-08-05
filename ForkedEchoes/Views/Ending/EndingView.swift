@@ -32,6 +32,12 @@ struct EndingView: View {
             .accessibilityAction(named: Text(LocalizedStringKey("ending.continueHint"))) {
                 engine.advancePage()
             }
+            // Code review, 2026-08-05: without this, the eyebrow/title/body/continue-hint Text
+            // elements below are each their own accessibility element, and the custom
+            // .accessibilityAction above isn't reliably discoverable as a rotor action on any one
+            // of them — same fix StoryChoiceView.swift's echo-callback block already applies for
+            // an identical multi-Text-container VoiceOver gotcha.
+            .accessibilityElement(children: .combine)
     }
 
     // Story 2.8's accessibility-size-conditional ScrollView pattern (readingComposition,

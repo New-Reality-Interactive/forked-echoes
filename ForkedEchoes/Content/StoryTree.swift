@@ -56,12 +56,14 @@ enum StoryTree {
                     ChoiceOption(
                         id: .boat,
                         labelKey: "story.firstChoice.choice.1",
+                        consequenceKey: "story.firstChoice.choice.1.consequence",
                         alignmentDelta: 1,
                         target: .boatEcho
                     ),
                     ChoiceOption(
                         id: .shore,
                         labelKey: "story.firstChoice.choice.2",
+                        consequenceKey: "story.firstChoice.choice.2.consequence",
                         alignmentDelta: -1,
                         target: .shoreArrival
                     ),
@@ -70,6 +72,7 @@ enum StoryTree {
                     ChoiceOption(
                         id: .gotcha,
                         labelKey: "story.firstChoice.choice.3",
+                        consequenceKey: "story.firstChoice.choice.3.consequence",
                         alignmentDelta: -3,
                         target: .endingHardFail
                     ),
@@ -80,6 +83,7 @@ enum StoryTree {
                     ChoiceOption(
                         id: .driftLimbo,
                         labelKey: "story.firstChoice.choice.4",
+                        consequenceKey: "story.firstChoice.choice.4.consequence",
                         alignmentDelta: 2,
                         target: .endingLimbo
                     ),

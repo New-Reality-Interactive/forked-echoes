@@ -296,7 +296,7 @@ struct ChoiceCardView: View {
 
 #Preview("Idle") {
     ChoiceCardView(
-        option: ChoiceOption(id: .boat, labelKey: "story.firstChoice.choice.1", alignmentDelta: 1, target: .endingHomeward),
+        option: ChoiceOption(id: .boat, labelKey: "story.firstChoice.choice.1", consequenceKey: "story.firstChoice.choice.1.consequence", alignmentDelta: 1, target: .endingHomeward),
         isDecided: false,
         isSelected: false,
         activeOptionID: .constant(nil),
@@ -307,7 +307,7 @@ struct ChoiceCardView: View {
 
 #Preview("Selected/locked") {
     ChoiceCardView(
-        option: ChoiceOption(id: .boat, labelKey: "story.firstChoice.choice.1", alignmentDelta: 1, target: .endingHomeward),
+        option: ChoiceOption(id: .boat, labelKey: "story.firstChoice.choice.1", consequenceKey: "story.firstChoice.choice.1.consequence", alignmentDelta: 1, target: .endingHomeward),
         isDecided: true,
         isSelected: true,
         activeOptionID: .constant(nil),
@@ -318,7 +318,7 @@ struct ChoiceCardView: View {
 
 #Preview("Decided, not selected") {
     ChoiceCardView(
-        option: ChoiceOption(id: .shore, labelKey: "story.firstChoice.choice.2", alignmentDelta: -1, target: .endingElsewhere),
+        option: ChoiceOption(id: .shore, labelKey: "story.firstChoice.choice.2", consequenceKey: "story.firstChoice.choice.2.consequence", alignmentDelta: -1, target: .endingElsewhere),
         isDecided: true,
         isSelected: false,
         activeOptionID: .constant(nil),

@@ -88,6 +88,90 @@
         }
       }
     },
+    "memory.eyebrow" : {
+      "comment" : "Story 3.3: Memory screen's static eyebrow above the score header — pure UI chrome, no per-run content-model dependency",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Run"
+          }
+        }
+      }
+    },
+    "memory.returnHome" : {
+      "comment" : "Story 3.3: Memory screen's secondary action — exits the Story session and navigates to Home",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Return Home"
+          }
+        }
+      }
+    },
+    "memory.startNewRun" : {
+      "comment" : "Story 3.3: Memory screen's primary action — resets the engine to a fresh run, stays in the same Story session",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start New Run"
+          }
+        }
+      }
+    },
+    "memory.tier.adrift" : {
+      "comment" : "Story 3.3: Tier.adrift's display label (AD-9) — cosmetic, second-lowest of 4 placeholder tiers, score 0...2",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adrift"
+          }
+        }
+      }
+    },
+    "memory.tier.homeBound" : {
+      "comment" : "Story 3.3: Tier.homeBound's display label (AD-9) — cosmetic, highest of 4 placeholder tiers, score 6+, matches mockups/memory.html's +7 sample",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home-Bound"
+          }
+        }
+      }
+    },
+    "memory.tier.steady" : {
+      "comment" : "Story 3.3: Tier.steady's display label (AD-9) — cosmetic, second-highest of 4 placeholder tiers, score 3...5",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steady"
+          }
+        }
+      }
+    },
+    "memory.tier.wandering" : {
+      "comment" : "Story 3.3: Tier.wandering's display label (AD-9) — cosmetic, lowest of 4 placeholder tiers, open-ended below score 0",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wandering"
+          }
+        }
+      }
+    },
     "runOptions.accessibilityLabel" : {
       "comment" : "Story 2.7: explicit VoiceOver label for the run-options ellipsis.circle icon (UX-DR12) — overrides the SF Symbol's default name. Also doubles as the first confirmationDialog's hidden title.",
       "extractionState" : "manual",
@@ -364,6 +448,18 @@
         }
       }
     },
+    "story.firstChoice.choice.1.consequence" : {
+      "comment" : "Story 3.3: Memory screen's recap of the .boat choice — what it caused, shown alongside the label above",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sam trusted you with the car three chapters later — you wouldn't have gotten the keys otherwise."
+          }
+        }
+      }
+    },
     "story.firstChoice.choice.2" : {
       "comment" : "Story 2.1 placeholder content tree: firstChoice node's second option label, leads to the endingElsewhere placeholder",
       "extractionState" : "manual",
@@ -372,6 +468,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Follow the shoreline instead."
+          }
+        }
+      }
+    },
+    "story.firstChoice.choice.2.consequence" : {
+      "comment" : "Story 3.3: Memory screen's recap of the .shore choice — what it caused, shown alongside the label above",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You recognized the diner before it recognized you. That's what started to turn things around."
           }
         }
       }
@@ -388,6 +496,18 @@
         }
       }
     },
+    "story.firstChoice.choice.3.consequence" : {
+      "comment" : "Story 3.3: Memory screen's recap of the .gotcha choice — what it caused, shown alongside the label above",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The reeds were not, in fact, a shortcut. Neither was anything after them."
+          }
+        }
+      }
+    },
     "story.firstChoice.choice.4" : {
       "comment" : "Story 3.1 placeholder content tree: firstChoice node's fourth option label, leads directly to the endingLimbo placeholder",
       "extractionState" : "manual",
@@ -396,6 +516,18 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Wait and see what the tide brings."
+          }
+        }
+      }
+    },
+    "story.firstChoice.choice.4.consequence" : {
+      "comment" : "Story 3.3: Memory screen's recap of the .driftLimbo choice — what it caused, shown alongside the label above",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The tide never quite came in, and you never quite decided. Some days that's the same thing."
           }
         }
       }

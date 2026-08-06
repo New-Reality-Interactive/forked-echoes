@@ -872,6 +872,34 @@ So run resolution feels consistent with the rest of the app.
 **When** navigating Ending/Memory
 **Then** all actions (tap-to-continue, Return Home, Start New Run) expose accessible labels and meet the 44pt tap target (FR11, NFR6)
 
+### Story 3.6: Reading & Ending Surface Background and Frame Inset Rule
+
+As a player,
+I want the Reading, Ending, and Memory surfaces to render on the app's warm paper-cream/raised-card background and the circuit frame to show its inset rule line,
+So these screens match DESIGN.md instead of falling back to the plain system default background with a partially-drawn frame.
+
+*(Added via 3.4 code-review follow-up, 2026-08-06 — see `deferred-work.md`'s "code review of 3-4-ending-and-memory-visual-identity" entry. Two token gaps, bundled into one story per the reviewer's own note since both live in `FrameView`: (1) `{colors.surface-base}`/`{colors.surface-raised}` is never applied via `.background(...)` anywhere in the Reading→Ending→Memory chain — `StoryChoiceView.swift`, `FrameView.swift`, `EndingView.swift`, `MemoryView.swift`, and `RootView.swift` all render on the system default instead (only `HomeView.swift`/`TutorialView.swift`/`ChoiceCardView.swift` apply it today); (2) `components.frame`'s `inset-rule-width`/`inset-rule-color`/`inset-rule-color-active` (a 1px stroked border line around the card, distinct from the corner via/pad marks) is never drawn — `FrameView.swift` only renders the four corner marks. Both trace back to Story 2.5, pre-date Story 3.4, and span Reading (Epic 2) as well as Ending/Memory (Epic 3) — scoped here, not as an Epic 2 patch, because `ending-frame`/`memory-row`'s DESIGN.md entries re-specify the same token family and because this story should land and be verified before Story 3.5's closing accessibility/contrast pass, so 3.5 validates the corrected screens rather than needing a redo. Sequence this story before 3.5 in the sprint.)*
+
+**Acceptance Criteria:**
+
+**Given** DESIGN.md's `{colors.surface-base}`/`{colors.surface-raised}` background tokens
+**When** `StoryChoiceView.swift` (reading/interstitial), `FrameView.swift`, `EndingView.swift`, `MemoryView.swift`, and `RootView.swift` are inspected
+**Then** each screen renders against the correct token exactly once — a single decision is made and documented (Dev Notes) on whether the background is applied once at an outer container (`StoryChoiceView`/`RootView`) or locally per-view, avoiding duplicate or conflicting `.background(...)` calls across the chain
+
+**Given** `components.frame`'s `inset-rule-width`/`inset-rule-color`/`inset-rule-color-active` tokens
+**When** `FrameView` renders in both dormant (brass) and powered-up (ember) states
+**Then** a stroked rule inset from the card edge is drawn at the correct width/color per state, distinct from and in addition to the existing corner via/pad marks
+
+**Given** light and dark theme
+**When** the new background and inset-rule colors render
+**Then** all text/color pairs affected continue to meet WCAG AA thresholds per DESIGN.md's verified contrast table (NFR7) — no new pairing introduced outside that table
+
+**Given** Dynamic Type at an accessibility size
+**When** the corrected background/inset-rule renders on Reading, Ending, and Memory
+**Then** no text is clipped or truncated as a side effect of the change (FR11, NFR8)
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm the correct background tone and a visible inset rule line on Reading, the branch-arrival interstitial, Ending, and Memory, in both light and dark appearance, at default and an accessibility Dynamic Type size. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
 ### Story 3.5: End-to-End Accessibility Validation
 
 As a player using any assistive technology,
@@ -903,6 +931,74 @@ So nothing scattered across individual stories was missed.
 **Given** every illustration in the app
 **When** audited with VoiceOver
 **Then** each announces its authored descriptive label — none is silent (hidden) and none announces a meaningless default label
+
+**Given** `runOptionsButtonClearance` (fixed 60pt, `StoryChoiceView.swift`), unverified since Story 2.8's code review at the largest accessibility Dynamic Type category
+**When** the top-right corner of a Story/Choice page is inspected at AX5
+**Then** the run-options button's SF Symbol glyph does not overlap reading text, confirming the fixed clearance still holds at maximum scale (closes the Story 2.8 deferred-work.md item)
+
+**Given** VoiceOver's "Next Page"/"Previous Page" custom rotor actions (`StoryChoiceView.swift`)
+**When** exercised while forward navigation is blocked by an unresolved choice
+**Then** the audit records whether silent no-op (no audio/haptic feedback) is acceptable as shipped or needs a follow-up fix — a judgment call, not an automatic AC failure (closes the Story 2.2 deferred-work.md item)
+
+**Given** `EndingView.swift`'s `backSwipeGesture`, which sits outside the `GeometryReader`/`ScrollView` that only activates at accessibility Dynamic Type sizes
+**When** exercised specifically at an accessibility Dynamic Type size on the Ending screen
+**Then** the audit confirms whether the swipe-back gesture remains reachable (a `ScrollView`'s own drag recognizer typically wins over a sibling `.gesture()` covering the same region) — closes the Story 3.4 deferred-work.md item
+
+**Given** DESIGN.md's text-contrast table, which documents WCAG 1.4.3 text contrast only
+**When** the secondary-button border stroke and Memory's row-divider fill are inspected
+**Then** they are formally verified against WCAG 1.4.11 (non-text/graphical-object contrast) in both themes — closing the Story 3.4 deferred-work.md item that these pairs were never formally checked, only judged low-risk by inspection
+
+### Story 3.7: Run-Progress Refresh-on-Dismiss — Test Coverage & Consolidation Audit
+
+As a developer,
+I want Home/Tutorial's "Resume Story" vs. "Start Story" label refresh logic covered by an automated test, with its two current triggers either justified as genuinely distinct or consolidated,
+So future screens don't have to rediscover this wiring's fragility from scratch, and a future regression is caught by a test instead of manual Simulator inspection.
+
+*(Added via deferred-work review, 2026-08-06 — see `deferred-work.md`'s "code review of 2-7-run-options-action-sheet" entry. On inspection, `RootView.swift` already carries a deliberate fix (`.onChange(of: isPresentingStorySession)`, added post-Story-2.7, with its own explanatory comment) alongside `HomeView.swift`/`TutorialView.swift`'s own `.onAppear { runProgress.refresh() }` — each covers a different navigation trigger (Story-session dismissal vs. Home↔Tutorial `NavigationStack` push/pop), so this is not a live bug as the original deferred note implied. What's actually missing is automated coverage and a documented rationale for why both call sites exist, not a broken mechanism. Sequenced after Story 3.5 since it's Home/Tutorial infra debt, not part of Epic 3's Ending/Memory/accessibility scope — added here per user decision 2026-08-06 to close out Epic 2-era deferred items now rather than reopen the closed epic.)*
+
+**Acceptance Criteria:**
+
+**Given** `RootView.swift`'s `.onChange(of: isPresentingStorySession)` refresh and `HomeView.swift`/`TutorialView.swift`'s own `.onAppear` refresh
+**When** both are audited together against this project's supported iOS range's actual dismissal/navigation-appear semantics
+**Then** the audit's conclusion (both genuinely necessary for distinct events, or one subsumes the other) is documented in this story's Dev Notes
+
+**Given** the audit's conclusion
+**When** implemented
+**Then** any now-redundant refresh call site is removed — but only if the audit confirms redundancy; two triggers for two genuinely distinct navigation events is not itself a defect
+
+**Given** `RunProgressObserver.refresh()`
+**When** this story completes
+**Then** an automated Swift Testing case asserts a `RunSnapshot` write occurring after the observer's construction becomes visible once `refresh()` is called explicitly — closing the "no test asserting the wiring" gap the Story 2.7 code review flagged
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm the Home "Start Story"/"Resume Story" label updates correctly after (a) exiting a run to Home via the run-options sheet, (b) completing a run through Memory's "Return Home", and (c) navigating Home → Tutorial → back — no stale label in any path. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
+### Story 3.8: Memory & Tutorial Polish and Deferred-Item Cleanup
+
+As a developer,
+I want to close out the remaining small correctness and dead-code items logged in `deferred-work.md`,
+So nothing lingers there as an open loop once Epic 3 wraps.
+
+*(Added via deferred-work review, 2026-08-06 — bundles three small, otherwise-unrelated items that don't individually justify their own story. See `deferred-work.md`'s 3-4 and 2-8 review entries, and `RunSnapshot.swift`'s own `tutorialSeen` doc comment.)*
+
+**Acceptance Criteria:**
+
+**Given** `MemoryView.swift`'s `.formatted(.number.sign(strategy: .always()))` alignment-score display
+**When** a run's accumulated `alignmentScore` is exactly `0`
+**Then** it renders as `"0"`, not `"+0"` — a genuinely neutral run no longer reads as positive; positive and negative scores continue to show their sign (closes the Story 3.4 deferred-work.md item)
+
+**Given** `StoryChoiceView.swift`'s echo-callback tag `Text` ("The story remembers"), currently styled with ad-hoc `.fontWeight(.bold)` and no named DESIGN.md typography role
+**When** this story lands
+**Then** either a new named typography role is added to DESIGN.md/`Typography.swift` and applied here, or DESIGN.md explicitly documents that this element is intentionally ad-hoc — not left as an undocumented gap (closes the Story 2.8 deferred-work.md item)
+
+**Given** `RunSnapshot.tutorialSeen` (AD-4), currently always encoded as `false` with no producer that ever sets it `true` and no consumer that reads it anywhere in the codebase since Story 2.4
+**When** this story lands
+**Then** a decision is made and implemented: either Tutorial writes `true` on dismissal and at least one real consumer uses it meaningfully, or the field is removed entirely as dead scope — not left as silent, permanently-`false` weight in every `RunSnapshot`
+
+**Given** `RunSnapshot`'s decode-compatibility precedent (AD-4, mirrored by `visitedArrivalNodeIds`/`visitedNodeIds`)
+**When** `tutorialSeen` is removed (if that's the decision reached above)
+**Then** an on-disk snapshot written by an older build that still contains the `tutorialSeen` key decodes successfully (the extra key is ignored, not a decode failure) — no NFR4 regression
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm (1) a genuinely neutral-score run displays "0" (not "+0") on Memory, and (2) whichever `tutorialSeen` decision was implemented behaves as decided. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
 ## Epic 4: Story Content & Illustration Production
 
@@ -960,6 +1056,10 @@ So the app delivers the real experience.
 **When** authored
 **Then** a distinct, descriptive VoiceOver description of what the illustration depicts is written and added to `Localizable.xcstrings` alongside the caption — not restating the caption, but conveying the illustration's specific visual content so VoiceOver users get equivalent access to the branch reality's atmosphere
 
+**Given** Tutorial's `tutorial.mechanic.pageTurn` copy, which currently describes only the swipe/tap-edge page-turn mechanic
+**When** its final prose is authored
+**Then** it also mentions the VoiceOver-specific alternative (the "Next Page"/"Previous Page" rotor custom actions, Story 2.2/UX-DR12) — a VoiceOver user reading Tutorial's own explanation shouldn't be left to discover that alternative by accident (closes the Story 1.3 deferred-work.md item)
+
 ### Story 4.3: Story Tree Wiring
 
 As a developer,
@@ -983,6 +1083,26 @@ So the real story is playable.
 **Given** echo wiring
 **When** the tree is complete
 **Then** each planned echo correctly references its earlier choice by tree position (AD-1)
+
+**Given** the real tree finally provides a reachable branch-arrival node whose forward target isn't itself an ending (unlike the Epic 2 placeholder's `.shoreArrival`)
+**When** `StoryRunEngineTests.swift`'s back-navigation coverage is extended
+**Then** a test exercises the literal Story 2.10 AC #3 scenario — relaunch, then `goBack()` past a dismissed arrival node, not just resuming directly onto one — closing the gap that story's own test left structurally unreachable in the placeholder tree (deferred-work.md, 2-10 review)
+
+**Given** the real, full-length v1 tree (materially longer than the 2-3 node placeholder)
+**When** `visitedNodeIds`'s unbounded growth and synchronous re-serialization on every `selectChoice`/`advancePage`/`goBack` call is revisited against real run lengths
+**Then** a decision is made and recorded (Dev Notes) on whether it remains immaterial at v1's actual scale or needs a cap (deferred-work.md, 2-10 review)
+
+**Given** the real tree's echo wiring (Story 4.1/4.2)
+**When** at least one non-echo `.reading` node exists distinct from `.intro`/`.firstChoice`'s original 2-arg placeholder construction
+**Then** `isEchoActive`'s optional-check logic gains a second Swift Testing data point confirming it correctly resolves `false` on a genuine nil-echo node, not just `true` on `.boatEcho` — closing the single-data-point gap the Story 2.5 review flagged (deferred-work.md, 2-5 review)
+
+**Given** `RunSnapshot.loadValid`'s `choiceHistory` validation, which calls `StoryTree.node(for:)` and would crash on that call's content-authoring `precondition()` traps (zero-option or duplicate-option-id choice nodes) if the real tree ever authors one and a persisted snapshot references it
+**When** the real tree is authored
+**Then** a decision is made and recorded (Dev Notes) on whether `loadValid` should guard against this trap explicitly, or whether it remains acceptable given `StoryTree`'s compile-time authoring guarantees (deferred-work.md, 2-4 review)
+
+**Given** `StoryChoiceView.swift`'s interstitial transition, which won't animate a same-phase `.id()`-forced view swap between two consecutive not-yet-dismissed arrival nodes
+**When** the real tree is wired
+**Then** if it authors two such consecutive arrival nodes reachable in sequence, this is verified in Simulator and fixed if it produces a visible glitch; if the real tree never authors that shape, this is recorded as still-unreachable in Dev Notes rather than silently dropped (deferred-work.md, 2-8 review)
 
 ### Story 4.4: Branch-Reality Illustration Production
 

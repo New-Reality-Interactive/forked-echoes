@@ -100,12 +100,12 @@ struct EndingView: View {
                 .bodyStyle()
 
             // AC #5: sourced from Localizable.xcstrings, consistent with the ending body copy's
-            // own per-node localization (AD-2). No DESIGN.md typography token matches
-            // mockups/ending.html's `.continue-hint` CSS, so this is styled by feel, like
-            // LayoutMetrics.swift's other untokened constants.
+            // own per-node localization (AD-2). Code review, Story 3.4 (2026-08-06): uses
+            // DESIGN.md's `typography.caption` token (callout/600) via `captionStyle()` — the
+            // prior `.font(.caption)` was SwiftUI's built-in caption style, a same-named but
+            // visually unrelated token that isn't in DESIGN.md's type scale at all.
             Text(LocalizedStringKey("ending.continueHint"))
-                .font(.caption)
-                .textCase(.uppercase)
+                .captionStyle()
                 .foregroundStyle(Color.inkSecondary)
         }
         // AD-8: caps the column width in landscape like every other reading surface — no

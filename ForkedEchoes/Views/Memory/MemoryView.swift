@@ -75,6 +75,10 @@ struct MemoryView: View {
                         Rectangle()
                             .fill(Color.traceBrass)
                             .frame(height: LayoutMetrics.frameStrokeWidth)
+                            // Code review, Story 3.4 (2026-08-06): purely decorative, like
+                            // FrameView's corner marks — without this it can surface as an
+                            // empty/unlabeled VoiceOver rotor stop.
+                            .accessibilityHidden(true)
                     }
 
                     VStack(alignment: .leading, spacing: Spacing.small) {
@@ -91,6 +95,10 @@ struct MemoryView: View {
                             .foregroundStyle(Color.inkSecondary)
                     }
                     .padding(.vertical, Spacing.medium)
+                    // Code review, Story 3.4 (2026-08-06): same multi-Text VoiceOver fragmentation
+                    // fix EndingView.swift's endingContent already applies — without this, the
+                    // label and consequence are two disjoint swipe stops instead of one row.
+                    .accessibilityElement(children: .combine)
                 }
             }
         }

@@ -47,7 +47,7 @@
 # entry — before overwriting it, append the outgoing entry to sprint-log.md first.
 
 generated: 2026-07-26
-last_updated: 2026-08-06 (deferred-work.md review: closed out every remaining open item in the deferred-work log — see that file and epics.md for details. New stories added: 3-6-reading-and-ending-surface-background-and-frame-inset-rule, 3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit, 3-8-memory-and-tutorial-polish-and-deferred-item-cleanup. Amended stories: 3-5-end-to-end-accessibility-validation (added AX5 run-options clearance, VoiceOver no-op audit, EndingView swipe-back-at-accessibility-size re-verification, non-text WCAG 1.4.11 contrast pairs), 4-2-full-prose-authoring (added Tutorial VoiceOver rotor-action copy AC), 4-3-story-tree-wiring (added 5 testing/decision notes for gaps only resolvable once the real content tree exists). Also fixed the sprint-status.yaml last_updated unbounded-growth problem itself by archiving full history through this date to sprint-log.md — see that file for everything predating this entry, and its own header note for the new convention going forward.)
+last_updated: 2026-08-06 (3-6-reading-and-ending-surface-background-and-frame-inset-rule: story file created via create-story workflow — resolves the two Story 3.4 code-review-deferred DESIGN.md token gaps in FrameView.swift/StoryChoiceView.swift: surface-base/surface-raised background never applied across Reading/Ending/Memory, and the frame's inset-rule border never drawn. Traced actual mockup CSS (story-choice-warm-ink-circuit.html, ending.html, memory.html) to derive and document the single background-application decision AC #1 requires: surfaceBase applied once at StoryChoiceView's outer Group, surfaceRaised applied once inside FrameView itself (covering both its Reading/Choice and Ending call sites), Memory inherits surfaceBase with no separate row fill (documented RESOLVED CONFLICT against DESIGN.md's memory-row.background token, which the mockup doesn't reflect); inset rule reuses LayoutMetrics.frameCornerInset/frameStrokeWidth, closing a naming gap those constants' own doc comments already anticipated since Story 2.5. Sequenced before 3-5 per the epics note. status ready-for-dev)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -92,7 +92,7 @@ development_status:
   3-2-ending-screen: done
   3-3-memory-recap-screen: done
   3-4-ending-and-memory-visual-identity: done
-  3-6-reading-and-ending-surface-background-and-frame-inset-rule: backlog
+  3-6-reading-and-ending-surface-background-and-frame-inset-rule: review
   3-5-end-to-end-accessibility-validation: backlog
   3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit: backlog
   3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: backlog

@@ -153,6 +153,21 @@ extension View {
     }
 }
 
+extension GeometryProxy {
+    /// Story 3.6, user-reported Simulator finding, 2026-08-06: `safeAreaInsets.top` (status
+    /// bar/Dynamic Island) and `safeAreaInsets.bottom` (home indicator) are genuinely different
+    /// device values — using them asymmetrically to bound an accessibility-size `ScrollView`
+    /// (`readingComposition`, `EndingView.content`) produced a visibly lopsided gap between the
+    /// scrolled content and `FrameView`'s rule line (much larger at top than bottom). User's fix,
+    /// applied verbatim: use half of the smaller (`bottom`) inset as a single symmetric value for
+    /// both edges instead of each side's true inset — a deliberate visual-consistency choice, not
+    /// a literal safe-area measurement, same "tunable by feel" category as this file's other
+    /// untokened constants (no DESIGN.md token covers this).
+    var symmetricSafeAreaInset: CGFloat {
+        safeAreaInsets.bottom / 2
+    }
+}
+
 enum ButtonMetrics {
     /// No DESIGN.md token. `SecondaryActionButtonStyle`'s border stroke width.
     static let borderWidth: CGFloat = 2

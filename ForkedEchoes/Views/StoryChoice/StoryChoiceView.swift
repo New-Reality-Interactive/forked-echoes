@@ -100,6 +100,13 @@ struct StoryChoiceView: View {
         // above) whenever engine.phase changes, unless Reduce Motion is on — instant cut then,
         // same gating shape as FrameView's power-up transition.
         .animation(reduceMotion ? nil : .easeInOut, value: engine.phase)
+        // Story 3.6, AC #1: the one surfaceBase application point for the whole Reading→Ending→
+        // Memory chain — covers all four phase branches above since they all render through this
+        // shared Group. RootView/MemoryView deliberately get no direct background of their own
+        // (see this story's Dev Notes); the interstitial branch's own opaque surfaceInverse fill
+        // fully occludes this. Ending/Reading/Choice sit visually on surfaceRaised instead, via
+        // FrameView's own fill (Task 2) covering this background at those call sites.
+        .background(Color.surfaceBase.ignoresSafeArea())
     }
 
     // Story 2.9 code review (user-reported, 2026-08-02 Simulator playtest, two rounds): a
@@ -120,17 +127,46 @@ struct StoryChoiceView: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 // AC #2: content scrolls inside the fixed frame at accessibility sizes — the
-                // frame itself (FrameView's overlay below) never resizes; only this scroll
+                // frame itself (FrameView's background below) never resizes; only this scroll
                 // wrapper's headroom does, sized for the largest accessibility category via
                 // proxy.size.height. Same GeometryReader+ScrollView pattern project-context.md's
                 // Centering Pattern section documents for Home/Tutorial.
+                //
+                // User-reported Simulator bug, 2026-08-06 (Story 3.6, Task 4, EndingView — same
+                // pattern here), three rounds: at max accessibility Dynamic Type, scrolled text
+                // painted past FrameView's rule line into the status bar/home-indicator zones. Two
+                // earlier attempts (.clipped() alone, then pinning the ScrollView to proxy.size
+                // before .clipped()) made no measurable difference — the real cause is that this
+                // inline GeometryReader's own `proxy.size` already INCLUDES the safe area (a
+                // well-known SwiftUI quirk: an inline GeometryReader doesn't receive the same
+                // safe-area-reduced size an ordinary view does), so the ScrollView was already
+                // self-clipping correctly to its own bounds — those bounds were just larger than
+                // FrameView's separately-computed, correctly-safe frame (FrameView's size comes
+                // from a plain, non-GeometryReader `.frame` chain, via `.background`). No amount
+                // of clipping to `proxy.size` fixes a `proxy.size` that's the wrong value to begin
+                // with. Fixed by explicitly subtracting `proxy.safeAreaInsets` to compute the true
+                // safe region, then padding+sizing to exactly that — matching FrameView's frame by
+                // construction instead of by coincidence.
+                //
+                // User re-reported, same day: the true safe-area insets themselves are asymmetric
+                // (status bar/Dynamic Island taller than the home indicator), so using them
+                // directly left a visibly lopsided gap above vs. below the scrolled content.
+                // Switched to `GeometryProxy.symmetricSafeAreaInset` (LayoutMetrics.swift) — the
+                // user's own fix, applied verbatim: half the (smaller) bottom inset, used for both
+                // edges.
                 GeometryReader { proxy in
+                    let inset = proxy.symmetricSafeAreaInset
+                    let safeHeight = proxy.size.height - inset * 2
+
                     ScrollView {
                         content
                             .id(engine.currentNodeId)
                             .transition(.opacity)
-                            .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)
+                            .frame(maxWidth: .infinity, minHeight: safeHeight, alignment: .topLeading)
                     }
+                    .frame(width: proxy.size.width, height: safeHeight)
+                    .padding(.top, inset)
+                    .clipped()
                 }
             } else {
                 content
@@ -154,12 +190,20 @@ struct StoryChoiceView: View {
             // only — never Home, Tutorial, or the Epic 2 Ending placeholder. Wrapping it here,
             // around this view's own content, keeps that reservation structural rather than a
             // rule someone has to remember to honor elsewhere — but `content`'s own `.ending`
-            // case renders inside this same view, so the overlay must explicitly skip it too
-            // (code review, 2026-08-01: an unconditional overlay let the dormant Frame render on
-            // the Ending placeholder as well). Story 2.6: the interstitial branch above never
-            // reaches this modifier chain at all, so it's excluded by construction too (DESIGN.md
+            // case renders inside this same view, so this must explicitly skip it too (code
+            // review, 2026-08-01: an unconditional overlay let the dormant Frame render on the
+            // Ending placeholder as well). Story 2.6: the interstitial branch above never reaches
+            // this modifier chain at all, so it's excluded by construction too (DESIGN.md
             // Components: "no circuit frame here").
-            .overlay {
+            //
+            // Story 3.6, AC #1: .background, not .overlay — FrameView now also carries an opaque
+            // surfaceRaised card fill (Task 2), which must render behind `content`'s text, not on
+            // top of it (an .overlay here fully hid the reading/choice text behind the fill,
+            // caught via Simulator screenshot). `content` is already sized to maxWidth/maxHeight
+            // .infinity, so the background matches it exactly; the corner marks/inset rule near
+            // the edges still show since `content`'s own padding keeps text away from the very
+            // edge.
+            .background {
                 if isFrameEligibleNode {
                     FrameView(isActive: engine.isEchoActive)
                 }

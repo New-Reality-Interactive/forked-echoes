@@ -24,6 +24,18 @@ private struct EyebrowTextStyle: ViewModifier {
 // only uppercase, tracked-out roles... reserved for wayfinding chrome that should recede behind
 // the prose") — kept as two modifiers even though today's values are close, so a future
 // divergence doesn't require un-merging them.
+// Code review, Story 3.4 (2026-08-06): DESIGN.md's `typography.caption` (callout, weight 600, no
+// tracking/uppercase) was previously unimplemented — `EndingView`'s continueHint used SwiftUI's
+// built-in `.caption` text style instead, a same-named but visually unrelated (much smaller,
+// unweighted) style. No `@ScaledMetric` tracking needed, matching `bodyStyle()`/`choiceLabelStyle()`
+// precedent for roles with no DESIGN.md letterSpacing value.
+private struct CaptionTextStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .font(.callout.weight(.semibold))
+    }
+}
+
 private struct MetaTextStyle: ViewModifier {
     @ScaledMetric(relativeTo: .caption2) private var tracking: CGFloat = 0.96
 
@@ -116,6 +128,13 @@ extension View {
     /// `echoCallbackStyle()`: `components.memory-score.tier-color` is applied at the call site.
     func metaStyle() -> some View {
         modifier(MetaTextStyle())
+    }
+
+    /// DESIGN.md `typography.caption`: callout, weight 600/semibold. No hardcoded foreground —
+    /// same precedent as `echoCallbackStyle()`/`statStyle()`/`metaStyle()`, color applied at the
+    /// call site since no DESIGN.md `text-color` sub-field names one for this role.
+    func captionStyle() -> some View {
+        modifier(CaptionTextStyle())
     }
 
     /// DESIGN.md `typography.body`: body, weight 500/medium.

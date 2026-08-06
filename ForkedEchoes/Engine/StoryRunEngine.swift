@@ -322,7 +322,9 @@ final class StoryRunEngine {
     // Code-review finding, 2026-08-01: selectChoice(_:) and advancePage()'s .choice branch both
     // independently resolved "what does this option id target" — a single shared lookup avoids
     // the two drifting apart if either is ever changed on its own.
-    private static func option(withId id: ChoiceOptionID, in options: [ChoiceOption]) -> ChoiceOption? {
+    // Code review, 2026-08-06: widened from `private` to `internal` so MemoryView's row-rendering
+    // (Story 3.3) can reuse this exact lookup instead of duplicating it.
+    static func option(withId id: ChoiceOptionID, in options: [ChoiceOption]) -> ChoiceOption? {
         options.first(where: { $0.id == id })
     }
 

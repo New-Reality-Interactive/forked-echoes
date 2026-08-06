@@ -66,8 +66,17 @@ struct MemoryView: View {
     // current String Catalog by id at render time — never stale frozen prose.
     private var rows: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ForEach(engine.choiceHistory, id: \.self) { record in
+            // Code review: divider goes *between* rows only (mockups/memory.html's
+            // `.row { border-bottom }` doesn't trail the last row) — drawn before every row
+            // except the first, rather than after every row unconditionally.
+            ForEach(Array(engine.choiceHistory.enumerated()), id: \.element) { index, record in
                 if let option = chosenOption(for: record) {
+                    if index > 0 {
+                        Rectangle()
+                            .fill(Color.traceBrass)
+                            .frame(height: LayoutMetrics.frameStrokeWidth)
+                    }
+
                     VStack(alignment: .leading, spacing: Spacing.small) {
                         Text(LocalizedStringKey(option.labelKey))
                             .choiceLabelStyle()
@@ -82,10 +91,6 @@ struct MemoryView: View {
                             .foregroundStyle(Color.inkSecondary)
                     }
                     .padding(.vertical, Spacing.medium)
-
-                    Rectangle()
-                        .fill(Color.traceBrass)
-                        .frame(height: LayoutMetrics.frameStrokeWidth)
                 }
             }
         }
@@ -119,13 +124,13 @@ struct MemoryView: View {
         }
     }
 
-    // AC #1: StoryRunEngine.option(withId:in:) already does exactly this lookup, but it's
-    // private — unreachable from a View.
+    // AC #1: reuses StoryRunEngine.option(withId:in:) (widened to internal, code review
+    // 2026-08-06) rather than duplicating its lookup.
     private func chosenOption(for record: ChoiceRecord) -> ChoiceOption? {
         guard case .choice(_, let options) = StoryTree.node(for: record.nodeId) else {
             return nil
         }
-        return options.first(where: { $0.id == record.chosenOptionId })
+        return StoryRunEngine.option(withId: record.chosenOptionId, in: options)
     }
 }
 

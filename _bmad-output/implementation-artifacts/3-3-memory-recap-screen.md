@@ -4,7 +4,7 @@ baseline_commit: 2ebba48418c82ae0674f5462abd90c4f3b8b82bc
 
 # Story 3.3: Memory / Recap Screen
 
-Status: review
+Status: done
 
 ## Story
 

@@ -264,6 +264,22 @@ final class StoryRunEngine {
         defaults.removeObject(forKey: RunSnapshotPresence.runSnapshotKey)
     }
 
+    /// Story 3.3 (AD-3): Memory's "Start New Run" — resets the engine to `StoryTree.root` with
+    /// cleared history/score, unconditionally, no confirmation needed. Deliberately has no "only
+    /// if current node is `.ending`" guard, unlike `startFreshRunIfCurrentRunHasEnded()` below:
+    /// this method is only ever reachable from Memory's own UI, and `phase == .memory` is only
+    /// reachable once `advancePage()` has already fired from a genuine `.ending` node (see this
+    /// story's Dev Notes "startNewRun() vs. startFreshRunIfCurrentRunHasEnded()") — a redundant
+    /// guard here would defend against a call site that can't exist.
+    ///
+    /// No `persistOrClearSnapshot()` call afterward, same reasoning as
+    /// `startFreshRunIfCurrentRunHasEnded()`'s doc comment below: a freshly reset run shouldn't
+    /// persist until its first mutating intent completes, and reaching `.ending` already cleared
+    /// any prior snapshot, so there's nothing to clear either.
+    func startNewRun() {
+        resetRunState()
+    }
+
     /// Resets to a fresh run at `StoryTree.root` if the current run has ended; a no-op otherwise
     /// (mid-run, "Start Story"/"Resume Story" tapped again should do nothing to the live run).
     ///
@@ -279,12 +295,16 @@ final class StoryRunEngine {
     /// first mutating intent completes — same as any other fresh run (AC #1's own scope). Contrast
     /// with `restartRun()` above, which fires mid-run against a still-valid on-disk snapshot and
     /// therefore must persist immediately.
+    ///
+    /// Story 3.3: delegates to `startNewRun()` rather than calling `resetRunState()` directly, so
+    /// the two callers (this guarded re-entry check, and Memory's unconditional button) share one
+    /// real intent method instead of two independent call sites of the same private helper.
     func startFreshRunIfCurrentRunHasEnded() {
         guard case .ending = StoryTree.node(for: currentNodeId) else {
             return
         }
 
-        resetRunState()
+        startNewRun()
     }
 
     /// Shared reset shape for `startFreshRunIfCurrentRunHasEnded()` and `restartRun()` — the only

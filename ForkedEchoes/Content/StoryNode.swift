@@ -65,9 +65,16 @@ enum ChoiceOptionID: Hashable, Sendable, CaseIterable, Codable {
 
 // Alignment deltas live on the choice edge (AD-1) — Memory-screen display data only (FR-7);
 // they play no role in which terminal node a path reaches (AD-6).
+// Story 3.3: `consequenceKey` follows `EndingPayload.titleKey`/`bodyKey`'s non-defaulted precedent
+// (Story 3.2) — consequence text isn't an optional, additive feature, so every existing
+// `ChoiceOption(...)` construction site is a compile error until it supplies a real value. Memory
+// re-resolves this key from the current String Catalog at render time (AD-4), never a target
+// node's own bodyKey — see this story's Dev Notes "Consequence text lives on ChoiceOption, not on
+// the target node."
 struct ChoiceOption: Hashable, Sendable {
     let id: ChoiceOptionID
     let labelKey: String
+    let consequenceKey: String
     let alignmentDelta: Int
     let target: NodeID
 }

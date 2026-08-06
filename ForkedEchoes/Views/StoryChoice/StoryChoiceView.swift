@@ -60,12 +60,12 @@ struct StoryChoiceView: View {
                 EndingView(payload: payload)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if engine.phase == .memory {
-                // Story 3.3 (Memory/Recap Screen) doesn't exist yet — temporary stand-in,
-                // tracked in deferred-work.md, same shape as the Epic-2-era Ending placeholder
-                // this story itself replaces. Text(verbatim:) matches that precedent: dev-facing
-                // stand-in copy, not authored story content.
-                Text(verbatim: "Run complete — Memory screen coming in Story 3.3")
-                    .readingCardPadding()
+                // Story 3.3: a dedicated top-level phase branch, not routed through
+                // readingComposition below — same shape as the .ending branch immediately above
+                // it (no in-progress run for RunOptionsButton to act on; no swipe/tap-zone
+                // gestures belong on a screen with no forward/backward paging concept).
+                MemoryView(onExitToHome: onExitToHome)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if engine.phase == .interstitial, case .reading(_, _, _, let arrival?) = StoryTree.node(for: engine.currentNodeId) {
                 // Story 2.6, AC #2/#5: this branch fully replaces the ordinary composition below
                 // — no page-turn gesture, no tap zones, no exit/run-options button attached at
@@ -299,12 +299,24 @@ struct StoryChoiceView: View {
             .readingCardPadding(top: LayoutMetrics.runOptionsButtonClearance)
 
         case .ending:
-            // Story 3.2: unreachable in practice — body's top-level branch above renders
-            // EndingView (and the .memory placeholder) directly whenever the current node is
-            // .ending, so readingComposition/content never runs for one (phase is purely derived
-            // from node type, AD-5). Fails loudly rather than silently rendering nothing, mirroring
-            // StoryTree.node(for:)'s own "fail loudly" convention for content-authoring invariants.
-            preconditionFailure("StoryChoiceView.content must never render a .ending node — body's phase == .ending branch handles it first")
+            // Story 3.2 originally shipped this as `preconditionFailure(...)`, reasoning that
+            // body's top-level branch always intercepts an .ending node first (phase is purely
+            // derived from node type, AD-5) so this arm should be structurally unreachable.
+            // User-confirmed crash, Story 3.3 Task 7 (2026-08-05): it IS reachable — not because
+            // phase/node-type derivation actually drift apart, but because of an animated-
+            // transition rendering race. `body`'s `.animation(value: engine.phase)` cross-fades
+            // readingComposition out while EndingView fades in; during that fade-out,
+            // readingComposition (this whole branch, unlike its inner `content.id(_:)`) has no
+            // `.id()` of its own, so SwiftUI keeps re-invoking its body against the live, shared
+            // `engine` on every animation frame — once `engine.currentNodeId` has already flipped
+            // to the ending node, the still-fading-out instance reconstructs `content` for that
+            // new id and lands here for real. A `preconditionFailure` here crashes the app on
+            // every single reading-to-ending transition with Reduce Motion off, not just on a
+            // genuine content-authoring bug — this is a rendering-timing artifact of an
+            // already-superseded branch, not a state invariant violation, so it must not crash.
+            // Renders nothing (this branch is fading to zero opacity anyway) rather than a real
+            // fallback UI, since a live player never actually sees this frame.
+            EmptyView()
         }
     }
 
@@ -390,9 +402,19 @@ struct StoryChoiceView: View {
         .environment(StoryRunEngine(startingAt: .endingHardFail))
 }
 
-#Preview("Memory placeholder") {
-    let engine = StoryRunEngine(startingAt: .endingHomeward)
-    engine.advancePage()
+#Preview("Memory, multi-choice run") {
+    let engine = StoryRunEngine(startingAt: .firstChoice)
+    engine.selectChoice(.boat)
+    engine.advancePage() // .boatEcho -> .endingHomeward
+    engine.advancePage() // .ending -> .memory
+    return StoryChoiceView(onExitToHome: {})
+        .environment(engine)
+}
+
+#Preview("Memory, single-entry run (AC #7)") {
+    let engine = StoryRunEngine(startingAt: .firstChoice)
+    engine.selectChoice(.gotcha) // one hop directly to .endingHardFail
+    engine.advancePage() // .ending -> .memory
     return StoryChoiceView(onExitToHome: {})
         .environment(engine)
 }

@@ -1050,4 +1050,84 @@ struct StoryRunEngineTests {
         #expect(engine.currentNodeId == .endingLimbo)
         #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
     }
+
+    // Story 3.3 (AC #1): the "content routes correctly" check for consequenceKey — the compiler
+    // only guarantees the field is *present* on every ChoiceOption (non-defaulted, Task 1), never
+    // that it's the *intended* value. Mirrors Story 3.2's
+    // eachTerminalNodeResolvesToItsAuthoredTitleAndBodyKeys precedent.
+
+    @Test func eachFirstChoiceOptionResolvesANonEmptyConsequenceKeyDistinctFromItsLabelKey() {
+        guard case .choice(_, let options) = StoryTree.node(for: .firstChoice) else {
+            Issue.record("firstChoice must resolve to a .choice node")
+            return
+        }
+
+        #expect(options.count == 4)
+        for option in options {
+            #expect(!option.consequenceKey.isEmpty)
+            #expect(option.consequenceKey != option.labelKey)
+        }
+    }
+
+    // Story 3.3 (AC #6): startNewRun() resets a completed (.ending-phase) run's state, mirroring
+    // restartRun()'s existing test shape (restartRunResetsAllRunStateMidRun above).
+
+    @Test func startNewRunResetsAllRunStateFromACompletedRun() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.gotcha)
+        #expect(engine.phase == .ending)
+
+        engine.startNewRun()
+
+        #expect(engine.currentNodeId == StoryTree.root)
+        #expect(engine.choiceHistory.isEmpty)
+        #expect(engine.alignmentScore == 0)
+        #expect(engine.phase == .reading)
+    }
+
+    // Story 3.3 (AC #6): unlike restartRun(), startNewRun() must not write a RunSnapshot — same
+    // .data(forKey:) assertion style Story 3.2's code review standardized on, not the weaker
+    // .object(forKey:).
+
+    @Test func startNewRunDoesNotWriteARunSnapshot() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+        engine.selectChoice(.gotcha)
+        #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
+
+        engine.startNewRun()
+
+        #expect(defaults.data(forKey: RunSnapshotPresence.runSnapshotKey) == nil)
+    }
+
+    // Story 3.3 (AC #7): the data-layer half of "no empty-state or crash at the minimum possible
+    // history length" — a run that hard-fails on its very first choice ends with exactly one
+    // choiceHistory entry, and that entry resolves cleanly through StoryTree.node(for:) back to a
+    // real ChoiceOption with both labelKey and consequenceKey populated. The UI half is Task 7's
+    // manual check (no UI-test infrastructure in this project, AD-7).
+
+    @Test func aRunThatHardFailsOnItsFirstChoiceHasExactlyOneResolvableHistoryEntry() {
+        let (defaults, suiteName) = freshDefaults()
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        let engine = StoryRunEngine(startingAt: .firstChoice, defaults: defaults)
+
+        engine.selectChoice(.gotcha)
+
+        #expect(engine.choiceHistory.count == 1)
+        let record = engine.choiceHistory[0]
+        #expect(record.nodeId == .firstChoice)
+        #expect(record.chosenOptionId == .gotcha)
+
+        guard case .choice(_, let options) = StoryTree.node(for: record.nodeId) else {
+            Issue.record("recorded nodeId must resolve to a .choice node")
+            return
+        }
+        let option = options.first(where: { $0.id == record.chosenOptionId })
+        #expect(option != nil)
+        #expect(!(option?.labelKey.isEmpty ?? true))
+        #expect(!(option?.consequenceKey.isEmpty ?? true))
+    }
 }

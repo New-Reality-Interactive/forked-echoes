@@ -18,6 +18,23 @@ private struct EyebrowTextStyle: ViewModifier {
     }
 }
 
+// Story 3.3: DESIGN.md's `typography.meta` — caption2, weight 700, tracking 0.08em, uppercase.
+// Same @ScaledMetric tracking shape as EyebrowTextStyle, but its own named modifier since `meta`
+// and `eyebrow` are distinct DESIGN.md roles despite sharing caption2/uppercase (DESIGN.md: "the
+// only uppercase, tracked-out roles... reserved for wayfinding chrome that should recede behind
+// the prose") — kept as two modifiers even though today's values are close, so a future
+// divergence doesn't require un-merging them.
+private struct MetaTextStyle: ViewModifier {
+    @ScaledMetric(relativeTo: .caption2) private var tracking: CGFloat = 0.96
+
+    func body(content: Content) -> some View {
+        content
+            .font(.caption2.weight(.bold))
+            .tracking(tracking)
+            .textCase(.uppercase)
+    }
+}
+
 private struct HeadlineTextStyle: ViewModifier {
     @ScaledMetric(relativeTo: .largeTitle) private var tracking: CGFloat = -0.68
     let color: Color
@@ -27,6 +44,17 @@ private struct HeadlineTextStyle: ViewModifier {
             .font(.largeTitle.weight(.black))
             .tracking(tracking)
             .foregroundStyle(color)
+            // User-confirmed Simulator bug, Story 3.3 Task 7 (2026-08-05): a negative .tracking()
+            // value combined with SwiftUI's default Text wrapping can miscalculate the available
+            // line-break width, collapsing multi-line text to a single truncated line ("The door
+            // was exactly…") at ordinary Dynamic Type sizes — while the same text wrapped
+            // correctly at accessibility sizes, since headlineStyle() had never been exercised
+            // with genuinely long, wrapping copy before (HomeView's only other usage, "Untitled
+            // Story," is short enough to never wrap). .fixedSize(horizontal: false, vertical:
+            // true) forces SwiftUI to compute the view's true ideal height for the given (still
+            // flexible) width rather than compressing it, which is the standard fix for this class
+            // of SwiftUI tracking/wrapping bug.
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -69,6 +97,25 @@ extension View {
     /// Epic 3) without re-deciding the uppercase question for that context.
     func headlineStyle(color: Color = Color.inkPrimary) -> some View {
         modifier(HeadlineTextStyle(color: color))
+    }
+
+    /// DESIGN.md `typography.stat`: largeTitle, weight 900/black — the same text style as
+    /// `typography.headline` ("scale in lockstep"), Memory screen's alignment-score number. Unlike
+    /// `headlineStyle()`, takes no `color` parameter: the score's `{colors.accent-ember}` color
+    /// (DESIGN.md `components.memory-score`) is applied at the call site, matching
+    /// `echoCallbackStyle()`'s precedent of leaving component-specific color to the caller rather
+    /// than baking it into the typography role. No DESIGN.md `letterSpacing` value is given for
+    /// this role (unlike `headline`'s explicit -0.02em), so no `@ScaledMetric` tracking is applied
+    /// here either — don't invent an untokened value.
+    func statStyle() -> some View {
+        self.font(.largeTitle.weight(.black))
+    }
+
+    /// DESIGN.md `typography.meta`: caption2, weight 700, tracking 0.08em, uppercase — Memory
+    /// screen's tier label, beside the score. No hardcoded foreground, same as
+    /// `echoCallbackStyle()`: `components.memory-score.tier-color` is applied at the call site.
+    func metaStyle() -> some View {
+        modifier(MetaTextStyle())
     }
 
     /// DESIGN.md `typography.body`: body, weight 500/medium.

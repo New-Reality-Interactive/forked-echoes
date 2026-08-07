@@ -52,18 +52,23 @@ struct FrameView: View {
     // to it until now. Same color/glow treatment as cornerMark so the whole frame participates in
     // the one permitted power-up glow together.
     private func insetRule(in size: CGSize) -> some View {
-        let color = isActive ? Color.accentEmber : Color.traceBrass
         let inset = LayoutMetrics.frameCornerInset
 
         return Rectangle()
-            .stroke(color, lineWidth: LayoutMetrics.frameStrokeWidth)
+            .stroke(currentColor, lineWidth: LayoutMetrics.frameStrokeWidth)
             .frame(width: size.width - inset * 2, height: size.height - inset * 2)
             .position(x: size.width / 2, y: size.height / 2)
             .shadow(color: isActive ? Color.accentEmber : .clear, radius: Self.glowRadius)
     }
 
+    // Story 3.6 code review: shared by `cornerMark` and `insetRule` so the dormant/active color
+    // decision is made in exactly one place, per Task 3's original intent.
+    private var currentColor: Color {
+        isActive ? Color.accentEmber : Color.traceBrass
+    }
+
     private var cornerMark: some View {
-        let color = isActive ? Color.accentEmber : Color.traceBrass
+        let color = currentColor
         let viaDiameter = isActive
             ? LayoutMetrics.frameCornerViaDiameterActive
             : LayoutMetrics.frameCornerViaDiameter

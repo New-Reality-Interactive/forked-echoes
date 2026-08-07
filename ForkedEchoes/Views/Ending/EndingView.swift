@@ -81,38 +81,12 @@ struct EndingView: View {
     @ViewBuilder
     private var content: some View {
         if dynamicTypeSize.isAccessibilitySize {
-            // User-reported Simulator bug, 2026-08-06 (Story 3.6, Task 4), three rounds: at max
-            // accessibility Dynamic Type, scrolled text painted past FrameView's rule line into
-            // the status bar/home-indicator zones. Two earlier attempts (.clipped() alone, then
-            // pinning the ScrollView to proxy.size before .clipped()) made no measurable
-            // difference — the real cause is that this inline GeometryReader's own `proxy.size`
-            // already INCLUDES the safe area (a well-known SwiftUI quirk: an inline GeometryReader
-            // doesn't receive the same safe-area-reduced size an ordinary view does), so the
-            // ScrollView was already self-clipping correctly to its own bounds — those bounds were
-            // just larger than FrameView's separately-computed, correctly-safe frame (FrameView's
-            // size comes from a plain, non-GeometryReader `.frame` chain, via `.background`). No
-            // amount of clipping to `proxy.size` fixes a `proxy.size` that's the wrong value to
-            // begin with. Fixed by explicitly subtracting `proxy.safeAreaInsets` to compute the
-            // true safe region, then padding+sizing to exactly that — matching FrameView's frame
-            // by construction instead of by coincidence.
-            //
-            // User re-reported, same day: the true safe-area insets themselves are asymmetric
-            // (status bar/Dynamic Island taller than the home indicator), so using them directly
-            // left a visibly lopsided gap above vs. below the scrolled content. Switched to
-            // `GeometryProxy.symmetricSafeAreaInset` (LayoutMetrics.swift) — the user's own fix,
-            // applied verbatim: half the (smaller) bottom inset, used for both edges.
-            GeometryReader { proxy in
-                let inset = proxy.symmetricSafeAreaInset
-                let safeHeight = proxy.size.height - inset * 2
-
-                ScrollView {
-                    endingContent
-                        .frame(maxWidth: .infinity, minHeight: safeHeight, alignment: .topLeading)
-                }
-                .frame(width: proxy.size.width, height: safeHeight)
-                .padding(.top, inset)
-                .clipped()
-            }
+            // Story 3.6, Task 4 (five-round Simulator debugging history) / code review: shared
+            // GeometryReader+ScrollView+safe-area-clip logic factored into
+            // `View.accessibilitySizeFramedScroll()` (LayoutMetrics.swift) — see its doc comment
+            // for the full history and rationale.
+            endingContent
+                .accessibilitySizeFramedScroll()
         } else {
             endingContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

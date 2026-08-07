@@ -153,18 +153,52 @@ extension View {
     }
 }
 
-extension GeometryProxy {
-    /// Story 3.6, user-reported Simulator finding, 2026-08-06: `safeAreaInsets.top` (status
-    /// bar/Dynamic Island) and `safeAreaInsets.bottom` (home indicator) are genuinely different
-    /// device values — using them asymmetrically to bound an accessibility-size `ScrollView`
-    /// (`readingComposition`, `EndingView.content`) produced a visibly lopsided gap between the
-    /// scrolled content and `FrameView`'s rule line (much larger at top than bottom). User's fix,
-    /// applied verbatim: use half of the smaller (`bottom`) inset as a single symmetric value for
-    /// both edges instead of each side's true inset — a deliberate visual-consistency choice, not
-    /// a literal safe-area measurement, same "tunable by feel" category as this file's other
-    /// untokened constants (no DESIGN.md token covers this).
-    var symmetricSafeAreaInset: CGFloat {
-        safeAreaInsets.bottom / 2
+extension View {
+    /// Story 3.6 code review, 2026-08-07: `readingComposition` (`StoryChoiceView.swift`) and
+    /// `EndingView.content` both implemented this same GeometryReader+ScrollView+safe-area-clip
+    /// pattern for accessibility Dynamic Type sizes — factored into one shared implementation so
+    /// a future fix to this geometry only has to be made once.
+    ///
+    /// History (Story 3.6, Task 4's five-round Simulator debugging, then four code-review rounds):
+    /// **every one of those rounds was safe-area math that was never needed.** Rounds 4-8 tried
+    /// each edge's true `safeAreaInsets`, then half the bottom inset, then `max(top, bottom)`,
+    /// then no top padding at all — all of them subtracting `proxy.safeAreaInsets` from
+    /// `proxy.size.height` to derive the viewport.
+    ///
+    /// Two user Simulator screenshots (2026-08-07) taken one round apart finally pinned the real
+    /// geometry down. With the top padding removed, content started at the frame's *edge* (visibly
+    /// crossing the rule line) and fell ~90pt short at the bottom; with it applied, content sat
+    /// ~48pt *below* the rule and still ran short at the bottom. Both are explained by one fact
+    /// that had been assumed backwards the whole time: **`proxy.size` here is already the correct,
+    /// safe-area-reduced height — the exact region `FrameView` backs — while `proxy.safeAreaInsets`
+    /// still *reports* the device's insets.** Subtracting them shrank the viewport by ~93pt it
+    /// didn't need to lose; padding the top then pushed what was left further down.
+    ///
+    /// So this helper does no safe-area math at all. Do not reintroduce `safeAreaInsets` here:
+    /// this view is already laid out inside the safe area, and consulting them double-counts it.
+    ///
+    /// The viewport is `proxy.size` inset vertically by `Spacing.large` — deliberately the *same*
+    /// constant `readingCardPadding` uses for its horizontal padding, so the gap between the
+    /// frame and the text reads as one consistent margin on all four sides (24pt from the frame's
+    /// bounds, 15pt from the rule line, in every direction). Because the inset is on the scroll
+    /// *viewport* rather than the content, that margin holds while scrolling instead of scrolling
+    /// away, and content clips short of the rule line rather than against it. Keep this in sync
+    /// with `readingCardPadding`'s horizontal value if either ever changes — they are one visual
+    /// margin expressed in two places (the horizontal side can live on the content, since nothing
+    /// scrolls horizontally; the vertical side cannot).
+    func accessibilitySizeFramedScroll() -> some View {
+        GeometryReader { proxy in
+            let inset = Spacing.large
+            let viewportHeight = proxy.size.height - inset * 2
+
+            ScrollView {
+                self
+                    .frame(maxWidth: .infinity, minHeight: viewportHeight, alignment: .topLeading)
+            }
+            .frame(width: proxy.size.width, height: viewportHeight)
+            .padding(.vertical, inset)
+            .clipped()
+        }
     }
 }
 

@@ -27,6 +27,13 @@ struct FrameView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            // Story 3.6, AC #1: the card's surfaceRaised fill — one location covering both call
+            // sites (StoryChoiceView's readingComposition and EndingView), sized to the same area
+            // the corner marks/inset rule span. Sits behind them in z-order (declared first).
+            Color.surfaceRaised
+
+            insetRule(in: proxy.size)
+
             ForEach(Corner.allCases, id: \.self) { corner in
                 cornerMark
                     .position(corner.point(in: proxy.size))
@@ -37,8 +44,31 @@ struct FrameView: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: Self.powerUpAnimationDuration), value: isActive)
     }
 
+    // Story 3.6, AC #2: the frame's inset rule — a stroked rectangle distinct from the corner via/
+    // pad marks, inset from the card edge by the same LayoutMetrics.frameCornerInset (9pt) the
+    // corner marks already center on (matches mockups/story-choice-warm-ink-circuit.html's
+    // `.frame-well::before { inset:9px }` exactly). Reuses LayoutMetrics.frameStrokeWidth (1pt) —
+    // that constant's doc comment has named this exact shape since Story 2.5 but was never wired
+    // to it until now. Same color/glow treatment as cornerMark so the whole frame participates in
+    // the one permitted power-up glow together.
+    private func insetRule(in size: CGSize) -> some View {
+        let inset = LayoutMetrics.frameCornerInset
+
+        return Rectangle()
+            .stroke(currentColor, lineWidth: LayoutMetrics.frameStrokeWidth)
+            .frame(width: size.width - inset * 2, height: size.height - inset * 2)
+            .position(x: size.width / 2, y: size.height / 2)
+            .shadow(color: isActive ? Color.accentEmber : .clear, radius: Self.glowRadius)
+    }
+
+    // Story 3.6 code review: shared by `cornerMark` and `insetRule` so the dormant/active color
+    // decision is made in exactly one place, per Task 3's original intent.
+    private var currentColor: Color {
+        isActive ? Color.accentEmber : Color.traceBrass
+    }
+
     private var cornerMark: some View {
-        let color = isActive ? Color.accentEmber : Color.traceBrass
+        let color = currentColor
         let viaDiameter = isActive
             ? LayoutMetrics.frameCornerViaDiameterActive
             : LayoutMetrics.frameCornerViaDiameter

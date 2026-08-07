@@ -47,7 +47,7 @@
 # entry — before overwriting it, append the outgoing entry to sprint-log.md first.
 
 generated: 2026-07-26
-last_updated: 2026-08-06 (deferred-work.md review: closed out every remaining open item in the deferred-work log — see that file and epics.md for details. New stories added: 3-6-reading-and-ending-surface-background-and-frame-inset-rule, 3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit, 3-8-memory-and-tutorial-polish-and-deferred-item-cleanup. Amended stories: 3-5-end-to-end-accessibility-validation (added AX5 run-options clearance, VoiceOver no-op audit, EndingView swipe-back-at-accessibility-size re-verification, non-text WCAG 1.4.11 contrast pairs), 4-2-full-prose-authoring (added Tutorial VoiceOver rotor-action copy AC), 4-3-story-tree-wiring (added 5 testing/decision notes for gaps only resolvable once the real content tree exists). Also fixed the sprint-status.yaml last_updated unbounded-growth problem itself by archiving full history through this date to sprint-log.md — see that file for everything predating this entry, and its own header note for the new convention going forward.)
+last_updated: 2026-08-07 (3-6-reading-and-ending-surface-background-and-frame-inset-rule: code review complete and user-re-verified in Xcode/Simulator — status done. Review applied 3 patches post-Task-4-verification, then 4 further rounds resolving the accessibility-size scroll geometry the patches disturbed. Root cause of that whole chain: the inline GeometryReader in readingComposition/EndingView.content reports a proxy.size that is ALREADY safe-area-reduced while proxy.safeAreaInsets still reports the device's insets — every round that subtracted them double-counted. Final shape: View.accessibilitySizeFramedScroll() does no safe-area math at all, insetting the scroll viewport by Spacing.large to match readingCardPadding's horizontal margin. Also: duplicated FrameView color computation factored into currentColor. swift test 89/89 clean)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -92,7 +92,7 @@ development_status:
   3-2-ending-screen: done
   3-3-memory-recap-screen: done
   3-4-ending-and-memory-visual-identity: done
-  3-6-reading-and-ending-surface-background-and-frame-inset-rule: backlog
+  3-6-reading-and-ending-surface-background-and-frame-inset-rule: done
   3-5-end-to-end-accessibility-validation: backlog
   3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit: backlog
   3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: backlog

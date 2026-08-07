@@ -100,6 +100,13 @@ struct StoryChoiceView: View {
         // above) whenever engine.phase changes, unless Reduce Motion is on — instant cut then,
         // same gating shape as FrameView's power-up transition.
         .animation(reduceMotion ? nil : .easeInOut, value: engine.phase)
+        // Story 3.6, AC #1: the one surfaceBase application point for the whole Reading→Ending→
+        // Memory chain — covers all four phase branches above since they all render through this
+        // shared Group. RootView/MemoryView deliberately get no direct background of their own
+        // (see this story's Dev Notes); the interstitial branch's own opaque surfaceInverse fill
+        // fully occludes this. Ending/Reading/Choice sit visually on surfaceRaised instead, via
+        // FrameView's own fill (Task 2) covering this background at those call sites.
+        .background(Color.surfaceBase.ignoresSafeArea())
     }
 
     // Story 2.9 code review (user-reported, 2026-08-02 Simulator playtest, two rounds): a
@@ -120,18 +127,16 @@ struct StoryChoiceView: View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
                 // AC #2: content scrolls inside the fixed frame at accessibility sizes — the
-                // frame itself (FrameView's overlay below) never resizes; only this scroll
-                // wrapper's headroom does, sized for the largest accessibility category via
-                // proxy.size.height. Same GeometryReader+ScrollView pattern project-context.md's
-                // Centering Pattern section documents for Home/Tutorial.
-                GeometryReader { proxy in
-                    ScrollView {
-                        content
-                            .id(engine.currentNodeId)
-                            .transition(.opacity)
-                            .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)
-                    }
-                }
+                // frame itself (FrameView's background below) never resizes; only this scroll
+                // wrapper's headroom does. Story 3.6, Task 4 (five-round Simulator debugging
+                // history) / code review: shared GeometryReader+ScrollView+safe-area-clip logic
+                // factored into `View.accessibilitySizeFramedScroll()` (LayoutMetrics.swift) —
+                // see its doc comment for the full history and rationale (same pattern
+                // `EndingView.content` uses).
+                content
+                    .id(engine.currentNodeId)
+                    .transition(.opacity)
+                    .accessibilitySizeFramedScroll()
             } else {
                 content
                     .id(engine.currentNodeId)
@@ -154,12 +159,20 @@ struct StoryChoiceView: View {
             // only — never Home, Tutorial, or the Epic 2 Ending placeholder. Wrapping it here,
             // around this view's own content, keeps that reservation structural rather than a
             // rule someone has to remember to honor elsewhere — but `content`'s own `.ending`
-            // case renders inside this same view, so the overlay must explicitly skip it too
-            // (code review, 2026-08-01: an unconditional overlay let the dormant Frame render on
-            // the Ending placeholder as well). Story 2.6: the interstitial branch above never
-            // reaches this modifier chain at all, so it's excluded by construction too (DESIGN.md
+            // case renders inside this same view, so this must explicitly skip it too (code
+            // review, 2026-08-01: an unconditional overlay let the dormant Frame render on the
+            // Ending placeholder as well). Story 2.6: the interstitial branch above never reaches
+            // this modifier chain at all, so it's excluded by construction too (DESIGN.md
             // Components: "no circuit frame here").
-            .overlay {
+            //
+            // Story 3.6, AC #1: .background, not .overlay — FrameView now also carries an opaque
+            // surfaceRaised card fill (Task 2), which must render behind `content`'s text, not on
+            // top of it (an .overlay here fully hid the reading/choice text behind the fill,
+            // caught via Simulator screenshot). `content` is already sized to maxWidth/maxHeight
+            // .infinity, so the background matches it exactly; the corner marks/inset rule near
+            // the edges still show since `content`'s own padding keeps text away from the very
+            // edge.
+            .background {
                 if isFrameEligibleNode {
                     FrameView(isActive: engine.isEchoActive)
                 }

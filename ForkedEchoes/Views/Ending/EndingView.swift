@@ -22,8 +22,13 @@ struct EndingView: View {
             // AC #2, DESIGN.md components.ending-frame: the circuit Frame's powered-up ember
             // state is a RESTING condition on this screen, not a transition — always `true`,
             // never derived from engine.isEchoActive or any other condition.
-            .overlay { FrameView(isActive: true) }
-            // AC #3: tap anywhere advances past Ending. FrameView's overlay above already has
+            // Story 3.6, AC #1: .background, not .overlay — FrameView now also carries an opaque
+            // surfaceRaised card fill (Task 2), which must render behind `content`'s text, not on
+            // top of it. `content` above is already sized to maxWidth/maxHeight .infinity, so the
+            // background matches it exactly; the corner marks/inset rule near the edges still show
+            // since `content`'s own padding keeps text away from the very edge.
+            .background { FrameView(isActive: true) }
+            // AC #3: tap anywhere advances past Ending. FrameView's background above already has
             // .allowsHitTesting(false), so it never intercepts this gesture.
             .contentShape(Rectangle())
             .onTapGesture {
@@ -76,12 +81,12 @@ struct EndingView: View {
     @ViewBuilder
     private var content: some View {
         if dynamicTypeSize.isAccessibilitySize {
-            GeometryReader { proxy in
-                ScrollView {
-                    endingContent
-                        .frame(maxWidth: .infinity, minHeight: proxy.size.height, alignment: .topLeading)
-                }
-            }
+            // Story 3.6, Task 4 (five-round Simulator debugging history) / code review: shared
+            // GeometryReader+ScrollView+safe-area-clip logic factored into
+            // `View.accessibilitySizeFramedScroll()` (LayoutMetrics.swift) — see its doc comment
+            // for the full history and rationale.
+            endingContent
+                .accessibilitySizeFramedScroll()
         } else {
             endingContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)

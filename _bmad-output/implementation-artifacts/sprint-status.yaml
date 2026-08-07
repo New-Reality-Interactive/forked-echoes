@@ -47,7 +47,7 @@
 # entry — before overwriting it, append the outgoing entry to sprint-log.md first.
 
 generated: 2026-07-26
-last_updated: 2026-08-07 (3-6-reading-and-ending-surface-background-and-frame-inset-rule: code review complete and user-re-verified in Xcode/Simulator — status done. Review applied 3 patches post-Task-4-verification, then 4 further rounds resolving the accessibility-size scroll geometry the patches disturbed. Root cause of that whole chain: the inline GeometryReader in readingComposition/EndingView.content reports a proxy.size that is ALREADY safe-area-reduced while proxy.safeAreaInsets still reports the device's insets — every round that subtracted them double-counted. Final shape: View.accessibilitySizeFramedScroll() does no safe-area math at all, insetting the scroll viewport by Spacing.large to match readingCardPadding's horizontal margin. Also: duplicated FrameView color computation factored into currentColor. swift test 89/89 clean)
+last_updated: 2026-08-07 (Sprint Change Proposal, sprint-change-proposal-2026-08-07.md: VoiceOver is not officially tested/supported for v1 — a deliberate user scope decision after discovering VoiceOver doesn't run in the iOS Simulator at all. Every other accessibility feature (Dynamic Type, Reduce Motion, contrast, tap targets, focus order, gesture-equivalence) stays in scope unchanged. Updated PRD FR-11, epics.md (FR11/UX-DR12/Story 3.5's ACs 1,6,8/Story 4.2,4.4), EXPERIENCE.md, project-context.md, Story 3.5's file, and deferred-work.md. Story 3.5's remaining Simulator checklist (Accessibility Inspector Audit, Dynamic Type AX5, button clearance, EndingView swipe-back, Reduce Motion) no longer needs VoiceOver or a physical device. Status held at in-progress pending that checklist. See sprint-log.md for full narrative.)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -93,7 +93,7 @@ development_status:
   3-3-memory-recap-screen: done
   3-4-ending-and-memory-visual-identity: done
   3-6-reading-and-ending-surface-background-and-frame-inset-rule: done
-  3-5-end-to-end-accessibility-validation: backlog
+  3-5-end-to-end-accessibility-validation: in-progress
   3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit: backlog
   3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: backlog
   epic-3-retrospective: optional

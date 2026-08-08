@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); prompt=$(printf '%s' \"$input\" | jq -r '.tool_input.prompt // empty' 2>/dev/null); case \"$prompt\" in *bmad-review-adversarial-general*|*bmad-review-edge-case-hunter*|*\"Acceptance Auditor\"*) root=$(git rev-parse --show-toplevel 2>/dev/null); if [ -n \"$root\" ] && [ -n \"$(git -C \"$root\" status --porcelain 2>/dev/null)\" ]; then printf '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"Uncommitted changes in the working tree. Ask the user to commit (or explicitly confirm running review uncommitted) before launching code-review subagents, so the review runs against a clean, stable diff.\"}}'; fi ;; esac",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

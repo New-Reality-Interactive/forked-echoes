@@ -95,7 +95,8 @@ development_status:
   3-6-reading-and-ending-surface-background-and-frame-inset-rule: done
   3-5-end-to-end-accessibility-validation: done
   3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit: done
-  3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: review
+  3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: done
+  3-9-run-options-button-recede-on-scroll: ready-for-dev
   epic-3-retrospective: optional
 
   epic-4: backlog

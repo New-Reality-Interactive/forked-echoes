@@ -4,7 +4,7 @@ baseline_commit: 15285be43bdc59ffa25335a5578a0392f9a5b60c
 
 # Story 3.8: Memory & Tutorial Polish and Deferred-Item Cleanup
 
-Status: review
+Status: done
 
 ## Story
 

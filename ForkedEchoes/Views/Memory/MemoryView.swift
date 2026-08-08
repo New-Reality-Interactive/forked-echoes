@@ -48,8 +48,9 @@ struct MemoryView: View {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.small) {
                 // AC #3: a purely reflective stat with no bearing on the ending already shown on
                 // the previous screen. Explicit +/- sign matches mockups/memory.html's "+7"/"-3"
-                // formatting.
-                Text(engine.alignmentScore.formatted(.number.sign(strategy: .always())))
+                // formatting — `includingZero: false` keeps a genuinely neutral run reading as "0",
+                // not "+0" (Story 3.8 AC #1).
+                Text(engine.alignmentScore.formatted(.number.sign(strategy: .always(includingZero: false))))
                     .statStyle()
                     .foregroundStyle(Color.accentEmber)
 

@@ -140,7 +140,8 @@ components:
     tag-color-dark: '{colors.accent-ember-text-dark}'
     text-color: '{colors.ink-on-inverse}'
     text: '{typography.echo-callback}'
-    note: 'tag-color uses the text-safe ember variant, not the decorative {colors.accent-ember} used on the frame — accent-ember fails AA at this text size/weight on surface-inverse in both themes; accent-ember-text/-dark are tuned to clear 4.5:1.'
+    tag-weight: 'bold (system, ad-hoc — see note)'
+    note: 'tag-color uses the text-safe ember variant, not the decorative {colors.accent-ember} used on the frame — accent-ember fails AA at this text size/weight on surface-inverse in both themes; accent-ember-text/-dark are tuned to clear 4.5:1. The tag label ("The story remembers") is deliberately bold — a one-off emphasis on a single, non-reused UI label, distinct from the reusable `typography.*` roles above — not an oversight or a dropped token (Story 3.8, 2026-08-08, closing the Story 2.8 deferred-work.md item).'
   interstitial:
     background: '{colors.surface-inverse}'
     headline-color: '{colors.selected-fill}'

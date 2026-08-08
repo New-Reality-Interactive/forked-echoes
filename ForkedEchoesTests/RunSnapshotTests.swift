@@ -10,7 +10,6 @@ struct RunSnapshotTests {
             currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .intro, chosenOptionId: .boat)],
             alignmentScore: 3,
-            tutorialSeen: false,
             visitedArrivalNodeIds: [.shoreArrival],
             visitedNodeIds: [.intro, .firstChoice]
         )
@@ -68,7 +67,6 @@ struct RunSnapshotTests {
             currentNodeId: .shoreArrival,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
             alignmentScore: -1,
-            tutorialSeen: false,
             visitedArrivalNodeIds: [],
             visitedNodeIds: [.intro, .intro, .firstChoice]
         )
@@ -108,8 +106,7 @@ struct RunSnapshotTests {
         let snapshot = RunSnapshot(
             currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .intro, chosenOptionId: .boat)],
-            alignmentScore: 1,
-            tutorialSeen: false
+            alignmentScore: 1
         )
         let data = try! JSONEncoder().encode(snapshot)
         defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)
@@ -124,8 +121,7 @@ struct RunSnapshotTests {
         let snapshot = RunSnapshot(
             currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
-            alignmentScore: 1,
-            tutorialSeen: false
+            alignmentScore: 1
         )
         let data = try! JSONEncoder().encode(snapshot)
         defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)
@@ -143,8 +139,7 @@ struct RunSnapshotTests {
         let snapshot = RunSnapshot(
             currentNodeId: .endingHomeward,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
-            alignmentScore: 1,
-            tutorialSeen: false
+            alignmentScore: 1
         )
         let data = try! JSONEncoder().encode(snapshot)
         defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)

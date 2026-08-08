@@ -1032,6 +1032,50 @@ So that the button never visually collides with scrolled prose at accessibility 
 
 **And** a manual-verification AC: in Xcode/Simulator, at an accessibility Dynamic Type size, confirm (a) the button visibly recedes while actively scrolling reading content that previously collided with it, (b) it returns to full opacity once scrolling stops, (c) tapping it while receded still opens the run-options menu, and (d) with Reduce Motion enabled, the opacity change snaps instantly rather than fading. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
+### Story 3.10: Action Button Padding — AX5 & Compact-Height Verification
+
+As a developer,
+I want Home/Tutorial's action buttons and the branch-arrival interstitial's Continue button to reserve real breathing room around their label at the largest accessibility Dynamic Type size and in compact-height (landscape) layouts,
+So that no action button's text ever crowds its own edge or forces content past its available headroom, matching the fix Story 3.5 already applied to this same button on the interstitial's gated path.
+
+*(Added via code review of story-3-5-end-to-end-accessibility-validation, 2026-08-08 — see `deferred-work.md`'s corresponding entry. Bundles two unverified instances of the same bug class Story 3.5 fixed once already: (1) `HomeView.swift`/`TutorialView.swift`'s action buttons (`.frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)`, no explicit padding) were never re-checked at AX5 for the missing-breathing-room variant of the bug Story 3.5 fixed on the interstitial Continue button — only checked for clipped/truncated text; (2) Story 3.5's own fix — `BranchArrivalInterstitialView.swift`'s new `.padding(.vertical, Spacing.small)` on the Continue button — was never checked against `illustrationMaxHeightFractionCompact`'s headroom in the non-scrolling compact-height (landscape) layout path at ordinary Dynamic Type, which has no `ScrollView` escape route. Bundled into one story since both are "verify, then apply Story 3.5's own padding pattern if actually broken" — not two unrelated fixes.)*
+
+**Acceptance Criteria:**
+
+**Given** Home and Tutorial's action buttons (`HomeView.swift`, `TutorialView.swift`) at the largest accessibility Dynamic Type size (AX5)
+**When** inspected in Xcode/Simulator
+**Then** confirm whether the button's label crowds the button's own edge with no breathing room (the same bug class Story 3.5 fixed on the interstitial Continue button) — if so, apply the same explicit `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` pattern Story 3.5 used there; if not, record the negative result and make no code change
+
+**Given** the branch-arrival interstitial's Continue button with Story 3.5's `.padding(.vertical, Spacing.small)` applied
+**When** viewed on a compact-height (landscape) device at ordinary (non-accessibility) Dynamic Type, where the layout has no `ScrollView` escape route
+**Then** confirm the added padding's extra required height still fits within `illustrationMaxHeightFractionCompact`'s headroom without clipping or forcing the button off-screen — if it doesn't fit, adjust the illustration's height fraction or the button's padding to restore fit; if it does fit, record the confirmation and make no code change
+
+**And** a manual-verification AC: in Xcode/Simulator, record the AX5 Home/Tutorial button check and the compact-height/landscape Continue button check as two separate dated results in the story's Completion Notes List, regardless of whether either required a code change (project-context.md Process Agreement)
+
+### Story 3.11: ChoiceCardView Disabled Trait & VoiceOver Wording Contract
+
+As a developer,
+I want decided-but-not-selected `ChoiceCardView` cards to expose an explicit disabled/inert accessibility state instead of a live no-op action, and the choice card's VoiceOver label/hint wording to literally match EXPERIENCE.md's Accessibility Floor example,
+So that VoiceOver users get an accurate signal that a losing card is permanently closed (not just visually dimmed), and the announced wording matches the documented UX contract rather than only approximating it.
+
+*(Added via code review of story-3-5-end-to-end-accessibility-validation, 2026-08-08 — see `deferred-work.md`'s corresponding entry. Two findings, both in `ChoiceCardView.swift`: (1) a decided-but-not-selected card (`isDecided && !isSelected`) keeps `.accessibilityAddTraits(.isButton)` and a live `.accessibilityAction(.default, handleAccessibilityActivate)` — the action itself is already a true no-op (`handleAccessibilityActivate()` guards on `isInteractive`), but VoiceOver has no trait signaling this and still announces it as an active button; (2) EXPERIENCE.md's Accessibility Floor example reads `"Choice, Ask Sam about the boat, not yet selected"` / `"...selected, double-tap again within 1.5 seconds to undo"`, but the shipped label carries no "Choice" role-word prefix, and neither `storyChoice.choiceCard.hint.tapOrHold` ("Double tap to select. A short grace period follows before your choice locks in.") nor `storyChoice.choiceCard.hint.undoWindow` ("Activate again to cancel this choice.") mentions "double-tap" or "1.5 seconds" literally — Story 3.5's Completion Notes described these strings as "restoring" the Accessibility Floor example, which overstated what actually shipped. Explicitly kept as a story despite VoiceOver's 2026-08-07 de-scoping from official v1 testing/support — user decision 2026-08-08: correctness gaps already identified are still worth closing even though VoiceOver won't be a release gate, unlike the already-accepted `advancePage()` no-op finding from the 2-2 review, which was accepted specifically because no gap had been identified there.)*
+
+**Acceptance Criteria:**
+
+**Given** a `ChoiceCardView` in its decided-but-not-selected state (`isDecided && !isSelected`)
+**When** VoiceOver reaches the card
+**Then** it is announced as inert/disabled rather than as a live, activatable button — the `.isButton` trait and/or `.accessibilityAction(.default, ...)` are conditioned on `isInteractive` so the accessibility tree reflects the same no-op `handleAccessibilityActivate()` already enforces, instead of silently doing nothing when activated
+
+**Given** any `ChoiceCardView` label announcement
+**When** VoiceOver reads it
+**Then** it includes a "Choice" role-word prefix ahead of the option's label text, matching EXPERIENCE.md's literal example (`"Choice, Ask Sam about the boat, not yet selected"`)
+
+**Given** `storyChoice.choiceCard.hint.tapOrHold` and `storyChoice.choiceCard.hint.undoWindow`
+**When** their `Localizable.xcstrings` wording is reviewed
+**Then** it is updated to literally reference "double-tap" and the undo window's "1.5 seconds" duration, matching EXPERIENCE.md's Accessibility Floor example rather than only approximating its meaning
+
+**And** a manual-verification AC: in Xcode/Simulator with VoiceOver enabled, confirm (a) an idle/open card announces with the "Choice" prefix and "not yet selected," (b) a decided-but-not-selected card announces as inert rather than as an active button, and (c) the tap-commit and undo-window hints both literally mention "double-tap" and "1.5 seconds." Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
 ## Epic 4: Story Content & Illustration Production
 
 The player experiences the actual v1 story — real branches, real prose, real echoes, real illustrations — replacing every placeholder Epic 2/3 stood up to unblock engineering work.

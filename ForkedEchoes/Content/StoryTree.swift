@@ -50,9 +50,14 @@ enum StoryTree {
             return .choice(
                 promptKey: "story.firstChoice.body",
                 options: [
-                    // Non-zero placeholder deltas to exercise alignmentScore accumulation in
-                    // tests — not a narrative-design decision. Real per-choice values are Epic
-                    // 4's job (Story 4.1/4.2 authoring), same as the rest of this placeholder tree.
+                    // Placeholder deltas exercising alignmentScore accumulation in tests — not a
+                    // narrative-design decision. Real per-choice values are Epic 4's job (Story
+                    // 4.1/4.2 authoring), same as the rest of this placeholder tree. Story 3.8:
+                    // one option (.shore) is deliberately 0 — the pre-Epic-4 tree previously had no
+                    // path netting to a genuinely neutral score at all, which meant AC #1's
+                    // "0" vs "+0" fix (MemoryView.swift) had no real-gameplay path to manually
+                    // verify; two options stay positive (.boat/.driftLimbo) and one stays negative
+                    // (.gotcha) so all three sign cases (+/0/-) remain reachable by normal play.
                     ChoiceOption(
                         id: .boat,
                         labelKey: "story.firstChoice.choice.1",
@@ -64,7 +69,7 @@ enum StoryTree {
                         id: .shore,
                         labelKey: "story.firstChoice.choice.2",
                         consequenceKey: "story.firstChoice.choice.2.consequence",
-                        alignmentDelta: -1,
+                        alignmentDelta: 0,
                         target: .shoreArrival
                     ),
                     // Story 3.1: the designated gotcha (hard-fail) choice — one hop from
@@ -77,9 +82,9 @@ enum StoryTree {
                         target: .endingHardFail
                     ),
                     // Story 3.1: reaches the fourth EndingKind case (.limbo), otherwise unexercised
-                    // by .boat/.shore. Non-zero delta (code review, 2026-08-05): matches the
-                    // "non-zero placeholder deltas" comment above, which this option originally
-                    // violated with a 0 value.
+                    // by .boat/.shore. Positive delta (code review, 2026-08-05) — .shore now holds
+                    // the tree's one deliberate 0 (Story 3.8), so this one stays non-zero to keep
+                    // two positive options per the comment above.
                     ChoiceOption(
                         id: .driftLimbo,
                         labelKey: "story.firstChoice.choice.4",

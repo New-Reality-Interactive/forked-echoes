@@ -212,8 +212,6 @@ struct StoryRunEngineTests {
         #expect(snapshot.currentNodeId == engine.currentNodeId)
         #expect(snapshot.choiceHistory == engine.choiceHistory)
         #expect(snapshot.alignmentScore == engine.alignmentScore)
-        // AD-4/Completion Notes: tutorialSeen has no producer yet — always written false.
-        #expect(snapshot.tutorialSeen == false)
     }
 
     @Test func goBackWritesASnapshotMatchingEngineState() throws {
@@ -242,7 +240,6 @@ struct StoryRunEngineTests {
             currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
             alignmentScore: 1,
-            tutorialSeen: false
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
         let engine = StoryRunEngine.resumingFromSnapshot(defaults: defaults)
@@ -307,7 +304,6 @@ struct StoryRunEngineTests {
             currentNodeId: .firstChoice,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
             alignmentScore: 4,
-            tutorialSeen: false
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
 
@@ -340,7 +336,6 @@ struct StoryRunEngineTests {
             currentNodeId: .endingHomeward,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
             alignmentScore: 1,
-            tutorialSeen: false
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
 
@@ -409,7 +404,6 @@ struct StoryRunEngineTests {
             currentNodeId: .boatEcho,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .boat)],
             alignmentScore: 1,
-            tutorialSeen: false
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
 
@@ -428,7 +422,6 @@ struct StoryRunEngineTests {
             currentNodeId: .firstChoice,
             choiceHistory: [],
             alignmentScore: 0,
-            tutorialSeen: false
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
 
@@ -554,7 +547,6 @@ struct StoryRunEngineTests {
             currentNodeId: .shoreArrival,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
             alignmentScore: -1,
-            tutorialSeen: false
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
 
@@ -580,7 +572,6 @@ struct StoryRunEngineTests {
             currentNodeId: .shoreArrival,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
             alignmentScore: -1,
-            tutorialSeen: false,
             visitedArrivalNodeIds: [.shoreArrival]
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
@@ -780,7 +771,6 @@ struct StoryRunEngineTests {
             currentNodeId: .shoreArrival,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
             alignmentScore: -1,
-            tutorialSeen: false,
             visitedArrivalNodeIds: [],
             visitedNodeIds: [.intro, .firstChoice]
         )
@@ -828,7 +818,6 @@ struct StoryRunEngineTests {
             currentNodeId: .shoreArrival,
             choiceHistory: [ChoiceRecord(nodeId: .firstChoice, chosenOptionId: .shore)],
             alignmentScore: -1,
-            tutorialSeen: false,
             visitedArrivalNodeIds: [],
             visitedNodeIds: [.intro, .firstChoice]
         )

@@ -1,9 +1,10 @@
 import SwiftUI
 
-// Named layout/opacity constants for Home/Tutorial/ButtonStyles, so numeric literals trace to
-// DESIGN.md tokens (where one exists) or a descriptive local name (where one doesn't), rather than
-// floating free as bare numbers. Pure refactor (Story 1.6) — values are unchanged from what
-// HomeView.swift/TutorialView.swift/ButtonStyles.swift already used.
+// Named layout/opacity constants so numeric literals trace to DESIGN.md tokens (where one exists)
+// or a descriptive local name (where one doesn't), rather than floating free as bare numbers.
+// Originated as a pure refactor of Home/Tutorial/ButtonStyles values (Story 1.6); has since grown
+// beyond constants to include shared View helpers (e.g. GeometryProxy.symmetricSafeAreaInset,
+// accessibilitySizeFramedScroll(), Story 3.6/3.9) used across Reading/Ending/Memory as well.
 
 enum Spacing {
     /// DESIGN.md `{spacing.2}` = 8pt.

@@ -2,6 +2,10 @@
 
 Full narrative history of `sprint-status.yaml`'s `last_updated` field, archived here 2026-08-06 to fix the "unbounded ever-growing single line" problem flagged in `deferred-work.md` across three separate reviews (2-14, 3-1, 3-2). Going forward, `sprint-status.yaml`'s `last_updated` field holds only the current entry; each time it's overwritten, the previous entry is appended below before being replaced.
 
+## 2026-08-08 (Story 3.9: code review patched two findings (tap-to-return, Dynamic Type shrink mid-scroll reset); Task 5 re-verified in Xcode/Simulator, user-confirmed passed; status done.)
+
+## 2026-08-08 (deferred-work.md triage: 8 outstanding items from the 3-5/3-6 code reviews reviewed with the user and closed out — 5 resolved/accepted directly (runOptionsButtonClearance confirmed fixed by Story 3.9; isFrameEligibleNode no-raised-card and FrameView background sizing invariant and missing snapshot-test coverage accepted as pre-existing/AD-7-class debt; LayoutMetrics.swift's stale Story-1.6-only file header corrected directly), 2 new stories added to epics.md and sprint-status.yaml as backlog: Story 3.10 (Action Button Padding — AX5 & Compact-Height Verification, bundling the Home/Tutorial AX5 button-padding check and the interstitial Continue button's compact-height/landscape headroom check) and Story 3.11 (ChoiceCardView Disabled Trait & VoiceOver Wording Contract, kept as a story despite VoiceOver's 2026-08-07 v1 de-scoping per explicit user decision — correctness gaps already identified are still worth closing).
+
 ## 2026-08-08 (Story 3.7 code-review: no application code changed by this story (audit-and-test story, no .swift diff) — code-review agent confirmed there was nothing to review beyond sprint-tracking metadata. Zero findings. Status moved to done.)
 
 ## 2026-08-08 (Story 3.5 code review: accessibility fix confirmed, story done)

@@ -4,7 +4,7 @@ baseline_commit: 7c460365f30acb0aa48150d916a9519613c1d954
 
 # Story 3.10: Action Button Padding — AX5 & Compact-Height Verification
 
-Status: review
+Status: done
 
 ## Story
 
@@ -128,12 +128,22 @@ Full rules loaded from `_bmad-output/project-context.md` as a persistent fact fo
 
 ### Completion Notes List
 
-- 2026-08-08 — **Task 1 (AC #1), CONFIRMED bug present:** User's Simulator check at AX5 found the Home/Tutorial action buttons did not share the interstitial Continue button's padding — inconsistent padding across the app's action buttons, no clipping/truncation, but no breathing room around the label. Applied `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` to all three buttons (`HomeView`'s primary and secondary action buttons, `TutorialView`'s primary action button), matching `BranchArrivalInterstitialView.swift`'s existing pattern exactly (padding before `.frame(...)`, so it applies consistently including when the label wraps to multiple lines).
+- 2026-08-08 — **Task 1 (AC #1), CONFIRMED bug present, itemized per button:** User's Simulator check at AX5, checked individually:
+  - `HomeView`'s primary action button ("Start Story"/"Resume Story", `.primaryAction`): vertical crowding confirmed (label filled `minHeight` with no breathing room top/bottom); horizontal was not crowded.
+  - `HomeView`'s secondary action button ("Start Tutorial", `.secondaryAction`): same result — vertical crowding confirmed, horizontal not crowded.
+  - `TutorialView`'s primary action button ("Start Story"/"Resume Story", `.primaryAction`): same result — vertical crowding confirmed, horizontal not crowded.
+  - All three buttons received the full `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` pattern per AC #1's literal instruction to apply "the same explicit ... pattern Story 3.5 used" — the horizontal component was not independently confirmed necessary (horizontal was fine pre-fix on all three), but is applied for pattern consistency with `BranchArrivalInterstitialView.swift`'s existing Continue button and does no harm (these buttons already have generous horizontal room via `maxWidth: .infinity`). Only the vertical component is fixing a confirmed bug; the horizontal component is precautionary/pattern-matching, not itself fixing an observed defect.
 - 2026-08-08 — **Task 2 (AC #2), CONFIRMED no code change needed:** User's Simulator check in landscape (compact-height) at ordinary Dynamic Type confirmed the interstitial's illustration + caption + Continue button (with Story 3.5's padding) all fit within `illustrationMaxHeightFractionCompact`'s headroom without clipping or the button being pushed off-screen. No adjustment made.
 - 2026-08-08 — **Post-fix verification note:** `swiftc -parse` confirmed both edited files are syntactically valid; `swift test` (89 tests, 6 suites) passed with no regressions. Per this story's own Dev Notes, the Task 1 code change should be re-confirmed in Simulator against the actual patched buttons (not just the original crowding finding) before the story advances past `review`.
+- 2026-08-08 — **Post-fix Simulator re-verification, CONFIRMED:** user re-checked the patched buttons (HomeView primary/secondary, TutorialView primary) directly in Simulator — all three look good. This satisfies the outstanding re-verification gate; story advances to `done`.
 - 2026-08-08 — **Out-of-scope regression reported during manual testing:** user observed that tapping on an ending page no longer navigates to the memory page. `swift test`'s engine-logic suite (including `advancePageFromEndingTransitionsPhaseToMemory`) passed, so this is not an engine-logic regression and is unrelated to this story's files (`HomeView.swift`, `TutorialView.swift`, `BranchArrivalInterstitialView.swift`, `LayoutMetrics.swift` were the only files in scope; none of the ending/memory-transition UI wiring was touched here). Not investigated or fixed as part of Story 3.10 — flagged to the user for separate tracking (new story or `deferred-work.md` entry).
 
 ### File List
 
 - `ForkedEchoes/Views/Home/HomeView.swift` — added `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` to both action buttons' labels (Task 1, AX5 crowding confirmed).
 - `ForkedEchoes/Views/Tutorial/TutorialView.swift` — added `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` to the action button's label (Task 1, AX5 crowding confirmed).
+
+### Review Findings
+
+- [x] [Review][Decision] Completion Notes don't itemize per-button verification, and don't record whether the horizontal-padding component was independently confirmed necessary — **Resolved 2026-08-08:** user confirmed all three buttons (HomeView primary, HomeView secondary, TutorialView primary) showed vertical crowding at AX5; horizontal was not crowded on any. Completion Notes List rewritten item-by-item to reflect this; horizontal padding is retained per AC #1's literal "apply the same pattern" instruction but is now documented as pattern-consistency, not an independently-confirmed fix.
+- [x] [Review][Defer] Padding modifier pair duplicated verbatim across 4 call sites — deferred, pre-existing pattern [ForkedEchoes/Views/DesignSystem/ButtonStyles.swift, ForkedEchoes/Views/Home/HomeView.swift:47-48,56-57, ForkedEchoes/Views/Tutorial/TutorialView.swift:66-67] — `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` is now repeated identically at 4 call sites (the pre-existing `BranchArrivalInterstitialView` Continue button plus this story's 3 new ones), unfactored into a shared `ViewModifier` or folded into the `ButtonStyle`s themselves. Low severity and consistent with the codebase's existing (unfactored) precedent at the interstitial button — not blocking, but a reuse opportunity if a 5th call site appears.

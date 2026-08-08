@@ -4,7 +4,7 @@ baseline_commit: 89f1add40ce0e26d38149dc33c92557165fdc8c3
 
 # Story 3.5: End-to-End Accessibility Validation
 
-Status: done
+Status: review
 
 ## Story
 
@@ -118,6 +118,15 @@ All four clear 3:1 with substantial margin — this audit is expected to be a fo
   - [x] For AC8/AC9, if a judgment call resolves to "needs a follow-up fix," do not silently expand this story's scope — flag it as a candidate for a new story (Story 3.8 already exists as "Memory & Tutorial Polish and Deferred-Item Cleanup" and may be the right home, or a new entry) and record that recommendation in Completion Notes rather than fixing it inline, unless the fix is genuinely small and low-risk (in which case implement it and document why it was safe to fold in here).
   - [x] Mark the three deferred-work.md entries this story closes (2-2-page-navigation's rotor no-op item, 2-8's `runOptionsButtonClearance` item, 3-4's `backSwipeGesture` + 1.4.11 items) as resolved, referencing this story, per that file's existing "[RESOLVED — ...]" convention (they're already marked `[RESOLVED — tracked as Story 3.5, ...]` as forward references from when 3.5 was scoped — this task closes the loop by confirming the actual finding, not just the tracking).
 
+### Review Findings
+
+- [x] [Review][Decision] Decided-but-not-chosen choice cards permanently announce "Not yet selected." — `accessibilityStateValue` (`ChoiceCardView.swift:77-79`) branches only on `showsCheckmark` (`isSelected || localState == .tapAwaitingUndo`), never on `isDecided`. Once a choice page is decided in favor of a *different* option, the losing cards are `isDecided: true, isSelected: false` — `showsCheckmark` is `false`, so they keep announcing "Not yet selected." forever, implying the choice is still open when it's permanently closed and the card is disabled (`allowsHitTesting(isInteractive)` is already `false`). This wasn't caught by the Accessibility Inspector Audit tool (it checks structural warnings, not semantic wording) or by this story's completion notes. **Resolved 2026-08-08 (code review, small fix folded in): `accessibilityStateValue` now branches three ways (selected / not yet selected / not chosen), with a new `storyChoice.choiceCard.state.notChosen` → "Not chosen." localization key. `swift test` 89/89 passing.**
+
+- [x] [Review][Defer] `HomeView`/`TutorialView` action buttons share the same unpadded `.frame(minHeight:)` pattern the Continue-button fix addressed [ForkedEchoes/Views/Home/HomeView.swift:41-51] — deferred, pre-existing. The AX5 sweep this story ran checked for "clipped/truncated text," not "no breathing room around text," so this latent variant of the same bug class was not directly re-verified there.
+- [x] [Review][Defer] New vertical padding on the interstitial Continue button reduces available height in the non-scrolling compact-height (landscape) layout at ordinary Dynamic Type [ForkedEchoes/Views/StoryChoice/BranchArrivalInterstitialView.swift:129-131] — deferred, introduced by this diff but unverified. No re-check was made against `illustrationMaxHeightFractionCompact`'s headroom in that specific orientation/size combination.
+- [x] [Review][Defer] Decided-but-not-selected choice cards keep the `.isButton` trait and a live (no-op) `.accessibilityAction(.default, …)` with no disabled/`.notEnabled` trait [ForkedEchoes/Views/StoryChoice/ChoiceCardView.swift:148-149] — deferred, pre-existing (not introduced by this diff).
+- [x] [Review][Defer] EXPERIENCE.md's exact VoiceOver wording contract is still not literally matched — no "Choice" role prefix, and the pre-existing (Story 2.3) undo-window hint string doesn't mention "double-tap"/"1.5 seconds" [ForkedEchoes/Views/StoryChoice/ChoiceCardView.swift:148,154; ForkedEchoes/Resources/Localizable.xcstrings:595-603] — deferred, pre-existing. This story's Completion Notes describe the new value strings as "restoring" the Accessibility Floor example, which overstates what changed — worth a wording correction in Completion Notes as well as a future fast-follow.
+
 ## Dev Notes
 
 ### No engine-logic changes expected
@@ -225,8 +234,8 @@ Per this project's process rule (Story 3.4 code review, 2026-08-06): status is b
 - `_bmad-output/planning-artifacts/ux-designs/ux-game-2026-07-25/EXPERIENCE.md` — Accessibility Floor's VoiceOver bullet reframed (Sprint Change Proposal).
 - `_bmad-output/project-context.md` — new Process Agreements entry recording the VoiceOver scope decision (Sprint Change Proposal).
 - `_bmad-output/planning-artifacts/sprint-change-proposal-2026-08-07.md` — new file, full impact analysis for the VoiceOver scope decision.
-- `ForkedEchoes/Views/StoryChoice/ChoiceCardView.swift` — added `.accessibilityElement(children: .ignore)`, explicit `.accessibilityLabel`, and a new `.accessibilityValue` (`accessibilityStateValue`) to fix a real "hit area too small" (NFR6) finding from the user's live Accessibility Inspector Audit.
-- `ForkedEchoes/Resources/Localizable.xcstrings` — two new keys, `storyChoice.choiceCard.state.notSelected`/`.selected`.
+- `ForkedEchoes/Views/StoryChoice/ChoiceCardView.swift` — added `.accessibilityElement(children: .ignore)`, explicit `.accessibilityLabel`, and a new `.accessibilityValue` (`accessibilityStateValue`) to fix a real "hit area too small" (NFR6) finding from the user's live Accessibility Inspector Audit; code review (2026-08-08) added a third `accessibilityStateValue` branch for the decided-but-not-chosen case.
+- `ForkedEchoes/Resources/Localizable.xcstrings` — three keys: `storyChoice.choiceCard.state.notSelected`/`.selected`, plus `.notChosen` added in code review (2026-08-08).
 
 ### Change Log
 
@@ -242,3 +251,4 @@ Per this project's process rule (Story 3.4 code review, 2026-08-06): status is b
   6. AC10's optional Instruments Color Contrast Calculator spot-check was waived (ships as a separate Xcode-tools download, not bundled) — AC10 stands as confirmed via the earlier direct sRGB computation.
 
   Status moved to `done`. Net: three real bugs found and fixed this session (Choice-card hit area, scroll-reset-on-page-turn, Continue-button padding), one real finding deferred to a future UX-informed fast-follow (run-options button clearance at AX5).
+- 2026-08-08: Code review (adversarial + edge-case + acceptance-audit layers) on the diff since Story 3.6. One `decision-needed` finding, patched inline: `ChoiceCardView`'s `accessibilityStateValue` was misleadingly announcing "Not yet selected." for decided-but-not-chosen cards (only checked `showsCheckmark`, never `isDecided`) — fixed with a third value/localization key, `storyChoice.choiceCard.state.notChosen`. Four smaller findings deferred to `deferred-work.md` (pre-existing `HomeView`/`TutorialView` button-padding pattern risk, interstitial Continue-button padding's effect on compact-height/landscape headroom, missing disabled trait on decided-not-selected cards, and EXPERIENCE.md's exact "Choice"/undo-timing wording still not literally matched). `swift test` 89/89 passing post-patch. **This devcontainer cannot build/render `.swift` changes — per project process rule, status is being held at `review`, not `done`, pending the user's Simulator re-verification of the patched `ChoiceCardView` accessibility value.**

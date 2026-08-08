@@ -604,6 +604,18 @@
         }
       }
     },
+    "storyChoice.choiceCard.state.notChosen" : {
+      "comment" : "Choice card accessibility value (code review fix, Story 3.5, 2026-08-08): announced alongside the card's label once the page is decided in favor of a *different* option — distinct from storyChoice.choiceCard.state.notSelected, which describes a still-open, undecided card. Without this distinction the losing card would misleadingly keep announcing \"not yet selected\" after the choice has permanently closed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not chosen."
+          }
+        }
+      }
+    },
     "storyChoice.choiceCard.state.notSelected" : {
       "comment" : "Choice card accessibility value (Story 3.5 accessibility audit fix): announced alongside the card's label when it has not yet been chosen or finalized, per EXPERIENCE.md's Accessibility Floor (\"Choice, Ask Sam about the boat, not yet selected\").",
       "extractionState" : "manual",

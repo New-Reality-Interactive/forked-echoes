@@ -74,8 +74,20 @@ struct ChoiceCardView: View {
     // Accessibility audit fix (Story 3.5, 2026-08-08): explicit LocalizedStringKey type
     // annotation on the property itself, per project-context.md's ternary/LocalizedStringKey
     // overload-resolution rule.
+    //
+    // Code review, 2026-08-08: `showsCheckmark` alone collapsed the decided-but-lost-the-choice
+    // case (isDecided && !isSelected) into the same "not yet selected" value as a still-open
+    // card — misleading, since a decided-against card is permanently closed, not pending. Three
+    // distinct values instead of two: selected / not yet selected (still open) / not chosen
+    // (decided, lost).
     private var accessibilityStateValue: LocalizedStringKey {
-        showsCheckmark ? "storyChoice.choiceCard.state.selected" : "storyChoice.choiceCard.state.notSelected"
+        if showsCheckmark {
+            "storyChoice.choiceCard.state.selected"
+        } else if isDecided {
+            "storyChoice.choiceCard.state.notChosen"
+        } else {
+            "storyChoice.choiceCard.state.notSelected"
+        }
     }
 
     private var accessibilityHint: LocalizedStringKey? {

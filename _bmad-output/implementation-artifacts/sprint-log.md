@@ -45,3 +45,7 @@ deferred-work.md review: closed out every remaining open item in the deferred-wo
 ## 2026-08-08
 
 2026-08-08 (Story 3.7 dev-story: Task 4 manual Xcode/Simulator verification completed by user, all three checks (a/b/c) passed with no staleness found. All tasks complete, all ACs satisfied, 89/89 tests passing, no .swift files changed (audit confirmed both refresh triggers are genuinely necessary, no redundancy; existing test already satisfied AC #3). Status moved to review.)
+
+## 2026-08-08
+
+2026-08-08 (Story 3.13 created directly by user request, immediately after Story 3.10's code review — user reported ChoiceCardView.swift's choice-page cards also suffer vertical padding crowding at AX5, same bug class as Story 3.5 (interstitial Continue button) and Story 3.10 (Home/Tutorial action buttons). ChoiceCardView.swift's label has no `.padding(.vertical, ...)` at all, and its existing `.padding(.horizontal, Spacing.medium)` is applied AFTER `.frame(...)` rather than before, unlike the established pattern — flagged as a separate consistency-check AC rather than assumed safe to reorder blind, since the label's frame also drives a checkmark/chevron overlay, a charge-fill GeometryReader background, and a border overlay that Story 3.10's plainer buttons didn't have to account for. Added to epics.md Epic 3 (Story 3.13) and sprint-status.yaml as ready-for-dev; dedicated story file created at `3-13-choicecardview-vertical-padding-ax5-verification.md`.)

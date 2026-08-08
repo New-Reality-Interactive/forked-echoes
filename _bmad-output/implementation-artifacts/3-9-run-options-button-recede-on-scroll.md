@@ -4,7 +4,7 @@ baseline_commit: dc4253939621ee1f142219b82fb3a7e0ea7671b7
 
 # Story 3.9: Run-Options Button Recede-on-Scroll
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -35,34 +35,34 @@ DESIGN.md's `components.run-options-button` token block (`_bmad-output/planning-
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Add the two new named constants to `LayoutMetrics.swift` (AC: #1, #2, #3)
-  - [ ] Add `static let runOptionsButtonOpacityReceded: Double = 0.35` inside `enum LayoutMetrics`, with a doc comment citing `DESIGN.md components.run-options-button.opacity-receded` (project-context.md's Design Tokens rule: numeric literals must trace to a DESIGN.md token or a named constant — do not inline `0.35` at the call site).
-  - [ ] Add `static let runOptionsButtonRecedeDuration: Duration = .milliseconds(200)` alongside it, citing `DESIGN.md components.run-options-button.recede-transition-duration`. Follow `choiceChargeDuration`/`choiceUndoWindow`'s existing `Duration` pattern in this same file (including the `.timeInterval` extension already defined below them for feeding `.animation(.easeInOut(duration:))`, which takes `TimeInterval`, not `Duration`).
+- [x] Task 1: Add the two new named constants to `LayoutMetrics.swift` (AC: #1, #2, #3)
+  - [x] Add `static let runOptionsButtonOpacityReceded: Double = 0.35` inside `enum LayoutMetrics`, with a doc comment citing `DESIGN.md components.run-options-button.opacity-receded` (project-context.md's Design Tokens rule: numeric literals must trace to a DESIGN.md token or a named constant — do not inline `0.35` at the call site).
+  - [x] Add `static let runOptionsButtonRecedeDuration: Duration = .milliseconds(200)` alongside it, citing `DESIGN.md components.run-options-button.recede-transition-duration`. Follow `choiceChargeDuration`/`choiceUndoWindow`'s existing `Duration` pattern in this same file (including the `.timeInterval` extension already defined below them for feeding `.animation(.easeInOut(duration:))`, which takes `TimeInterval`, not `Duration`).
 
-- [ ] Task 2: Wire scroll-phase detection through `accessibilitySizeFramedScroll()` (AC: #1, #2, #5)
-  - [ ] In `LayoutMetrics.swift`'s `View.accessibilitySizeFramedScroll()` (currently lines 189-202), add an optional parameter: `func accessibilitySizeFramedScroll(isScrolling: Binding<Bool>? = nil) -> some View`. Defaulting to `nil` means `EndingView.content` (the pattern's other call site — it has no `RunOptionsButton` and must not change behavior) needs zero changes.
-  - [ ] Attach `.onScrollPhaseChange { _, newPhase in isScrolling?.wrappedValue = newPhase.isScrolling }` to the `ScrollView` inside this function. `ScrollPhase` (iOS 18+, this project's minimum deployment target — see project-context.md's Technology Stack table) has an `isScrolling` computed property that is `true` for every phase except `.idle` (i.e. `.tracking`, `.interacting`, `.decelerating`, `.animating` all count as scrolling) — use that property directly rather than hand-rolling an equivalent `switch`.
-  - [ ] Do not touch this function's existing `GeometryReader`/inset/`.clipped()` geometry (the Story 3.6 history documented in its doc comment) — this task only adds the phase-observation modifier and the new parameter; the viewport math is unrelated and must not change.
+- [x] Task 2: Wire scroll-phase detection through `accessibilitySizeFramedScroll()` (AC: #1, #2, #5)
+  - [x] In `LayoutMetrics.swift`'s `View.accessibilitySizeFramedScroll()` (currently lines 189-202), add an optional parameter: `func accessibilitySizeFramedScroll(isScrolling: Binding<Bool>? = nil) -> some View`. Defaulting to `nil` means `EndingView.content` (the pattern's other call site — it has no `RunOptionsButton` and must not change behavior) needs zero changes.
+  - [x] Attach `.onScrollPhaseChange { _, newPhase in isScrolling?.wrappedValue = newPhase.isScrolling }` to the `ScrollView` inside this function. `ScrollPhase` (iOS 18+, this project's minimum deployment target — see project-context.md's Technology Stack table) has an `isScrolling` computed property that is `true` for every phase except `.idle` (i.e. `.tracking`, `.interacting`, `.decelerating`, `.animating` all count as scrolling) — use that property directly rather than hand-rolling an equivalent `switch`.
+  - [x] Do not touch this function's existing `GeometryReader`/inset/`.clipped()` geometry (the Story 3.6 history documented in its doc comment) — this task only adds the phase-observation modifier and the new parameter; the viewport math is unrelated and must not change.
 
-- [ ] Task 3: Thread the scroll state from `StoryChoiceView` into `RunOptionsButton` (AC: #1, #2, #5)
-  - [ ] In `StoryChoiceView.swift`, add `@State private var isReadingContentScrolling = false` near the view's other `@State` properties (e.g. alongside `activeChoiceOptionID`).
-  - [ ] At the accessibility-size call site only (`readingComposition`, the `if dynamicTypeSize.isAccessibilitySize` branch, currently `content.accessibilitySizeFramedScroll().id(engine.currentNodeId).transition(.opacity)` around line 141-144), pass the binding: `.accessibilitySizeFramedScroll(isScrolling: $isReadingContentScrolling)`. Do **not** pass it at the ordinary-size branch (there is no `ScrollView` there to report phase changes from) — this is what makes AC #5 hold structurally rather than needing a separate `if` check.
-  - [ ] Reset `isReadingContentScrolling` to `false` in the existing `.onChange(of: engine.currentNodeId)` handler (`StoryChoiceView.swift:206-212`, which already resets `activeChoiceOptionID` on page-turn) — a page-turn tears down and rebuilds the `ScrollView` (per the `.id(engine.currentNodeId)` on the framed-scroll container, Story 3.5 finding cited in that code's own comment), so a stale `true` left over from the previous page must not carry forward and leave the button incorrectly receded on a fresh page.
+- [x] Task 3: Thread the scroll state from `StoryChoiceView` into `RunOptionsButton` (AC: #1, #2, #5)
+  - [x] In `StoryChoiceView.swift`, add `@State private var isReadingContentScrolling = false` near the view's other `@State` properties (e.g. alongside `activeChoiceOptionID`).
+  - [x] At the accessibility-size call site only (`readingComposition`, the `if dynamicTypeSize.isAccessibilitySize` branch, currently `content.accessibilitySizeFramedScroll().id(engine.currentNodeId).transition(.opacity)` around line 141-144), pass the binding: `.accessibilitySizeFramedScroll(isScrolling: $isReadingContentScrolling)`. Do **not** pass it at the ordinary-size branch (there is no `ScrollView` there to report phase changes from) — this is what makes AC #5 hold structurally rather than needing a separate `if` check.
+  - [x] Reset `isReadingContentScrolling` to `false` in the existing `.onChange(of: engine.currentNodeId)` handler (`StoryChoiceView.swift:206-212`, which already resets `activeChoiceOptionID` on page-turn) — a page-turn tears down and rebuilds the `ScrollView` (per the `.id(engine.currentNodeId)` on the framed-scroll container, Story 3.5 finding cited in that code's own comment), so a stale `true` left over from the previous page must not carry forward and leave the button incorrectly receded on a fresh page.
 
-- [ ] Task 4: Add the opacity behavior to `RunOptionsButton` (AC: #1, #2, #3, #4)
-  - [ ] Add a new parameter to `RunOptionsButton`: `var isReceded: Bool = false` (default `false` so the existing `#Preview` and the button's overall call-site shape are unaffected unless a caller opts in).
-  - [ ] Add `@Environment(\.accessibilityReduceMotion) private var reduceMotion` to `RunOptionsButton` (it does not currently read this environment value — `StoryChoiceView` does, but `RunOptionsButton` is a separate `View` struct and needs its own).
-  - [ ] Apply `.opacity(isReceded ? LayoutMetrics.runOptionsButtonOpacityReceded : 1.0)` to the button, and gate its transition with `.animation(reduceMotion ? nil : .easeInOut(duration: LayoutMetrics.runOptionsButtonRecedeDuration.timeInterval), value: isReceded)` — mirror `StoryChoiceView.swift`'s existing `.animation(reduceMotion ? nil : .easeInOut, value: engine.phase)` gating shape (same file's Reduce Motion convention, just with an explicit duration here since DESIGN.md specifies one).
-  - [ ] Apply the opacity via a plain `.opacity(...)` modifier, not `.disabled(isReceded)` or any hit-testing change — AC #4 requires the tap target to stay fully live at 0.35 opacity. SwiftUI's `.opacity()` does not disable hit-testing at any non-zero value, so no extra `.allowsHitTesting(true)` override is needed, but do not introduce one that accidentally sets it `false`.
-  - [ ] At `StoryChoiceView.swift`'s `RunOptionsButton(...)` call site (`:186-198`), pass `isReceded: isReadingContentScrolling`.
+- [x] Task 4: Add the opacity behavior to `RunOptionsButton` (AC: #1, #2, #3, #4)
+  - [x] Add a new parameter to `RunOptionsButton`: `var isReceded: Bool = false` (default `false` so the existing `#Preview` and the button's overall call-site shape are unaffected unless a caller opts in).
+  - [x] Add `@Environment(\.accessibilityReduceMotion) private var reduceMotion` to `RunOptionsButton` (it does not currently read this environment value — `StoryChoiceView` does, but `RunOptionsButton` is a separate `View` struct and needs its own).
+  - [x] Apply `.opacity(isReceded ? LayoutMetrics.runOptionsButtonOpacityReceded : 1.0)` to the button, and gate its transition with `.animation(reduceMotion ? nil : .easeInOut(duration: LayoutMetrics.runOptionsButtonRecedeDuration.timeInterval), value: isReceded)` — mirror `StoryChoiceView.swift`'s existing `.animation(reduceMotion ? nil : .easeInOut, value: engine.phase)` gating shape (same file's Reduce Motion convention, just with an explicit duration here since DESIGN.md specifies one).
+  - [x] Apply the opacity via a plain `.opacity(...)` modifier, not `.disabled(isReceded)` or any hit-testing change — AC #4 requires the tap target to stay fully live at 0.35 opacity. SwiftUI's `.opacity()` does not disable hit-testing at any non-zero value, so no extra `.allowsHitTesting(true)` override is needed, but do not introduce one that accidentally sets it `false`.
+  - [x] At `StoryChoiceView.swift`'s `RunOptionsButton(...)` call site (`:186-198`), pass `isReceded: isReadingContentScrolling`.
 
-- [ ] Task 5: Manual Xcode/Simulator verification (AC: #6) — record results in Completion Notes (project-context.md Process Agreement: actively request this, report inline when it happens)
-  - [ ] At an accessibility Dynamic Type size, on a reading page long enough to scroll, confirm the button visibly fades toward transparent while actively scrolling and that scrolled text no longer visually collides with it during the fade.
-  - [ ] Confirm the button returns to full opacity once scrolling stops (finger lifted and deceleration settles).
-  - [ ] While the button is in its receded state (mid-scroll or immediately after), tap it and confirm the run-options menu still opens normally.
-  - [ ] Enable Reduce Motion (Settings > Accessibility > Motion) and confirm the opacity change snaps instantly with no visible fade.
-  - [ ] Confirm an ordinary (default) Dynamic Type size page shows no change in behavior — button stays fully opaque, since nothing scrolls there.
-  - [ ] Record the date and a one-line result for each check in Completion Notes.
+- [x] Task 5: Manual Xcode/Simulator verification (AC: #6) — record results in Completion Notes (project-context.md Process Agreement: actively request this, report inline when it happens)
+  - [x] At an accessibility Dynamic Type size, on a reading page long enough to scroll, confirm the button visibly fades toward transparent while actively scrolling and that scrolled text no longer visually collides with it during the fade.
+  - [x] Confirm the button returns to full opacity once scrolling stops (finger lifted and deceleration settles).
+  - [x] While the button is in its receded state (mid-scroll or immediately after), tap it and confirm the run-options menu still opens normally.
+  - [x] Enable Reduce Motion (Settings > Accessibility > Motion) and confirm the opacity change snaps instantly with no visible fade.
+  - [x] Confirm an ordinary (default) Dynamic Type size page shows no change in behavior — button stays fully opaque, since nothing scrolls there.
+  - [x] Record the date and a one-line result for each check in Completion Notes.
 
 ## Dev Notes
 
@@ -121,8 +121,27 @@ Full rules loaded from `_bmad-output/project-context.md` (55 rules, last updated
 
 ### Agent Model Used
 
+Claude Sonnet 5
+
 ### Debug Log References
+
+- `swiftc -parse` on all three touched `.swift` files: clean, no errors (2026-08-08).
+- `swift test`: full suite, 89 tests / 6 suites, all passed (2026-08-08) — no engine-logic surface touched by this story, run to confirm no incidental regression.
 
 ### Completion Notes List
 
+- Task 1 (2026-08-08): Added `LayoutMetrics.runOptionsButtonOpacityReceded` (0.35) and `runOptionsButtonRecedeDuration` (200ms `Duration`) to `LayoutMetrics.swift`, each with a doc comment citing the DESIGN.md token it traces to.
+- Task 2 (2026-08-08): Added an optional `isScrolling: Binding<Bool>? = nil` parameter to `View.accessibilitySizeFramedScroll()` and attached `.onScrollPhaseChange { _, newPhase in isScrolling?.wrappedValue = newPhase.isScrolling }` to its `ScrollView`. No existing geometry (GeometryReader/inset/`.clipped()`) touched. `EndingView.content`'s call site is unchanged (still calls with no arguments), confirmed by grep — its behavior is provably unaffected.
+- Task 3 (2026-08-08): Added `@State private var isReadingContentScrolling = false` to `StoryChoiceView`; wired the binding only at the accessibility-size `readingComposition` branch (`.accessibilitySizeFramedScroll(isScrolling: $isReadingContentScrolling)`); left the ordinary-size branch untouched (no `ScrollView` there, satisfying AC #5 structurally); reset `isReadingContentScrolling = false` inside the existing `.onChange(of: engine.currentNodeId)` handler alongside `activeChoiceOptionID`'s reset.
+- Task 4 (2026-08-08): Added `var isReceded: Bool = false` and `@Environment(\.accessibilityReduceMotion) private var reduceMotion` to `RunOptionsButton`; applied `.opacity(isReceded ? LayoutMetrics.runOptionsButtonOpacityReceded : 1.0)` with `.animation(reduceMotion ? nil : .easeInOut(duration: LayoutMetrics.runOptionsButtonRecedeDuration.timeInterval), value: isReceded)`, mirroring `StoryChoiceView`'s existing Reduce Motion gating shape exactly. Wired `isReceded: isReadingContentScrolling` at `StoryChoiceView`'s `RunOptionsButton(...)` call site. No `.disabled`/hit-testing changes — verified `.opacity()` alone doesn't affect hit-testing at non-zero values.
+- Task 5 (2026-08-08, user-confirmed in Xcode/Simulator): all five checks pass. (1) At an accessibility Dynamic Type size, the button visibly fades toward transparent while actively scrolling and no longer collides with scrolled text. (2) The button returns to full opacity once scrolling stops. (3) Tapping the button while receded still opens the run-options `confirmationDialog` normally — a benign, unrelated UIKit console warning (`_UIAlertControllerPhoneTVMacView`/`Unable to simultaneously satisfy constraints`) fired alongside the dialog opening; this is a known internal Auto Layout self-recovery notice from the system's own alert-controller presentation machinery (not `RunOptionsButton.swift` or any code touched by this story) and did not affect the dialog's appearance or function. (4) With Reduce Motion enabled, the opacity change snaps instantly with no visible fade. (5) At an ordinary (default) Dynamic Type size, the button shows no change in behavior — stays fully opaque, as expected since nothing scrolls there.
+
 ### File List
+
+- `ForkedEchoes/Views/DesignSystem/LayoutMetrics.swift` — Task 1 (two new named constants), Task 2 (`accessibilitySizeFramedScroll()`'s new `isScrolling` parameter and `.onScrollPhaseChange`).
+- `ForkedEchoes/Views/StoryChoice/StoryChoiceView.swift` — Task 3 (`@State isReadingContentScrolling`, accessibility-size call-site binding, `.onChange` reset, `RunOptionsButton(...)` call site's new `isReceded:` argument).
+- `ForkedEchoes/Views/DesignSystem/RunOptionsButton.swift` — Task 4 (`isReceded` parameter, `reduceMotion` environment read, `.opacity`/`.animation`).
+
+## Change Log
+
+- 2026-08-08: Tasks 1-4 implemented (opacity-recede-on-scroll mechanism, fully wired end-to-end). Task 5 (manual Xcode/Simulator verification) user-confirmed, all five checks pass. All acceptance criteria satisfied — status moved to `review`.

@@ -47,7 +47,7 @@
 # entry — before overwriting it, append the outgoing entry to sprint-log.md first.
 
 generated: 2026-07-26
-last_updated: 2026-08-08 (Story 3.8: dev-story complete — all 4 tasks done, user-confirmed Xcode/Simulator verification passed, status review.)
+last_updated: 2026-08-08 (Story 3.9: dev-story complete — all 5 tasks done, user-confirmed Xcode/Simulator verification passed, status review.)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -96,7 +96,7 @@ development_status:
   3-5-end-to-end-accessibility-validation: done
   3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit: done
   3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: done
-  3-9-run-options-button-recede-on-scroll: ready-for-dev
+  3-9-run-options-button-recede-on-scroll: review
   epic-3-retrospective: optional
 
   epic-4: backlog

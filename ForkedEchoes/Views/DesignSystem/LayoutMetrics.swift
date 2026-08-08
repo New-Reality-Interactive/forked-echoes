@@ -123,6 +123,15 @@ enum LayoutMetrics {
     /// header row above content, not an overlay text can run under) more closely than the
     /// unguarded overlay did. Tunable by feel, like this file's other untokened constants.
     static let runOptionsButtonClearance: CGFloat = minTapTarget + Spacing.small * 2
+
+    /// DESIGN.md `{components.run-options-button.opacity-receded}` = 0.35. Story 3.9: the
+    /// button's opacity while reading content is actively scrolling (accessibility Dynamic Type
+    /// sizes only, where `accessibilitySizeFramedScroll()`'s `ScrollView` can actually scroll).
+    static let runOptionsButtonOpacityReceded: Double = 0.35
+
+    /// DESIGN.md `{components.run-options-button.recede-transition-duration}` = 200ms. Story 3.9:
+    /// cross-fade duration between the button's resting and receded opacity states.
+    static let runOptionsButtonRecedeDuration: Duration = .milliseconds(200)
 }
 
 extension Duration {
@@ -186,7 +195,10 @@ extension View {
     /// with `readingCardPadding`'s horizontal value if either ever changes — they are one visual
     /// margin expressed in two places (the horizontal side can live on the content, since nothing
     /// scrolls horizontally; the vertical side cannot).
-    func accessibilitySizeFramedScroll() -> some View {
+    /// `isScrolling`: Story 3.9 addition — when non-nil, reports whether this `ScrollView` is
+    /// actively scrolling via `.onScrollPhaseChange`. Defaults to `nil` so `EndingView.content`
+    /// (this pattern's other call site, with no `RunOptionsButton` to drive) needs zero changes.
+    func accessibilitySizeFramedScroll(isScrolling: Binding<Bool>? = nil) -> some View {
         GeometryReader { proxy in
             let inset = Spacing.large
             let viewportHeight = proxy.size.height - inset * 2
@@ -198,6 +210,9 @@ extension View {
             .frame(width: proxy.size.width, height: viewportHeight)
             .padding(.vertical, inset)
             .clipped()
+            .onScrollPhaseChange { _, newPhase in
+                isScrolling?.wrappedValue = newPhase.isScrolling
+            }
         }
     }
 }

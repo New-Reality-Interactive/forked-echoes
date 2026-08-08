@@ -47,7 +47,7 @@
 # entry — before overwriting it, append the outgoing entry to sprint-log.md first.
 
 generated: 2026-07-26
-last_updated: 2026-08-08 (deferred-work.md triage: 8 outstanding items from the 3-5/3-6 code reviews closed out with the user — 5 resolved/accepted directly, 2 new backlog stories added (3.10, 3.11); see sprint-log.md for full breakdown.)
+last_updated: 2026-08-08 (Story 3.12 created — tracks the ending-page tap-to-advance regression the user found during Story 3.10's manual Simulator testing; unrelated to Story 3.10's own scope, EndingView.swift not touched by any story since 3.6. Added to epics.md Epic 3 and sprint-status.yaml as ready-for-dev.)
 project: game
 project_key: NOKEY
 tracking_system: file-system
@@ -97,8 +97,9 @@ development_status:
   3-7-run-progress-refresh-on-dismiss-test-coverage-and-consolidation-audit: done
   3-8-memory-and-tutorial-polish-and-deferred-item-cleanup: done
   3-9-run-options-button-recede-on-scroll: done
-  3-10-action-button-padding-ax5-and-compact-height-verification: backlog
+  3-10-action-button-padding-ax5-and-compact-height-verification: review
   3-11-choicecardview-disabled-trait-and-voiceover-wording-contract: backlog
+  3-12-ending-page-tap-to-advance-regression: ready-for-dev
   epic-3-retrospective: optional
 
   epic-4: backlog

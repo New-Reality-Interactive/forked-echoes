@@ -1076,6 +1076,26 @@ So that VoiceOver users get an accurate signal that a losing card is permanently
 
 **And** a manual-verification AC: in Xcode/Simulator with VoiceOver enabled, confirm (a) an idle/open card announces with the "Choice" prefix and "not yet selected," (b) a decided-but-not-selected card announces as inert rather than as an active button, and (c) the tap-commit and undo-window hints both literally mention "double-tap" and "1.5 seconds." Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
+### Story 3.12: Ending Page Tap-to-Advance Regression
+
+As a player,
+I want tapping anywhere on an Ending page to reliably advance me to the Memory recap,
+So that reaching an ending doesn't strand me on a page with no working way forward.
+
+*(Added via manual Simulator testing during Story 3.10's dev-story session, 2026-08-08 — user reported that tapping an Ending page no longer navigates to the Memory recap. `EndingView.swift`'s `.onTapGesture { engine.advancePage() }` (AC #3 of Story 3.2) is the mechanism that should perform this transition; `swift test`'s engine-logic suite (including `advancePageFromEndingTransitionsPhaseToMemory`) still passes, so `StoryRunEngine.advancePage()` itself correctly derives `.memory` phase from an ending node — the regression is in the Views layer, not the engine. `EndingView.swift` also carries a `.gesture(backSwipeGesture)` DragGesture (restored Story 3.3 Task 7, 2026-08-06) alongside the tap gesture; a likely starting hypothesis is a gesture-recognition conflict between the two, though this is unconfirmed since this devcontainer cannot render SwiftUI/UIKit — Simulator investigation is required to find the actual cause before a fix can be verified. No commit since Story 3.6 (`aea3e0d`) has touched `EndingView.swift`, so this may be a latent bug rather than a fresh regression from recent work.)*
+
+**Acceptance Criteria:**
+
+**Given** a player has reached an Ending page (any of the four `EndingKind` flavors)
+**When** they tap anywhere on the screen (per `EndingView.swift`'s AC #3 tap-anywhere contract from Story 3.2)
+**Then** `engine.advancePage()` fires and the phase transitions to `.memory`, rendering `MemoryView` — matching `StoryRunEngine`'s existing (and still test-covered) `advancePageFromEndingTransitionsPhaseToMemory` behavior
+
+**And** a root-cause investigation AC: in Xcode/Simulator, diagnose why the tap is not currently reaching `engine.advancePage()` — candidates to rule in/out include gesture-recognition conflict with `backSwipeGesture`'s `DragGesture`, `.accessibilityElement(children: .combine)` altering hit-testing, or another Views-layer cause — and record the confirmed root cause in the story's Completion Notes before applying a fix
+
+**And** a regression-guard AC: swipe-back navigation from the Ending page (restored Story 3.3 Task 7) continues to work after this story's fix — the fix must not trade the tap regression for a swipe regression
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm tap-to-advance works on at least one Ending page of each of the four `EndingKind` flavors post-fix, and record the dated result in the story's Completion Notes List (project-context.md Process Agreement)
+
 ## Epic 4: Story Content & Illustration Production
 
 The player experiences the actual v1 story — real branches, real prose, real echoes, real illustrations — replacing every placeholder Epic 2/3 stood up to unblock engineering work.

@@ -1076,6 +1076,48 @@ So that VoiceOver users get an accurate signal that a losing card is permanently
 
 **And** a manual-verification AC: in Xcode/Simulator with VoiceOver enabled, confirm (a) an idle/open card announces with the "Choice" prefix and "not yet selected," (b) a decided-but-not-selected card announces as inert rather than as an active button, and (c) the tap-commit and undo-window hints both literally mention "double-tap" and "1.5 seconds." Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
+### Story 3.12: Ending Page Tap-to-Advance Regression
+
+As a player,
+I want tapping anywhere on an Ending page to reliably advance me to the Memory recap,
+So that reaching an ending doesn't strand me on a page with no working way forward.
+
+*(Added via manual Simulator testing during Story 3.10's dev-story session, 2026-08-08 — user reported that tapping an Ending page no longer navigates to the Memory recap. `EndingView.swift`'s `.onTapGesture { engine.advancePage() }` (AC #3 of Story 3.2) is the mechanism that should perform this transition; `swift test`'s engine-logic suite (including `advancePageFromEndingTransitionsPhaseToMemory`) still passes, so `StoryRunEngine.advancePage()` itself correctly derives `.memory` phase from an ending node — the regression is in the Views layer, not the engine. `EndingView.swift` also carries a `.gesture(backSwipeGesture)` DragGesture (restored Story 3.3 Task 7, 2026-08-06) alongside the tap gesture; a likely starting hypothesis is a gesture-recognition conflict between the two, though this is unconfirmed since this devcontainer cannot render SwiftUI/UIKit — Simulator investigation is required to find the actual cause before a fix can be verified. No commit since Story 3.6 (`aea3e0d`) has touched `EndingView.swift`, so this may be a latent bug rather than a fresh regression from recent work.)*
+
+**Acceptance Criteria:**
+
+**Given** a player has reached an Ending page (any of the four `EndingKind` flavors)
+**When** they tap anywhere on the screen (per `EndingView.swift`'s AC #3 tap-anywhere contract from Story 3.2)
+**Then** `engine.advancePage()` fires and the phase transitions to `.memory`, rendering `MemoryView` — matching `StoryRunEngine`'s existing (and still test-covered) `advancePageFromEndingTransitionsPhaseToMemory` behavior
+
+**And** a root-cause investigation AC: in Xcode/Simulator, diagnose why the tap is not currently reaching `engine.advancePage()` — candidates to rule in/out include gesture-recognition conflict with `backSwipeGesture`'s `DragGesture`, `.accessibilityElement(children: .combine)` altering hit-testing, or another Views-layer cause — and record the confirmed root cause in the story's Completion Notes before applying a fix
+
+**And** a regression-guard AC: swipe-back navigation from the Ending page (restored Story 3.3 Task 7) continues to work after this story's fix — the fix must not trade the tap regression for a swipe regression
+
+**And** a manual-verification AC: in Xcode/Simulator, confirm tap-to-advance works on at least one Ending page of each of the four `EndingKind` flavors post-fix, and record the dated result in the story's Completion Notes List (project-context.md Process Agreement)
+
+### Story 3.13: ChoiceCardView Vertical Padding — AX5 Verification
+
+As a developer,
+I want `ChoiceCardView`'s choice-card label to reserve real vertical breathing room around its text at the largest accessibility Dynamic Type size,
+So that no choice card's text ever crowds its own top/bottom edge, matching the fix Story 3.5 and Story 3.10 already applied to the interstitial Continue button and Home/Tutorial's action buttons.
+
+*(Added directly by the user, 2026-08-08, following Story 3.10's code review — user reported that the choice-page buttons (`ChoiceCardView.swift`) also suffer from vertical padding crowding at AX5, the same bug class Story 3.5 fixed on the interstitial Continue button and Story 3.10 fixed on Home/Tutorial's action buttons. `ChoiceCardView.swift`'s label currently reads `Text(...).choiceLabelStyle().frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget, alignment: .leading).padding(.horizontal, Spacing.medium)` — no `.padding(.vertical, ...)` at all, and unlike the established pattern (padding applied before `.frame(...)` so it's measured as part of the label's intrinsic size), the existing horizontal padding here is applied AFTER `.frame(...)`, outside the frame's sizing — a structurally different (and untested at AX5) arrangement from the interstitial/Home/Tutorial buttons' fix.)*
+
+**Acceptance Criteria:**
+
+**Given** `ChoiceCardView`'s choice-card label (`ChoiceCardView.swift`) at the largest accessibility Dynamic Type size (AX5)
+**When** inspected in Xcode/Simulator
+**Then** confirm the label crowds the card's own top/bottom edge with no breathing room (already reported by the user) — apply `.padding(.vertical, Spacing.small)` positioned before the existing `.frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget, alignment: .leading)` call, matching the established padding-before-frame pattern from `BranchArrivalInterstitialView.swift`/`HomeView.swift`/`TutorialView.swift`
+
+**And** a consistency-check AC: confirm whether the existing `.padding(.horizontal, Spacing.medium)` (currently applied AFTER `.frame(...)`, not before) should be reordered to match the established pattern — if reordering changes the card's visual result (e.g. checkmark/chevron overlay alignment, charge-fill background sizing, tap target width) confirm the new result is still correct in Simulator before committing to the reorder; if it introduces a regression, leave the horizontal padding's existing position as-is and record why
+
+**And** a regression-guard AC: confirm the checkmark/chevron trailing overlay, the charge-fill background (`GeometryReader`-sized to the card's width), and the card's `LayoutMetrics.choiceCardBorderWidth` border still render correctly around the taller AX5 card after the padding change — these all key off the same `Text`'s frame this story modifies
+
+**And** a manual-verification AC: in Xcode/Simulator, record the AX5 choice-card check (and the horizontal-padding consistency check) as dated results in the story's Completion Notes List, regardless of whether the horizontal padding was reordered
+
+**And** a DRY AC, closing the deferred finding from Story 3.10's code review: with this story's fix, the `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` pair is now duplicated verbatim across 4 call sites (`BranchArrivalInterstitialView`'s Continue button, `HomeView`'s two action buttons, `TutorialView`'s action button) plus this story's `ChoiceCardView` label — factor the pair into a single shared `ViewModifier` and apply it at all 5 call sites; if `ChoiceCardView`'s structural differences make sharing it unsafe there, apply it to the other 4 and record why `ChoiceCardView` was left inline
+
 ## Epic 4: Story Content & Illustration Production
 
 The player experiences the actual v1 story — real branches, real prose, real echoes, real illustrations — replacing every placeholder Epic 2/3 stood up to unblock engineering work.

@@ -60,6 +60,11 @@ struct TutorialView: View {
                 isPresentingStorySession = true
             } label: {
                 Text(primaryActionLabel)
+                    // Story 3.10: matches BranchArrivalInterstitialView's Continue button padding
+                    // (Story 3.5) — without it, AX5 text crowds the button's own edge with no
+                    // breathing room (confirmed via Simulator AX5 walkthrough).
+                    .padding(.horizontal, Spacing.medium)
+                    .padding(.vertical, Spacing.small)
                     .frame(maxWidth: .infinity, minHeight: LayoutMetrics.minTapTarget)
             }
             .buttonStyle(.primaryAction)

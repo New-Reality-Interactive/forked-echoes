@@ -2,6 +2,10 @@
 
 **Status as of 2026-08-08: every entry below is closed — resolved in code/docs, dismissed as accepted/non-issue with rationale, or tracked into a specific story. Nothing in this file represents open, un-owned work.** New entries get appended above as future reviews surface them; each new entry should reach one of those three end states before this file is next audited, not accumulate indefinitely.
 
+## Deferred from: code review of 3-10-action-button-padding-ax5-and-compact-height-verification (2026-08-08)
+
+- Padding modifier pair duplicated verbatim across 4 call sites — `.padding(.horizontal, Spacing.medium).padding(.vertical, Spacing.small)` now repeats identically at `BranchArrivalInterstitialView`'s Continue button (Story 3.5) plus this story's three new call sites (`HomeView`'s primary/secondary action buttons, `TutorialView`'s primary action button), unfactored into a shared `ViewModifier` or folded into the `ButtonStyle`s. Low severity, consistent with the pre-existing unfactored precedent at the interstitial button — worth factoring out if a 5th call site appears.
+
 ## Deferred from: code review of 3-4-ending-and-memory-visual-identity (2026-08-06)
 
 - **[RESOLVED — tracked as Story 3.6, 2026-08-06]** ~~`ending-frame`/`memory-row`'s `background: {colors.surface-raised}` token is never applied anywhere in the Reading/Ending/Memory view chain~~ — no `.background(Color.surfaceBase)`/`.background(Color.surfaceRaised)` call exists in `StoryChoiceView.swift`, `FrameView.swift`, `EndingView.swift`, `MemoryView.swift`, or `RootView.swift` (only `HomeView.swift`, `TutorialView.swift`, and `ChoiceCardView.swift` apply it). Screens render on the plain system default background instead of DESIGN.md's warm paper-cream (`surface-base`)/raised-card (`surface-raised`) tones in either theme. Pre-dates Story 3.4 (traces to Story 2.5) and spans Reading, not just Ending/Memory. See `epics.md` Story 3.6 ("Reading & Ending Surface Background and Frame Inset Rule") for the full AC.

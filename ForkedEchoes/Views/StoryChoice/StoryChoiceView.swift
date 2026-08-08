@@ -221,6 +221,16 @@ struct StoryChoiceView: View {
                 // leave the button incorrectly receded on a fresh page.
                 isReadingContentScrolling = false
             }
+            // Story 3.9 code review, 2026-08-08: dynamicTypeSize is a live @Environment value —
+            // shrinking below the accessibility threshold mid-scroll (e.g. via Control Center)
+            // swaps readingComposition to the non-ScrollView branch without a page turn, so the
+            // .onChange(of: engine.currentNodeId) reset above never fires. Without this, a stale
+            // `true` would leave the button incorrectly receded on an ordinary-size page.
+            .onChange(of: dynamicTypeSize.isAccessibilitySize) { _, isAccessibilitySize in
+                if !isAccessibilitySize {
+                    isReadingContentScrolling = false
+                }
+            }
     }
 
     // Story 2.5, AC #4 (code review, 2026-08-01): the Frame belongs on Story/Choice reading

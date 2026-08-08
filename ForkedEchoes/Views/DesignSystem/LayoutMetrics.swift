@@ -213,6 +213,15 @@ extension View {
             .onScrollPhaseChange { _, newPhase in
                 isScrolling?.wrappedValue = newPhase.isScrolling
             }
+            // Code review, 2026-08-08: DESIGN.md components.run-options-button's return-trigger
+            // is "scroll comes to rest, OR any tap within the reading area" — Story 3.9 only
+            // wired the scroll-rest half. `.simultaneousGesture` (not `.gesture`) so this purely
+            // observes taps without competing with StoryChoiceView's own pageTurnGesture/
+            // pageTapZones for gesture priority — this function's geometry is already documented
+            // as fragile (Story 3.6) and this must not perturb its hit-testing behavior.
+            .simultaneousGesture(
+                TapGesture().onEnded { isScrolling?.wrappedValue = false }
+            )
         }
     }
 }

@@ -4,7 +4,7 @@ baseline_commit: 89f1add40ce0e26d38149dc33c92557165fdc8c3
 
 # Story 3.5: End-to-End Accessibility Validation
 
-Status: review
+Status: done
 
 ## Story
 
@@ -251,4 +251,4 @@ Per this project's process rule (Story 3.4 code review, 2026-08-06): status is b
   6. AC10's optional Instruments Color Contrast Calculator spot-check was waived (ships as a separate Xcode-tools download, not bundled) — AC10 stands as confirmed via the earlier direct sRGB computation.
 
   Status moved to `done`. Net: three real bugs found and fixed this session (Choice-card hit area, scroll-reset-on-page-turn, Continue-button padding), one real finding deferred to a future UX-informed fast-follow (run-options button clearance at AX5).
-- 2026-08-08: Code review (adversarial + edge-case + acceptance-audit layers) on the diff since Story 3.6. One `decision-needed` finding, patched inline: `ChoiceCardView`'s `accessibilityStateValue` was misleadingly announcing "Not yet selected." for decided-but-not-chosen cards (only checked `showsCheckmark`, never `isDecided`) — fixed with a third value/localization key, `storyChoice.choiceCard.state.notChosen`. Four smaller findings deferred to `deferred-work.md` (pre-existing `HomeView`/`TutorialView` button-padding pattern risk, interstitial Continue-button padding's effect on compact-height/landscape headroom, missing disabled trait on decided-not-selected cards, and EXPERIENCE.md's exact "Choice"/undo-timing wording still not literally matched). `swift test` 89/89 passing post-patch. **This devcontainer cannot build/render `.swift` changes — per project process rule, status is being held at `review`, not `done`, pending the user's Simulator re-verification of the patched `ChoiceCardView` accessibility value.**
+- 2026-08-08: Code review (adversarial + edge-case + acceptance-audit layers) on the diff since Story 3.6. One `decision-needed` finding, patched inline: `ChoiceCardView`'s `accessibilityStateValue` was misleadingly announcing "Not yet selected." for decided-but-not-chosen cards (only checked `showsCheckmark`, never `isDecided`) — fixed with a third value/localization key, `storyChoice.choiceCard.state.notChosen`. Four smaller findings deferred to `deferred-work.md` (pre-existing `HomeView`/`TutorialView` button-padding pattern risk, interstitial Continue-button padding's effect on compact-height/landscape headroom, missing disabled trait on decided-not-selected cards, and EXPERIENCE.md's exact "Choice"/undo-timing wording still not literally matched). `swift test` 89/89 passing post-patch. Status held at `review` pending Simulator re-verification. **User-verified 2026-08-08: re-ran the Accessibility Inspector against the patched `ChoiceCardView` — the fix has the desired effect.** Status moved to `done`.

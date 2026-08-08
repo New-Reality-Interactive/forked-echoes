@@ -146,11 +146,11 @@ After the ending screen, the system shows a memory screen listing the choices ma
 ### 4.6 Cross-Cutting NFRs
 
 #### FR-11: Accessible interaction parity
-Every gesture-based interaction (navigation and choice selection alike) has a standard, VoiceOver-compatible tap alternative; the story text area follows Apple HIG accessibility guidance (Dynamic Type, VoiceOver labeling, sufficient contrast).
+Every gesture-based interaction (navigation and choice selection alike) has a standard tap alternative; the story text area follows Apple HIG accessibility guidance (Dynamic Type, sufficient contrast). **Scope decision, 2026-08-07:** VoiceOver is not officially tested or supported for v1 — see project-context.md's Process Agreements for full rationale. Accessibility labels, hints, and VoiceOver-specific affordances (rotor custom actions, focus order) already implemented remain in the app as best-effort scaffolding but are not an officially tested v1 requirement.
 
 **Consequences (testable):**
 - No interaction in the app is reachable *only* via a custom gesture.
-- Story text area passes VoiceOver navigation and responds to Dynamic Type sizing.
+- Story text area responds to Dynamic Type sizing.
 
 - **Platform:** Native iOS, on-device only — no network calls, no backend, no external integrations.
 - **Compatibility:** Support current major iOS release and the previous one (N-1).

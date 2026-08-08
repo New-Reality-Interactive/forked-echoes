@@ -212,6 +212,16 @@ Two roles carry almost everything: a warm neutral pair (paper and ink) and one h
 
 All exceed the 4.5:1 (normal text) or 3:1 (large text, ≥24px/bold) AA thresholds they're used at. `accent-ember`/`accent-ember-dark` are the one pair restricted to large-text contexts only — see the note above.
 
+**Verified non-text contrast (WCAG 1.4.11, relative-luminance method), graphical-object pairs — distinct from the 1.4.3 text table above, 3:1 threshold:**
+
+| Pair | Light | Dark |
+|---|---|---|
+| `SecondaryActionButtonStyle` border (`ink-primary`, `ButtonMetrics.borderWidth` 3px) on `surface-base` | 15.57:1 | 15.12:1 |
+| `SecondaryActionButtonStyle` border (`ink-primary`) on `surface-raised` | 16.78:1 | 13.70:1 |
+| Memory row divider (`trace-brass`, `LayoutMetrics.frameStrokeWidth` 1px) on `surface-base` | 4.37:1 | 7.92:1 |
+
+Computed directly from `Assets.xcassets`' real sRGB component values (Story 3.5 audit, 2026-08-07) — all three pairs clear the 3:1 threshold with wide margin in both themes.
+
 Avoid: cool greys (breaks the paper metaphor), a second chromatic accent (ember must stay singular), pure black/white surfaces (too clinical for a warm-ink object), gradients outside the branch-arrival interstitial (the reading surface itself is flat and confident, not atmospheric), `accent-ember`/`accent-ember-dark` on any text under 24px (use `accent-ember-text`/`-dark` instead).
 
 ## Typography

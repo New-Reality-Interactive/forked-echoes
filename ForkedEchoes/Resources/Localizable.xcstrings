@@ -604,6 +604,42 @@
         }
       }
     },
+    "storyChoice.choiceCard.state.notChosen" : {
+      "comment" : "Choice card accessibility value (code review fix, Story 3.5, 2026-08-08): announced alongside the card's label once the page is decided in favor of a *different* option — distinct from storyChoice.choiceCard.state.notSelected, which describes a still-open, undecided card. Without this distinction the losing card would misleadingly keep announcing \"not yet selected\" after the choice has permanently closed.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not chosen."
+          }
+        }
+      }
+    },
+    "storyChoice.choiceCard.state.notSelected" : {
+      "comment" : "Choice card accessibility value (Story 3.5 accessibility audit fix): announced alongside the card's label when it has not yet been chosen or finalized, per EXPERIENCE.md's Accessibility Floor (\"Choice, Ask Sam about the boat, not yet selected\").",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not yet selected."
+          }
+        }
+      }
+    },
+    "storyChoice.choiceCard.state.selected" : {
+      "comment" : "Choice card accessibility value (Story 3.5 accessibility audit fix): announced alongside the card's label once tapped/held to commit, per EXPERIENCE.md's Accessibility Floor (\"...selected, double-tap again within 1.5 seconds to undo\") — the undo-window hint itself is carried separately by storyChoice.choiceCard.hint.undoWindow.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected."
+          }
+        }
+      }
+    },
     "storyChoice.echo.tag" : {
       "comment" : "Story 2.5: shared tag label prefacing every Echo callback block (UX-DR5, FR-6) — the same phrase Tutorial's tutorial.mechanic.echo already previews.",
       "extractionState" : "manual",

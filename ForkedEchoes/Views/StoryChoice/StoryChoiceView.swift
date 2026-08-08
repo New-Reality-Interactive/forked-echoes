@@ -133,10 +133,15 @@ struct StoryChoiceView: View {
                 // factored into `View.accessibilitySizeFramedScroll()` (LayoutMetrics.swift) —
                 // see its doc comment for the full history and rationale (same pattern
                 // `EndingView.content` uses).
+                // `.id` must wrap the whole framed-scroll container, not just `content` — applying
+                // it only to `content` (as the ordinary-size branch below does) gives the inner
+                // content a fresh identity per page but leaves the `ScrollView` itself unchanged,
+                // so it keeps its old scroll offset across page-turns instead of resetting to the
+                // top (found via Simulator AX5 walkthrough, Story 3.5).
                 content
+                    .accessibilitySizeFramedScroll()
                     .id(engine.currentNodeId)
                     .transition(.opacity)
-                    .accessibilitySizeFramedScroll()
             } else {
                 content
                     .id(engine.currentNodeId)

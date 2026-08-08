@@ -71,6 +71,25 @@ struct ChoiceCardView: View {
         isSelected || localState == .tapAwaitingUndo
     }
 
+    // Accessibility audit fix (Story 3.5, 2026-08-08): explicit LocalizedStringKey type
+    // annotation on the property itself, per project-context.md's ternary/LocalizedStringKey
+    // overload-resolution rule.
+    //
+    // Code review, 2026-08-08: `showsCheckmark` alone collapsed the decided-but-lost-the-choice
+    // case (isDecided && !isSelected) into the same "not yet selected" value as a still-open
+    // card — misleading, since a decided-against card is permanently closed, not pending. Three
+    // distinct values instead of two: selected / not yet selected (still open) / not chosen
+    // (decided, lost).
+    private var accessibilityStateValue: LocalizedStringKey {
+        if showsCheckmark {
+            "storyChoice.choiceCard.state.selected"
+        } else if isDecided {
+            "storyChoice.choiceCard.state.notChosen"
+        } else {
+            "storyChoice.choiceCard.state.notSelected"
+        }
+    }
+
     private var accessibilityHint: LocalizedStringKey? {
         if localState == .tapAwaitingUndo {
             return "storyChoice.choiceCard.hint.undoWindow"
@@ -118,6 +137,26 @@ struct ChoiceCardView: View {
             .opacity(isDecided && !isSelected ? ButtonMetrics.disabledOpacity : 1)
             .allowsHitTesting(isInteractive)
             .highPriorityGesture(chargeGesture)
+            // Accessibility audit fix (Story 3.5, 2026-08-08): without this, the checkmark/chevron
+            // `Image` overlays above surface as their OWN separate accessibility elements (each
+            // sized to its own tiny glyph bounds, e.g. 7x12) instead of being absorbed into this
+            // card's single element — confirmed via a live Xcode Accessibility Inspector Audit
+            // pass, which flagged both the label Text (143x17, NOT the full 44pt-tall `.frame()`
+            // above) and the chevron glyph as independent "hit area too small" violations (NFR6).
+            // Applying `.accessibilityAddTraits`/`.accessibilityHint`/`.accessibilityAction` alone
+            // does NOT implicitly collapse sibling `.overlay` content into one element — only
+            // `.accessibilityElement(children:)` does that. `.ignore` makes this fully-composed
+            // view (already `.frame(minHeight: 44)` above) the sole accessibility element, so its
+            // reported hit area matches the real 44pt+ visual card, and the icons stop appearing
+            // as separate audit-flagged elements entirely.
+            .accessibilityElement(children: .ignore)
+            // `.ignore` above means the label is no longer inherited from the inner `Text` —
+            // set explicitly, same key the visible `Text` at the top of this view uses.
+            .accessibilityLabel(Text(LocalizedStringKey(option.labelKey)))
+            // Restores EXPERIENCE.md's Accessibility Floor example ("...not yet selected" /
+            // "...selected, double-tap again...") — previously never implemented as an explicit
+            // value, only implied by the now-ignored checkmark icon's default SF Symbol label.
+            .accessibilityValue(Text(accessibilityStateValue))
             .accessibilityAddTraits(.isButton)
             .accessibilityAction(.default, handleAccessibilityActivate)
             // .map(Text.init), not a closure, resolves Text's generic StringProtocol overload

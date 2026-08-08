@@ -40,7 +40,7 @@ FR9: Ending screen — The system displays an ending screen using a single share
 
 FR10: End-of-run recap (memory screen) — After the ending screen, the system shows a memory screen listing the choices made during the run, what each one caused, and the alignment score/tier — for every ending type, including hard-fail. Memory screen is shown for 100% of completed runs; from it, the player can return home or start a new run (each gesture-selectable with accessible tap equivalent).
 
-FR11: Accessible interaction parity — Every gesture-based interaction (navigation and choice selection alike) has a standard, VoiceOver-compatible tap alternative; the story text area follows Apple HIG accessibility guidance (Dynamic Type, VoiceOver labeling, sufficient contrast). No interaction in the app is reachable only via a custom gesture; the story text area passes VoiceOver navigation and responds to Dynamic Type sizing.
+FR11: Accessible interaction parity — Every gesture-based interaction (navigation and choice selection alike) has a standard tap alternative; the story text area follows Apple HIG accessibility guidance (Dynamic Type, sufficient contrast). No interaction in the app is reachable only via a custom gesture; the story text area responds to Dynamic Type sizing. **Scope decision, 2026-08-07 (see project-context.md Process Agreements):** VoiceOver is not officially tested/supported for v1 — labels/hints/rotor actions/focus order already implemented across Epics 1-3 remain as best-effort scaffolding, not a v1 acceptance gate. Historical story ACs (Epics 1, 2, 5) referencing VoiceOver as a tested requirement are left as-shipped, per this doc's existing "don't re-litigate a resolved conflict" convention.
 
 FR12: Bundled branch-reality illustrations — The app ships with one pre-generated illustration per distinct branch-reality flavor (~10-15 total), bundled in the app binary. No illustration is fetched over the network at runtime.
 
@@ -106,7 +106,7 @@ UX-DR10: Tutorial screen — explains page-turn (swipe/tap-zone) and choice (hol
 
 UX-DR11: Run-options action sheet — ellipsis-circle icon, top-right of the reading card content area, present on every Story/Choice page (absent from interstitial, Home, and Tutorial); opens platform-native action sheet with Exit to Home (non-destructive, preserves snapshot), Restart This Run (destructive-styled, requires a second explicit confirmation, clears progress and score), Exit and Clear Progress (destructive-styled, requires a second explicit confirmation matching Restart This Run's weight, clears progress and score and navigates to Home), Cancel. *(Amended 2026-08-02 — see Story 2.11 and `sprint-change-proposal-2026-08-02-tutorial-navigation-and-fixed-actions.md`; originally added to Tutorial by Story 2.7 as "present on every Story/Choice and Tutorial page." Tutorial is a pre-run explainer, not a page within a run — its own back navigation already covers the "leave" case, and "Restart This Run" needed a hasInProgressRun guard to avoid describing progress that might not exist, a sign the control didn't fit the screen it was retrofitted onto. Amended again 2026-08-03 — see Story 2.13 and a Sally/UX discussion of deferred-work.md's "2-7-run-options-action-sheet" open design questions; the sheet previously had no single action that both cleared progress and returned to Home, only a two-step Restart-then-Exit workaround. The interstitial exclusion was separately discussed and reconfirmed as-is: the first-visit-only gate (Story 2.9) already means a revisited interstitial behaves like an ordinary page, so no gap actually exists there. Amended again 2026-08-04 — see Story 2.12: "platform-native action sheet" is redefined for this control from a bottom-sliding sheet to iOS 26's button-anchored popover style — Apple changed `confirmationDialog`/`actionSheet` to anchor to their triggering view on iPhone starting in iOS 26, matching iPadOS's long-standing popover presentation (confirmed via WWDC 2025 Session 284), and this app is built against the iOS 26 SDK. This is accepted as the new native behavior rather than fought — the actionable defect was the missing Cancel row, not the presentation style itself; that row is restored by dropping the `.cancel` role from its Button declaration, since popover-style action sheets have always auto-suppressed `.cancel`-role actions (documented `UIAlertController` behavior since iOS 8) in favor of tap-outside-to-dismiss.)*
 
-UX-DR12: VoiceOver support — every choice card exposes role/label/state (including the 1.5s undo-window announcement); Story page exposes "Next Page"/"Previous Page" as VoiceOver custom actions (rotor-accessible, since swipe is otherwise consumed by VoiceOver navigation); run-options button carries an explicit `accessibilityLabel` of "Run options"; focus traversal follows reading order (eyebrow → prose → choices → pager, run-options last).
+UX-DR12: VoiceOver support (implemented, best-effort — not an officially tested v1 requirement, see FR11's 2026-08-07 scope decision) — every choice card exposes role/label/state (including the 1.5s undo-window announcement); Story page exposes "Next Page"/"Previous Page" as VoiceOver custom actions (rotor-accessible, since swipe is otherwise consumed by VoiceOver navigation); run-options button carries an explicit `accessibilityLabel` of "Run options"; focus traversal follows reading order (eyebrow → prose → choices → pager, run-options last). Focus order and accessibility labels remain in scope generally (project-context.md); only live VoiceOver testing is out of scope for v1.
 
 UX-DR13: Dynamic Type support — all text roles scale through accessibility sizes without truncation; frame-well padding and circuit corner clearance sized with headroom for the largest accessibility category; content (not the frame) scrolls inside the fixed frame when it exceeds visible height.
 
@@ -903,14 +903,14 @@ So these screens match DESIGN.md instead of falling back to the plain system def
 ### Story 3.5: End-to-End Accessibility Validation
 
 As a player using any assistive technology,
-I want the complete app — Home through Memory — verified end-to-end for VoiceOver, Dynamic Type, Reduce Motion, and contrast,
-So nothing scattered across individual stories was missed.
+I want the complete app — Home through Memory — verified end-to-end for accessibility structure, Dynamic Type, Reduce Motion, and contrast,
+So nothing scattered across individual stories was missed. **Scope decision, 2026-08-07:** VoiceOver is not officially tested/supported for v1 (see project-context.md Process Agreements) — this story's VoiceOver-related ACs are now structural/code-audit checks, not live VoiceOver walkthroughs.
 
 **Acceptance Criteria:**
 
 **Given** the full app (Epics 1-3) is complete
-**When** walked end-to-end using VoiceOver only, no sighted/gesture interaction
-**Then** every screen and action is reachable, correctly labeled, and announces state changes (choice selected, undo window, echo firing, ending reached) (FR11)
+**When** every screen is audited via code inspection and Xcode's Accessibility Inspector (Audit tool) — not live VoiceOver, per the 2026-08-07 scope decision that VoiceOver is not officially tested for v1
+**Then** every interactive element has a structurally correct accessibility label/trait/state, with no Accessibility Inspector audit warnings (missing description, ambiguous trait) on any screen
 
 **Given** Dynamic Type at the largest accessibility category
 **When** every screen is inspected
@@ -929,16 +929,16 @@ So nothing scattered across individual stories was missed.
 **Then** none is reachable only via a custom gesture — every one has a standard tap/VoiceOver equivalent (FR11's hard constraint)
 
 **Given** every illustration in the app
-**When** audited with VoiceOver
-**Then** each announces its authored descriptive label — none is silent (hidden) and none announces a meaningless default label
+**When** audited via code inspection (grep for `Image(` call sites and their accessibility modifiers)
+**Then** each has a real, descriptive `accessibilityLabel` or is deliberately `.accessibilityHidden(true)` as pure decoration — none silent-by-omission, none a meaningless default label
 
 **Given** `runOptionsButtonClearance` (fixed 60pt, `StoryChoiceView.swift`), unverified since Story 2.8's code review at the largest accessibility Dynamic Type category
 **When** the top-right corner of a Story/Choice page is inspected at AX5
 **Then** the run-options button's SF Symbol glyph does not overlap reading text, confirming the fixed clearance still holds at maximum scale (closes the Story 2.8 deferred-work.md item)
 
-**Given** VoiceOver's "Next Page"/"Previous Page" custom rotor actions (`StoryChoiceView.swift`)
-**When** exercised while forward navigation is blocked by an unresolved choice
-**Then** the audit records whether silent no-op (no audio/haptic feedback) is acceptable as shipped or needs a follow-up fix — a judgment call, not an automatic AC failure (closes the Story 2.2 deferred-work.md item)
+**Given** the rotor action closures in `StoryChoiceView.swift` call the same `advancePage()`/`goBack()` intents used elsewhere
+**When** traced via code inspection (not live VoiceOver, per the 2026-08-07 scope decision)
+**Then** the audit confirms the blocked-navigation behavior is a true no-op with no unintended side effects — closes the Story 2.2 deferred-work.md item; no further live confirmation needed since VoiceOver isn't an officially tested v1 path
 
 **Given** `EndingView.swift`'s `backSwipeGesture`, which sits outside the `GeometryReader`/`ScrollView` that only activates at accessibility Dynamic Type sizes
 **When** exercised specifically at an accessibility Dynamic Type size on the Ending screen
@@ -1054,11 +1054,9 @@ So the app delivers the real experience.
 
 **Given** each of the ~10-15 branch-reality illustrations
 **When** authored
-**Then** a distinct, descriptive VoiceOver description of what the illustration depicts is written and added to `Localizable.xcstrings` alongside the caption — not restating the caption, but conveying the illustration's specific visual content so VoiceOver users get equivalent access to the branch reality's atmosphere
+**Then** a distinct, descriptive accessibility-label string is written and added to `Localizable.xcstrings` alongside the caption — not restating the caption, but conveying the illustration's specific visual content. Kept as best-effort scaffolding (2026-08-07 scope decision: VoiceOver isn't officially tested for v1, but authoring this costs nothing extra during prose-writing and keeps the door open for a future VoiceOver push)
 
-**Given** Tutorial's `tutorial.mechanic.pageTurn` copy, which currently describes only the swipe/tap-edge page-turn mechanic
-**When** its final prose is authored
-**Then** it also mentions the VoiceOver-specific alternative (the "Next Page"/"Previous Page" rotor custom actions, Story 2.2/UX-DR12) — a VoiceOver user reading Tutorial's own explanation shouldn't be left to discover that alternative by accident (closes the Story 1.3 deferred-work.md item)
+~~**Given** Tutorial's `tutorial.mechanic.pageTurn` copy, which currently describes only the swipe/tap-edge page-turn mechanic, When its final prose is authored, Then it also mentions the VoiceOver-specific alternative...**~~ **[DROPPED, 2026-08-07 scope decision]** — Tutorial copy explaining a VoiceOver-specific rotor action would be confusing/irrelevant given VoiceOver isn't officially promoted for v1. The Story 1.3 deferred-work.md item this closed is re-flagged as **[ACCEPTED — no action, VoiceOver out of v1 scope]** instead.
 
 ### Story 4.3: Story Tree Wiring
 
@@ -1124,9 +1122,9 @@ So each reality feels visually grounded.
 **When** illustrations are wired
 **Then** none are fetched over the network at runtime — bundled in the app binary
 
-**Given** each illustration's authored VoiceOver description (Story 4.2)
+**Given** each illustration's authored accessibility-label description (Story 4.2)
 **When** the interstitial renders
-**Then** the illustration exposes that description as its `accessibilityLabel` — VoiceOver users hear a real description of the branch reality's visual flavor, not a meaningless default label and not silence
+**Then** the illustration exposes that description as its `accessibilityLabel` — implemented as best-effort accessibility scaffolding (2026-08-07 scope decision), not gated on live VoiceOver testing for v1
 
 ### Story 4.5: Content Playtesting & App Store Rating Self-Assessment
 

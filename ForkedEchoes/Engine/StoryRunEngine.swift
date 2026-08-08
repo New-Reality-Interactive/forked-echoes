@@ -343,7 +343,6 @@ final class StoryRunEngine {
             currentNodeId: currentNodeId,
             choiceHistory: choiceHistory,
             alignmentScore: alignmentScore,
-            tutorialSeen: false,
             visitedArrivalNodeIds: dismissedInterstitialNodeIds,
             visitedNodeIds: visitedNodeIds
         )

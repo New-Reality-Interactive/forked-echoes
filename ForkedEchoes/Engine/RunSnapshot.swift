@@ -7,13 +7,17 @@ import Foundation
 // persisted signal to survive a real app relaunch; neither is derivable from the original four
 // fields alone. `phase` itself is still never stored — it stays derived from currentNodeId's node
 // kind plus `visitedArrivalNodeIds`, AD-5's "phase derived, not stored" ethos unchanged.
-// `tutorialSeen` has no producer anywhere in the codebase yet (see Story 2.4 Completion Notes) —
-// it is always written/read as `false` until a future story wires a real signal into the engine.
+// Story 3.8: `tutorialSeen` (present through Story 3.7) was removed as dead scope — it never had a
+// producer (always written `false`) and no consumer anywhere in the codebase since Story 2.4, and
+// no planning artifact (PRD/epics.md/DESIGN.md/EXPERIENCE.md) describes a feature that would
+// consume a "has the player seen the tutorial" signal. Old on-disk snapshots that still contain a
+// `tutorialSeen` JSON key decode fine — CodingKeys below simply no longer names that key, and
+// Codable's keyed-container decode silently ignores unknown keys (see RunSnapshotTests.swift's
+// decode-compatibility fixtures, which keep the JSON literal to prove this).
 struct RunSnapshot: Codable, Equatable {
     let currentNodeId: NodeID
     let choiceHistory: [ChoiceRecord]
     let alignmentScore: Int
-    let tutorialSeen: Bool
     /// Story 2.9: branch-arrival nodes (StoryNode.reading's `arrival` case) the player has fully
     /// passed at least once — i.e. dismissed the interstitial for — surviving relaunch. Lets a
     /// freshly-constructed StoryRunEngine (resumingFromSnapshot(defaults:)) know an arrival node
@@ -40,14 +44,12 @@ struct RunSnapshot: Codable, Equatable {
         currentNodeId: NodeID,
         choiceHistory: [ChoiceRecord],
         alignmentScore: Int,
-        tutorialSeen: Bool,
         visitedArrivalNodeIds: Set<NodeID> = [],
         visitedNodeIds: [NodeID] = []
     ) {
         self.currentNodeId = currentNodeId
         self.choiceHistory = choiceHistory
         self.alignmentScore = alignmentScore
-        self.tutorialSeen = tutorialSeen
         self.visitedArrivalNodeIds = visitedArrivalNodeIds
         self.visitedNodeIds = visitedNodeIds
     }
@@ -62,7 +64,6 @@ struct RunSnapshot: Codable, Equatable {
         currentNodeId = try container.decode(NodeID.self, forKey: .currentNodeId)
         choiceHistory = try container.decode([ChoiceRecord].self, forKey: .choiceHistory)
         alignmentScore = try container.decode(Int.self, forKey: .alignmentScore)
-        tutorialSeen = try container.decode(Bool.self, forKey: .tutorialSeen)
         visitedArrivalNodeIds = try container.decodeIfPresent(Set<NodeID>.self, forKey: .visitedArrivalNodeIds) ?? []
         visitedNodeIds = try container.decodeIfPresent([NodeID].self, forKey: .visitedNodeIds) ?? []
     }
@@ -72,13 +73,12 @@ struct RunSnapshot: Codable, Equatable {
         try container.encode(currentNodeId, forKey: .currentNodeId)
         try container.encode(choiceHistory, forKey: .choiceHistory)
         try container.encode(alignmentScore, forKey: .alignmentScore)
-        try container.encode(tutorialSeen, forKey: .tutorialSeen)
         try container.encode(visitedArrivalNodeIds, forKey: .visitedArrivalNodeIds)
         try container.encode(visitedNodeIds, forKey: .visitedNodeIds)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case currentNodeId, choiceHistory, alignmentScore, tutorialSeen, visitedArrivalNodeIds, visitedNodeIds
+        case currentNodeId, choiceHistory, alignmentScore, visitedArrivalNodeIds, visitedNodeIds
     }
 }
 

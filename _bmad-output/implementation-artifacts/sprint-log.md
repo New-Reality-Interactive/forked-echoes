@@ -2,6 +2,8 @@
 
 Full narrative history of `sprint-status.yaml`'s `last_updated` field, archived here 2026-08-06 to fix the "unbounded ever-growing single line" problem flagged in `deferred-work.md` across three separate reviews (2-14, 3-1, 3-2). Going forward, `sprint-status.yaml`'s `last_updated` field holds only the current entry; each time it's overwritten, the previous entry is appended below before being replaced.
 
+## 2026-08-08 (Story 3.7 code-review: no application code changed by this story (audit-and-test story, no .swift diff) — code-review agent confirmed there was nothing to review beyond sprint-tracking metadata. Zero findings. Status moved to done.)
+
 ## 2026-08-08 (Story 3.5 code review: accessibility fix confirmed, story done)
 
 3-5-end-to-end-accessibility-validation: code review patched a misleading accessibilityStateValue on decided-but-not-chosen ChoiceCardView cards (was announcing "Not yet selected."); fixed with a new storyChoice.choiceCard.state.notChosen value/key. User-verified via Accessibility Inspector re-run — fix confirmed working. Status moved to done. Four smaller findings deferred to deferred-work.md.

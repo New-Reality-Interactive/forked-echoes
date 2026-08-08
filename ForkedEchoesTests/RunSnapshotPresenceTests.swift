@@ -26,8 +26,7 @@ struct RunSnapshotPresenceTests {
         let snapshot = RunSnapshot(
             currentNodeId: .firstChoice,
             choiceHistory: [],
-            alignmentScore: 0,
-            tutorialSeen: false
+            alignmentScore: 0
         )
         let data = try! JSONEncoder().encode(snapshot)
         defaults.set(data, forKey: RunSnapshotPresence.runSnapshotKey)
@@ -58,8 +57,7 @@ struct RunSnapshotPresenceTests {
         let snapshot = RunSnapshot(
             currentNodeId: .firstChoice,
             choiceHistory: [],
-            alignmentScore: 0,
-            tutorialSeen: false
+            alignmentScore: 0
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
         observer.refresh()
@@ -73,8 +71,7 @@ struct RunSnapshotPresenceTests {
         let snapshot = RunSnapshot(
             currentNodeId: .firstChoice,
             choiceHistory: [],
-            alignmentScore: 0,
-            tutorialSeen: false
+            alignmentScore: 0
         )
         defaults.set(try! JSONEncoder().encode(snapshot), forKey: RunSnapshotPresence.runSnapshotKey)
         let observer = RunProgressObserver(defaults: defaults)

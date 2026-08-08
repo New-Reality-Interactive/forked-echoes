@@ -266,6 +266,9 @@ struct StoryChoiceView: View {
                         // DESIGN.md echo-callback token: the tag uses accent-ember-text, not
                         // accent-ember — accent-ember fails AA contrast at this text size on
                         // surface-inverse (DESIGN.md.components.echo-callback.note).
+                        // Story 3.8: `.fontWeight(.bold)` here is a deliberate one-off emphasis,
+                        // not a dropped/undocumented typography role — DESIGN.md's
+                        // components.echo-callback.tag-weight/.note now say so explicitly.
                         Text(LocalizedStringKey("storyChoice.echo.tag"))
                             .fontWeight(.bold)
                             .foregroundStyle(Color.accentEmberText)

@@ -24,6 +24,11 @@ struct StoryChoiceView: View {
     // mid-undo-window at a time (AC #1) — a card's own local @State can't see its siblings.
     @State private var activeChoiceOptionID: ChoiceOptionID?
 
+    // Story 3.9: drives RunOptionsButton's recede-on-scroll opacity. Only ever set true at the
+    // accessibility-size call site below (the only place with a real ScrollView to report
+    // phase from) — reset on every page-turn so a stale `true` never carries forward.
+    @State private var isReadingContentScrolling = false
+
     // Story 2.8, AC #3: gates the interstitial's entrance/exit transition below. Read here
     // (rather than duplicated inside BranchArrivalInterstitialView) since this is the one call
     // site that drives the animated phase-branch swap.
@@ -139,7 +144,7 @@ struct StoryChoiceView: View {
                 // so it keeps its old scroll offset across page-turns instead of resetting to the
                 // top (found via Simulator AX5 walkthrough, Story 3.5).
                 content
-                    .accessibilitySizeFramedScroll()
+                    .accessibilitySizeFramedScroll(isScrolling: $isReadingContentScrolling)
                     .id(engine.currentNodeId)
                     .transition(.opacity)
             } else {
@@ -194,7 +199,8 @@ struct StoryChoiceView: View {
                     onExitAndClearProgress: {
                         engine.exitAndClearProgress()
                         onExitToHome()
-                    }
+                    },
+                    isReceded: isReadingContentScrolling
                 )
             }
             .accessibilityAction(named: Text("storyChoice.pager.nextPage")) {
@@ -209,6 +215,21 @@ struct StoryChoiceView: View {
                 // activeChoiceOptionID left over from a previous choice page could misattribute
                 // "currently active" state to an unrelated card on a newly-arrived-at node.
                 activeChoiceOptionID = nil
+                // Story 3.9: a page-turn tears down and rebuilds the accessibility-size
+                // ScrollView (.id(engine.currentNodeId) on the framed-scroll container above), so
+                // a stale `true` left over from the previous page must not carry forward and
+                // leave the button incorrectly receded on a fresh page.
+                isReadingContentScrolling = false
+            }
+            // Story 3.9 code review, 2026-08-08: dynamicTypeSize is a live @Environment value —
+            // shrinking below the accessibility threshold mid-scroll (e.g. via Control Center)
+            // swaps readingComposition to the non-ScrollView branch without a page turn, so the
+            // .onChange(of: engine.currentNodeId) reset above never fires. Without this, a stale
+            // `true` would leave the button incorrectly receded on an ordinary-size page.
+            .onChange(of: dynamicTypeSize.isAccessibilitySize) { _, isAccessibilitySize in
+                if !isAccessibilitySize {
+                    isReadingContentScrolling = false
+                }
             }
     }
 

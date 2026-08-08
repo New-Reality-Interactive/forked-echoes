@@ -1000,6 +1000,38 @@ So nothing lingers there as an open loop once Epic 3 wraps.
 
 **And** a manual-verification AC: in Xcode/Simulator, confirm (1) a genuinely neutral-score run displays "0" (not "+0") on Memory, and (2) whichever `tutorialSeen` decision was implemented behaves as decided. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
 
+### Story 3.9: Run-Options Button Recede-on-Scroll
+
+As a developer,
+I want `RunOptionsButton` to recede to a low-opacity state while the reading content is actively scrolling, returning to full opacity once scrolling stops,
+So that the button never visually collides with scrolled prose at accessibility Dynamic Type sizes, and so it reads as quieter chrome during ordinary reading rather than a persistent, full-opacity distraction.
+
+*(Added via UX design pass, 2026-08-08 — user-reported bug: at accessibility Dynamic Type sizes, `readingComposition`'s `accessibilitySizeFramedScroll()` wraps content in a real `ScrollView`, but `RunOptionsButton`'s `.overlay(alignment: .topTrailing)` is fixed in screen space; `LayoutMetrics.runOptionsButtonClearance`'s top-padding clearance only protects the content's *initial* layout, not its scrolled position, so scrolled prose can move up underneath the button. Discussed with the user via UX design session (Sally): a shake-gesture alternative was considered and rejected — it collides with iOS's system-reserved "Shake to Undo" convention, has no visual affordance, risks accidental activation of a destructive menu item, and has no tap equivalent (violates FR-11). The user separately noted the button feels like persistent visual clutter during ordinary reading. DESIGN.md's `components.run-options-button` token block has already been updated with the full recede/return spec (opacity-resting/opacity-receded/recede-trigger/return-trigger/recede-transition-duration) ahead of this story.)*
+
+**Acceptance Criteria:**
+
+**Given** `RunOptionsButton` is visible on a Story/Choice reading page at an accessibility Dynamic Type size (where `readingComposition` wraps `content` in `accessibilitySizeFramedScroll()`'s `ScrollView`)
+**When** the user scrolls the reading content
+**Then** the button's opacity recedes to `{components.run-options-button.opacity-receded}` (0.35) via a `{components.run-options-button.recede-transition-duration}` (200ms) cross-fade
+
+**Given** the button has receded during scrolling
+**When** scrolling comes to rest
+**Then** the button returns to full opacity (1.0) via the same cross-fade
+
+**Given** Reduce Motion is enabled (NFR5)
+**When** the button transitions between resting and receded opacity
+**Then** the transition is an instant snap, not an animated cross-fade — matching this codebase's existing `reduceMotion`-gated `.animation(...)` convention (e.g. `StoryChoiceView.swift`'s phase/page-turn transitions)
+
+**Given** the button is in its receded (0.35 opacity) state
+**When** the user taps it
+**Then** it still opens the run-options `.confirmationDialog` exactly as before — hit-testing and the 44pt tap target are unaffected by the opacity change (FR-11: no gesture-only interaction; this is a visual-only state, never a disabled or hidden one)
+
+**Given** a Story/Choice reading page at an ordinary (non-accessibility) Dynamic Type size, where `readingComposition` never wraps `content` in a `ScrollView` and nothing scrolls
+**When** the page renders
+**Then** `RunOptionsButton` stays at its existing full-opacity resting appearance — this story's recede behavior is explicitly scoped to sizes where scrolling can actually occur; it does not address any residual "clutter at ordinary size" concern, since there is no scroll signal to recede on there
+
+**And** a manual-verification AC: in Xcode/Simulator, at an accessibility Dynamic Type size, confirm (a) the button visibly recedes while actively scrolling reading content that previously collided with it, (b) it returns to full opacity once scrolling stops, (c) tapping it while receded still opens the run-options menu, and (d) with Reduce Motion enabled, the opacity change snaps instantly rather than fading. Result + date recorded in the story's Completion Notes List (project-context.md Process Agreement)
+
 ## Epic 4: Story Content & Illustration Production
 
 The player experiences the actual v1 story — real branches, real prose, real echoes, real illustrations — replacing every placeholder Epic 2/3 stood up to unblock engineering work.

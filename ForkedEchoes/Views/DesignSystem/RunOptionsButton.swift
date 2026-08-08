@@ -32,9 +32,18 @@ struct RunOptionsButton: View {
     let onRestartRun: () -> Void
     let onExitAndClearProgress: () -> Void
 
+    // Story 3.9: opacity-recede-while-scrolling state, driven by StoryChoiceView's
+    // isReadingContentScrolling. Defaults to false so this view's own #Preview and any other
+    // call site are unaffected unless they opt in.
+    var isReceded: Bool = false
+
     @State private var isPresentingOptions = false
     @State private var isPresentingRestartConfirmation = false
     @State private var isPresentingExitAndClearConfirmation = false
+
+    // Story 3.9, AC #3: gates the opacity cross-fade below — this view is a separate `View`
+    // struct from StoryChoiceView, so it needs its own read of this environment value.
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var cancelButtonRole: ButtonRole? {
         if #available(iOS 26, *) {
@@ -54,6 +63,14 @@ struct RunOptionsButton: View {
         // DESIGN.md `components.run-options-button`: trace-brass idle, ink-primary pressed.
         .buttonStyle(RunOptionsButtonStyle())
         .padding(Spacing.small)
+        // Story 3.9, AC #1/#2/#3: opacity-only recede while reading content scrolls — never
+        // .disabled()/hit-testing-affecting (AC #4: the tap target stays fully live at 0.35
+        // opacity; SwiftUI's .opacity() doesn't disable hit-testing at any non-zero value).
+        .opacity(isReceded ? LayoutMetrics.runOptionsButtonOpacityReceded : 1.0)
+        .animation(
+            reduceMotion ? nil : .easeInOut(duration: LayoutMetrics.runOptionsButtonRecedeDuration.timeInterval),
+            value: isReceded
+        )
         .accessibilityLabel(Text("runOptions.accessibilityLabel"))
         // Code review, 2026-08-02 (UX-DR12): VoiceOver's default traversal order follows visual
         // layout, and this button sits top-trailing — first in reading order, not last. A negative

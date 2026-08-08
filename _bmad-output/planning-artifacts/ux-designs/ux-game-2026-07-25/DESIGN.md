@@ -157,6 +157,12 @@ components:
     color-pressed: '{colors.ink-primary}'
     position: 'top-right of the reading card content area, inset so it never overlaps the circuit corner geometry'
     tap-target: 44pt minimum (glyph itself smaller, hit area padded)
+    opacity-resting: 1.0
+    opacity-receded: 0.35
+    recede-trigger: 'reading content is actively scrolling'
+    return-trigger: 'scroll comes to rest, or any tap within the reading area'
+    recede-transition-duration: 200ms
+    note: 'Recede-while-scrolling behavior (Story TBD, 2026-08-08) added for two reasons: (1) at accessibility Dynamic Type sizes the reading content scrolls (see Layout & Spacing''s frame/content two-layer note) and the fixed-position button could visually collide with scrolled prose — receding removes the collision from view during the exact window it could occur, without changing the button''s fixed screen position or the scroll geometry; (2) at full opacity on every page regardless of reading activity, the button read as persistent clutter competing with prose. This is a visual-only state — hit-testing/tap target stay fully active at opacity-receded, so a tap still opens the menu even mid-recede, preserving FR-11''s no-gesture-only-interaction guarantee. The opacity cross-fade must snap instantly (no animated transition) under Reduce Motion (NFR5), matching this system''s existing motion-collapse rule (see Brand & Style).'
   ending-frame:
     inherits: '{components.frame}'
     rule-color: '{colors.accent-ember}'
@@ -267,7 +273,7 @@ Sharp everywhere. `{rounded.DEFAULT}` (0px) applies to the reading card, choice 
 - **Branch-arrival interstitial** (`{components.interstitial}`) — full-bleed `{colors.surface-inverse}` background, CSS-composed art (no literal image assets), oversized headline in `{colors.selected-fill}`, caption bar with a `{colors.accent-ember}` top accent. No circuit frame here — this screen is the one moment the reading frame steps aside for pure art. At accessibility Dynamic Type sizes the headline may wrap to 2 lines; the art never contests that space (see Layout & Spacing).
 - **Continue button** (`{components.continue-button}`) — solid `{colors.selected-fill}` fill, `{colors.surface-inverse}` text, sharp corners, uppercase label. The only filled (non-outline) button in the system besides the selected choice state.
 
-- **Run options button** (`{components.run-options-button}`) — a small ellipsis-circle glyph in `{colors.trace-brass}`, reading as a quiet console control rather than a system chrome element. Present on every Story/Choice and Tutorial page; deliberately absent from the branch-arrival interstitial (that screen stays a pure art moment) and from Home (nothing to exit from there). VoiceOver label specified in `EXPERIENCE.md.Accessibility Floor`.
+- **Run options button** (`{components.run-options-button}`) — a small ellipsis-circle glyph in `{colors.trace-brass}`, reading as a quiet console control rather than a system chrome element. Present on every Story/Choice and Tutorial page; deliberately absent from the branch-arrival interstitial (that screen stays a pure art moment) and from Home (nothing to exit from there). Recedes to `{components.run-options-button.opacity-receded}` while the reading content is actively scrolling, returning to full opacity at scroll-rest or on any tap — see the token block for the full recede/return spec and its rationale. VoiceOver label specified in `EXPERIENCE.md.Accessibility Floor`.
 - **Ending frame** (`{components.ending-frame}`) — the only screen where the circuit frame's powered-up ember state is a resting condition, not a transition. Signals "this run is fully resolved" — the console stayed lit because the story finished, not because an echo just fired. Carries the same grown-via/filled-pad shape cue as the transient echo state, permanently.
 - **Memory row** (`{components.memory-row}`) — a read-only choice-and-consequence row, visually related to the choice-card (same label typography) but flat, undecorated, no border or press state — this screen looks back, it doesn't ask for input.
 - **Memory score** (`{components.memory-score}`) — the alignment-score number and tier label at the top of Memory, in `{typography.stat}` and `{colors.accent-ember}` (safe at this size — see Colors) with the tier label in `{typography.meta}`/`{colors.ink-secondary}`.

@@ -119,6 +119,15 @@ struct BranchArrivalInterstitialView: View {
                     onContinue()
                 }) {
                     Text(LocalizedStringKey("storyChoice.interstitial.continue"))
+                        // `minWidth`/`minHeight` alone only guarantee a 44pt floor — at large
+                        // Dynamic Type sizes the heavy, uppercase text grows to fill that frame
+                        // exactly, leaving no breathing room around it (found via Simulator AX5
+                        // walkthrough, Story 3.5). Explicit padding keeps the text clear of the
+                        // button's background edges at every size, same as the horizontal
+                        // breathing room Home/Tutorial's `maxWidth: .infinity` buttons get for
+                        // free from spanning the full row width.
+                        .padding(.horizontal, Spacing.medium)
+                        .padding(.vertical, Spacing.small)
                         .frame(minWidth: LayoutMetrics.minTapTarget, minHeight: LayoutMetrics.minTapTarget)
                 }
                 .buttonStyle(.continueAction)
